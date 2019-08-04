@@ -1,0 +1,19 @@
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.GridPane?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.event.ActionEvent?>
+
+<?import view.MainCanvas?>
+<VBox fx:controller="view.MainView" xmlns:fx="http://javafx.com/fxml" alignment="center">
+    <children>
+        <HBox>
+            <MainCanvas fx:id="canvas" width="1366" height="768"></MainCanvas>
+
+        </HBox>
+    </children>
+</VBox>
