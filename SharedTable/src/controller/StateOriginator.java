@@ -9,8 +9,8 @@ public class StateOriginator {
 
     public StateMemento createMemento(){
         StateMemento stateMemento = new StateMemento();
-        stateMemento.addCommands(currentListOfCommands);
-        currentListOfCommands = deepCopyCommands(currentListOfCommands);
+        stateMemento.addCommands(currentCommandList);
+        currentCommandList = deepCopyCommands(currentCommandList);
         return stateMemento;
     }
 
@@ -25,8 +25,8 @@ public class StateOriginator {
     }
 
     public void addCommand(Command command) {
-        currentListOfCommands.add(command);
+        currentCommandList.add(command);
     }
 
-    private ArrayList<Command> currentListOfCommands = new ArrayList<>();
+    private ArrayList<Command> currentCommandList = new ArrayList<>();
 }
