@@ -1,17 +1,12 @@
 package view;
 
+import controller.KeyboardEventHandler;
 import javafx.application.Application;
-import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.ArcType;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
-import javafx.event.ActionEvent;
 
 
 public class MainView extends Application {
@@ -19,19 +14,36 @@ public class MainView extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
         Parent root = FXMLLoader.load(getClass().getResource("MainView.fxml"));
-
         primaryStage.setTitle("Shared Table");
-        Scene sc = new Scene(root, 1366, 768);
-        primaryStage.setScene(sc);
+        Scene scene = new Scene(root, 1366, 768);
+        primaryStage.setScene(scene);
         primaryStage.show();
+
+        MainCanvas mainCanvas = (MainCanvas)scene.lookup("#canvas");
+        KeyboardEventHandler keyboardEventHandler = new KeyboardEventHandler(mainCanvas);
+        primaryStage.addEventHandler(KeyEvent.KEY_PRESSED,
+                event-> {
+                    keyboardEventHandler.handleEvent(event);
+                });
 
     }
 
 
 
     public static void main(String[] args) {
+
+
         launch(args);
     }
+
+
+    //TODO #1 Memento állapottárolásra (Caretaker, originator)
+        //Caretaker: Holds the array list of commands
+        //Originator: Collects data and Creates mementoes from them
+            // and unboxes mementoes
+    //TODO #2 Basic connection élő rajzolással
+    //TODO #3 login utáni szinkronbahozás
+
 }
 
 

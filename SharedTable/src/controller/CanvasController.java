@@ -1,12 +1,18 @@
 package controller;
 
 import view.MainCanvas;
-import java.util.ArrayList;
+
+import java.util.UUID;
 
 public class CanvasController {
 
-    public CanvasController(MainCanvas canvas) {
-        this.canvas = canvas;
+    public CanvasController(MainCanvas mainCanvas) {
+        this.mainCanvas = mainCanvas;
+        this.stateCaretaker = new StateCaretaker();
+        this.stateOriginator = new StateOriginator();
+        StateMemento firstMemento = stateOriginator.createMemento();
+        actMementoID = firstMemento.getId();
+        stateCaretaker.addMemento(firstMemento);
     }
 
     public void mouseDown(Point p) {
@@ -17,21 +23,60 @@ public class CanvasController {
     public void mouseUp(Point p) {
         isMouseDown = false;
         lastPoint = p;
+        insertNewMementoAfterActual();
     }
 
     public void mouseMove(Point p) {
         if(isMouseDown) {
-            DrawLineCommand command = new DrawLineCommand(canvas,lastPoint,p);
-            createdCommands.add(command);
+            Command command = null;
+            if(currentMode == DrawingMode.ContinousLine){
+                command = new DrawLineCommand(mainCanvas,lastPoint,p);
+            }
+            stateOriginator.addCommand(command);
             command.execute();
             lastPoint = p;
         }
     }
 
+    private UUID insertNewMementoAfterActual() {
+        StateMemento memento = stateOriginator.createMemento();
+        stateCaretaker.addMemento(memento,actMementoID);
+        actMementoID = memento.getId();
+        System.out.println(stateCaretaker.getMementoIndexByID(actMementoID));
+        return memento.getId();
+    }
 
+    public void restorePreviosMemento() {
+
+        System.out.println(stateCaretaker.getMementoIndexByID(actMementoID)-1);
+        restoreMemento(
+                stateCaretaker.getMementoByIndex(
+                        stateCaretaker.getMementoIndexByID(
+                                actMementoID)-1));
+    }
+
+    public void restoreNextMemento() {
+        System.out.println(stateCaretaker.getMementoIndexByID(actMementoID)+1);
+        restoreMemento(
+                stateCaretaker.getMementoByIndex(
+                        stateCaretaker.getMementoIndexByID(
+                                actMementoID)+1));
+
+    }
+
+    private void restoreMemento(StateMemento memento) {
+        mainCanvas.clear();
+        actMementoID = memento.getId();
+        for (Command act: memento.getCommands()) {
+            act.execute();
+        }
+    }
+
+    StateCaretaker stateCaretaker;
+    StateOriginator stateOriginator;
     boolean isMouseDown = false;
     Point lastPoint;
-    MainCanvas canvas;
-    ArrayList<Command> createdCommands = new ArrayList<>();
-
+    MainCanvas mainCanvas;
+    DrawingMode currentMode = DrawingMode.ContinousLine;
+    UUID actMementoID;
 }

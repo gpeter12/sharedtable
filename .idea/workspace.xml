@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="2feedee0-d1ab-42cb-93a2-5c6224493f7d" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/SharedTable.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SharedTable/src/controller/DrawingMode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SharedTable/.idea/libraries/lib.xml" beforeDir="false" afterPath="$PROJECT_DIR$/SharedTable/.idea/libraries/lib.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SharedTable/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/SharedTable/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SharedTable/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/SharedTable/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SharedTable/src/controller/CanvasController.java" beforeDir="false" afterPath="$PROJECT_DIR$/SharedTable/src/controller/CanvasController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SharedTable/src/controller/DrawLineCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/SharedTable/src/controller/DrawLineCommand.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SharedTable/src/view/MainCanvas.java" beforeDir="false" afterPath="$PROJECT_DIR$/SharedTable/src/view/MainCanvas.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SharedTable/src/view/MainView.java" beforeDir="false" afterPath="$PROJECT_DIR$/SharedTable/src/view/MainView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user stories.odt" beforeDir="false" afterPath="$PROJECT_DIR$/user stories.odt" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1OyGUkSazTmtZhgRqTsHc99E89T" />
+  <component name="PropertiesComponent">
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/SharedTable" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="2feedee0-d1ab-42cb-93a2-5c6224493f7d" name="Default Changelist" comment="" />
+      <created>1564942440417</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1564942440417</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
