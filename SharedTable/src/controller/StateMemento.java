@@ -18,6 +18,14 @@ public class StateMemento implements Serializable {
         return commands;
     }
 
+    public ArrayList<Command> getAllCommands() {
+        ArrayList<Command> ret = new ArrayList<>();
+        /*if(getPreviousMemento() != null)
+            ret.addAll(getPreviousMemento().getAllCommands());*/
+        ret.addAll(getCommands());
+        return ret;
+    }
+
     public UUID getId() {
         return id;
     }
@@ -42,7 +50,6 @@ public class StateMemento implements Serializable {
         this.nextMementoID = nextMemento.getId();
     }
 
-
     public UUID getPreviousMementoID() {
         return previousMementoID;
     }
@@ -58,4 +65,6 @@ public class StateMemento implements Serializable {
     private UUID previousMementoID;
     private UUID nextMementoID;
     private ArrayList<Command> commands;
+
+
 }

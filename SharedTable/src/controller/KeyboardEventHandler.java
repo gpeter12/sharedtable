@@ -12,14 +12,16 @@ public class KeyboardEventHandler {
 
         //redo keycombo
         if(event.isControlDown() && isZDown(event) && !event.isShiftDown()) {
-            System.out.println("REDOOOOO");
-            mainCanvas.redo();
+
+            System.out.println("UNDOOOOO");
+            mainCanvas.undo();
         }
 
         //undo keycombo
         if(event.isControlDown() && event.isShiftDown() && isZDown(event)) {
-            System.out.println("UNDOOOOO");
-            mainCanvas.undo();
+            System.out.println("REDOOOOO");
+            mainCanvas.redo();
+
         }
     }
 

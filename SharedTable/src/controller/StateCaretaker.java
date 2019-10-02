@@ -9,34 +9,37 @@ public class StateCaretaker {
 
     }
 
-    public void addMemento(StateMemento stateMemento) {
+    private void linkWithLastMemento(StateMemento stateMemento) {
         mementos.get(mementos.size()-1).setNextMemento(stateMemento);
+    }
+
+    public void addMemento(StateMemento stateMemento) {
+        if(mementos.size()>0)
+            linkWithLastMemento(stateMemento);
         mementos.add(stateMemento);
     }
 
-    public void addMemento(StateMemento stateMemento,UUID after) {
+    private void printAllMementos() {
         System.out.println("-------------------");
         for(int i = 0; i<mementos.size(); i++) {
-            System.out.println("ind: " + i + " "+mementos.get(i));
+            System.out.println("ind: " + i + " "+mementos.get(i).getId());
         }
         System.out.println("-------------------");
+    }
 
-
+    public void addMemento(StateMemento stateMemento,UUID after) {
         int ind = getMementoIndexByID(after);
 
         mementos.get(ind).setNextMemento(stateMemento);
-        for(int i=ind+1; i<mementos.size()-1; i++) {
-            mementos.get(i).setPreviousMemento(mementos.get(i-1));
-            mementos.get(i).setNextMemento(mementos.get(i+1));
-        }
+        //relinkMementoChain(ind);
+        //cleanupAfterStateInsertion(ind);
 
-        /*for(int i = ind+1; i<mementos.size(); i++) {
-            mementos.remove(i);
-        }*/
         mementos.add(ind,stateMemento);
+        printAllMementos();
     }
 
-    private void resyncMementoChain(int ind) {
+
+    private void relinkMementoChain(int ind) {
         for(int i=ind; i<mementos.size()-1; i++) {
             mementos.get(i).setPreviousMemento(mementos.get(i-1));
             mementos.get(i).setNextMemento(mementos.get(i+1));
@@ -44,7 +47,9 @@ public class StateCaretaker {
     }
 
     private void cleanupAfterStateInsertion(int ind) {
-
+        for(int i=ind; i<mementos.size()-1; i++) {
+            mementos.remove(i);
+        }
     }
 
     public StateMemento getMementoByIndex(int index) {
@@ -71,6 +76,10 @@ public class StateCaretaker {
                 return mementos.get(i);
         }
         throw new RuntimeException("Memento not found by ID");
+    }
+
+    public UUID getLastMementoID() {
+        return mementos.get(mementos.size()-1).getId();
     }
 
     private ArrayList<StateMemento> mementos = new ArrayList<>();

@@ -28,16 +28,12 @@ public class MainView extends Application {
 
     }
 
-
-
     public static void main(String[] args) {
-
-
         launch(args);
     }
 
 
-    //TODO #1 Memento állapottárolásra (Caretaker, originator)
+    //TODO #1 Memento állapottárolásra (Caretaker, originator) DONE
         //Caretaker: Holds the array list of commands
         //Originator: Collects data and Creates mementoes from them
             // and unboxes mementoes

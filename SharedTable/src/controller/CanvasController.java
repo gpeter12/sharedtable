@@ -12,6 +12,7 @@ public class CanvasController {
         this.stateOriginator = new StateOriginator();
         StateMemento firstMemento = stateOriginator.createMemento();
         actMementoID = firstMemento.getId();
+        System.out.println("First Memento ID " + actMementoID);
         stateCaretaker.addMemento(firstMemento);
     }
 
@@ -40,11 +41,19 @@ public class CanvasController {
 
     private UUID insertNewMementoAfterActual() {
         StateMemento memento = stateOriginator.createMemento();
-        stateCaretaker.addMemento(memento,actMementoID);
+        if(actMementoID.equals(stateCaretaker.getLastMementoID())) {
+            stateCaretaker.addMemento(memento);
+        }
+        else {
+            stateCaretaker.addMemento(memento,actMementoID);
+        }
+
         actMementoID = memento.getId();
-        System.out.println(stateCaretaker.getMementoIndexByID(actMementoID));
+        System.out.println("actMementoID "+actMementoID);
         return memento.getId();
     }
+
+
 
     public void restorePreviosMemento() {
 
@@ -67,7 +76,7 @@ public class CanvasController {
     private void restoreMemento(StateMemento memento) {
         mainCanvas.clear();
         actMementoID = memento.getId();
-        for (Command act: memento.getCommands()) {
+        for (Command act: memento.getAllCommands()) {
             act.execute();
         }
     }
