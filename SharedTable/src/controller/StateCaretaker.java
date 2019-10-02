@@ -10,7 +10,9 @@ public class StateCaretaker {
     }
 
     private void linkWithLastMemento(StateMemento stateMemento) {
-        mementos.get(mementos.size()-1).setNextMemento(stateMemento);
+        StateMemento actLastMemento = mementos.get(mementos.size()-1);
+        actLastMemento.setNextMemento(stateMemento);
+        stateMemento.setPreviousMemento(actLastMemento);
     }
 
     public void addMemento(StateMemento stateMemento) {
@@ -29,12 +31,9 @@ public class StateCaretaker {
 
     public void addMemento(StateMemento stateMemento,UUID after) {
         int ind = getMementoIndexByID(after);
-
-        mementos.get(ind).setNextMemento(stateMemento);
-        //relinkMementoChain(ind);
-        //cleanupAfterStateInsertion(ind);
-
-        mementos.add(ind,stateMemento);
+        cleanupAfterStateInsertion(ind);
+        linkWithLastMemento(stateMemento);
+        addMemento(stateMemento);
         printAllMementos();
     }
 
@@ -49,7 +48,8 @@ public class StateCaretaker {
     private void cleanupAfterStateInsertion(int ind) {
         for(int i=ind; i<mementos.size()-1; i++) {
             mementos.remove(i);
-        }
+        }System.out.println("after cleanup");
+        printAllMementos();
     }
 
     public StateMemento getMementoByIndex(int index) {

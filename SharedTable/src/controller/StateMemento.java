@@ -20,8 +20,8 @@ public class StateMemento implements Serializable {
 
     public ArrayList<Command> getAllCommands() {
         ArrayList<Command> ret = new ArrayList<>();
-        /*if(getPreviousMemento() != null)
-            ret.addAll(getPreviousMemento().getAllCommands());*/
+        if(getPreviousMemento() != null)
+            ret.addAll(getPreviousMemento().getAllCommands());
         ret.addAll(getCommands());
         return ret;
     }

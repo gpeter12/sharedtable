@@ -53,8 +53,6 @@ public class CanvasController {
         return memento.getId();
     }
 
-
-
     public void restorePreviosMemento() {
 
         System.out.println(stateCaretaker.getMementoIndexByID(actMementoID)-1);
@@ -76,6 +74,7 @@ public class CanvasController {
     private void restoreMemento(StateMemento memento) {
         mainCanvas.clear();
         actMementoID = memento.getId();
+        var f = memento.getAllCommands();
         for (Command act: memento.getAllCommands()) {
             act.execute();
         }
