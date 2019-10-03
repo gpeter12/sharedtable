@@ -10,6 +10,15 @@ public class StateMemento implements Serializable {
         id = UUID.randomUUID();
     }
 
+    public StateMemento(String mementoData) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String toString() {
+        throw new UnsupportedOperationException();
+    }
+
     public void addCommands(ArrayList<Command> commands) {
         this.commands = commands;
     }

@@ -5,9 +5,7 @@ import java.util.UUID;
 
 public class StateCaretaker {
 
-    public StateCaretaker() {
-
-    }
+    public StateCaretaker() { }
 
     private void linkWithLastMemento(StateMemento stateMemento) {
         StateMemento actLastMemento = mementos.get(mementos.size()-1);
@@ -30,6 +28,7 @@ public class StateCaretaker {
     }
 
     public void addMemento(StateMemento stateMemento,UUID after) {
+        System.out.println("cleaning up after "+after);
         int ind = getMementoIndexByID(after);
         cleanupAfterStateInsertion(ind);
         linkWithLastMemento(stateMemento);
@@ -46,9 +45,18 @@ public class StateCaretaker {
     }
 
     private void cleanupAfterStateInsertion(int ind) {
-        for(int i=ind; i<mementos.size()-1; i++) {
-            mementos.remove(i);
-        }System.out.println("after cleanup");
+        System.out.println("before cleanup");
+        printAllMementos();
+
+        UUID wantedMementoID = getMementoByIndex(ind).getId();
+        while(getMementoByIndex(mementos.size()-1).getId()!=wantedMementoID) {
+            System.out.println("removeing "+getMementoByIndex(mementos.size()-1).getId());
+            mementos.remove(getMementoByIndex(mementos.size()-1));
+
+        }
+
+
+        System.out.println("after cleanup");
         printAllMementos();
     }
 

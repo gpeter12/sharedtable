@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class StateOriginator {
 
     public StateOriginator(){
+
     }
 
     public StateMemento createMemento(){

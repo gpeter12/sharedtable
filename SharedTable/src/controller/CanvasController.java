@@ -74,7 +74,6 @@ public class CanvasController {
     private void restoreMemento(StateMemento memento) {
         mainCanvas.clear();
         actMementoID = memento.getId();
-        var f = memento.getAllCommands();
         for (Command act: memento.getAllCommands()) {
             act.execute();
         }
