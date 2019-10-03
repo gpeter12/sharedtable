@@ -19,7 +19,7 @@ public class UpperClientEntity {
 
         /*while(reader.ready())
         String mementoData = reader.readLine();*/
-
+        throw new UnsupportedEncodingException();
     }
 
     public void sendState(StateMemento memento) {
