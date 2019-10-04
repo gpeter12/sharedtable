@@ -29,6 +29,14 @@ public class CanvasController {
         insertNewMementoAfterActual();
     }
 
+    private void addCommandToCommandQueue(Command command) {
+        try {
+            commandQueue.put(command);
+        } catch (Exception e) {
+            addCommandToCommandQueue(command);
+        }
+    }
+
     public void mouseMove(Point p) {
         if(isMouseDown) {
             Command command = null;
@@ -36,7 +44,7 @@ public class CanvasController {
                 command = new DrawLineCommand(mainCanvas,lastPoint,p);
             }
             stateOriginator.addCommand(command);
-            command.execute();
+            addCommandToCommandQueue(command);
             lastPoint = p;
         }
     }
@@ -74,10 +82,10 @@ public class CanvasController {
     }
 
     private void restoreMemento(StateMemento memento) {
-        mainCanvas.clear();
+        addCommandToCommandQueue(new ClearCommand(mainCanvas));
         actMementoID = memento.getId();
         for (Command act: memento.getAllCommands()) {
-            act.execute();
+            addCommandToCommandQueue(act);
         }
     }
 
