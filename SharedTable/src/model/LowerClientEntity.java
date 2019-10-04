@@ -1,17 +1,13 @@
 package model;
 
-public class LowerClientEntity {
+import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
 
-    public LowerClientEntity() {
+public class LowerClientEntity extends ClientEntity{
 
-    }
-
-    public void sendData(byte[] data) {
-        throw new UnsupportedOperationException();
-    }
-
-    private void receiveData() {
-        throw new UnsupportedOperationException();
+    public LowerClientEntity(Socket socket) throws IOException {
+        super(socket);
     }
 
 

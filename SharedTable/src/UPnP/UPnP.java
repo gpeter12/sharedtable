@@ -16,8 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package com.dosse.upnp;
-
+package UPnP;
 /**
  * This class contains static methods that allow quick access to UPnP Port Mapping.<br>
  * Commands will be sent to the default gateway.

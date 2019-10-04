@@ -3,6 +3,7 @@ package controller;
 import view.MainCanvas;
 
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
 
 public class CanvasController {
 
@@ -10,9 +11,10 @@ public class CanvasController {
         this.mainCanvas = mainCanvas;
         this.stateCaretaker = new StateCaretaker();
         this.stateOriginator = new StateOriginator();
+
+
         StateMemento firstMemento = stateOriginator.createMemento();
         actMementoID = firstMemento.getId();
-        System.out.println("First Memento ID " + actMementoID);
         stateCaretaker.addMemento(firstMemento);
     }
 
@@ -79,11 +81,19 @@ public class CanvasController {
         }
     }
 
+    private void commandExecuter() throws InterruptedException {
+        for (;;) {
+            commandQueue.take().execute();
+        }
+    }
+
     StateCaretaker stateCaretaker;
     StateOriginator stateOriginator;
+
     boolean isMouseDown = false;
     Point lastPoint;
     MainCanvas mainCanvas;
     DrawingMode currentMode = DrawingMode.ContinousLine;
     UUID actMementoID;
+    BlockingQueue<Command> commandQueue;
 }

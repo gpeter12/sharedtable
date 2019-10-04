@@ -60,10 +60,10 @@ public class NetworkService {
     private Socket outgoingConnection;
 
     //connectedTOMe socket list
-    //I connected to sb socket
+    //Im connected to sb socket
 
     /*
-    -ha alulról kap infót, azt felfele, és lefel is továbbküldi (értelemszerűen a forrásnak nem
+    -ha alulról kap infót, azt felfele, és lefel is továbbküldi (értelemszerűen a forrásnak nem)
     -ha felülről jön akkor tovább küldi mindenkinek lefele
      */
 }

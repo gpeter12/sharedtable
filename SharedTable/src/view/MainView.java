@@ -1,12 +1,16 @@
 package view;
 
+import controller.ConnectWindowController;
 import controller.KeyboardEventHandler;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+
+import java.io.IOException;
 
 
 public class MainView extends Application {
@@ -25,7 +29,17 @@ public class MainView extends Application {
                 event-> {
                     keyboardEventHandler.handleEvent(event);
                 });
+        initConnectWindow();
+    }
 
+    private void initConnectWindow() throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("ConnectWindow.fxml"));
+        Parent parent = fxmlLoader.load();
+        Scene scene = new Scene(parent, 600, 100);
+        Stage stage = new Stage();
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setScene(scene);
+        stage.showAndWait();
     }
 
     public static void main(String[] args) {
@@ -39,14 +53,22 @@ public class MainView extends Application {
             // and unboxes mementoes
     //TODO #1.1 láncolt lista RAM effektivitásért DONE
     //TODO #1.2 viszavonási idővonal problémája DONE
-    //TODO #2 Basic connection élő rajzolással
-    //TODO #3 login utáni szinkronbahozás
-    //TODO #4 ha egy csomóbont kiszáll, megpróbál sorrendben csatlakozni bármely más klienshez
-    //TODO #5 automatic lock conflict feloldás (akinek nagyobb az IP-je az kapja a lockot)
-    //TODO #5.1 Bármilyen deszinkronizációs hiba esetén a legnegyobb IP vel rendelkező gép mester mementó listát küld szét a reszinkronizációhoz
+    //TODO #2 blocking bufferlista a canvashoz
+    //TODO  Threading
+    //TODO #3 Basic connection élő rajzolással
+    //TODO #4 login utáni szinkronbahozás
+    //TODO #5 ha egy csomóbont kiszáll, megpróbál sorrendben csatlakozni bármely más klienshez
+    //TODO #6 Bármilyen deszinkronizációs hiba esetén a legnegyobb IP vel rendelkező gép mester mementó listát küld szét a reszinkronizációhoz
 
-
+//TODO #5 automatic lock conflict feloldás (akinek nagyobb az IP-je az kapja a lockot)
 }
+
+/*
+------------CONSIDERATIONS------------
+#1: lehetne effekívebb kapcsolati fa
+#2: lehetne UPnP helyett valami megbízhatóbbat
+ */
+
 
 
 /*// Set line width
