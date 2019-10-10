@@ -1,5 +1,6 @@
 package view;
 
+import controller.CanvasController;
 import controller.ConnectWindowController;
 import controller.KeyboardEventHandler;
 import javafx.application.Application;
@@ -23,13 +24,29 @@ public class MainView extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
+
         MainCanvas mainCanvas = (MainCanvas)scene.lookup("#canvas");
-        KeyboardEventHandler keyboardEventHandler = new KeyboardEventHandler(mainCanvas);
+        this.mainCanvas = mainCanvas;
+        CanvasController canvasController = new CanvasController(mainCanvas);
+        this.canvasController = canvasController;
+        mainCanvas.initEventHandlers(canvasController);
+        //initCanvas(mainCanvas,canvasController);
+
+        KeyboardEventHandler keyboardEventHandler = new KeyboardEventHandler(canvasController);
         primaryStage.addEventHandler(KeyEvent.KEY_PRESSED,
                 event-> {
                     keyboardEventHandler.handleEvent(event);
                 });
-        initConnectWindow();
+        //initConnectWindow();
+    }
+
+    @Override
+    public void stop() {
+        canvasController.stop();
+    }
+
+    private void initCanvas(MainCanvas mainCanvas, CanvasController canvasController) {
+
     }
 
     private void initConnectWindow() throws IOException {
@@ -46,6 +63,8 @@ public class MainView extends Application {
         launch(args);
     }
 
+    private MainCanvas mainCanvas;
+    private CanvasController canvasController;
 
     //TODO #1 Memento állapottárolásra (Caretaker, originator) DONE
         //Caretaker: Holds the array list of commands
@@ -54,10 +73,11 @@ public class MainView extends Application {
     //TODO #1.1 láncolt lista RAM effektivitásért DONE
     //TODO #1.2 viszavonási idővonal problémája DONE
     //TODO #2 blocking bufferlista a canvashoz
-    //TODO  Threading
+    //TODO #X Threading
     //TODO #3 Basic connection élő rajzolással
+    //TODO #X fában kör kialakulásának megakadályozása
     //TODO #4 login utáni szinkronbahozás
-    //TODO #5 ha egy csomóbont kiszáll, megpróbál sorrendben csatlakozni bármely más klienshez
+    //TODO #5 ha egy csomópont kiszáll, megpróbál sorrendben csatlakozni bármely más klienshez
     //TODO #6 Bármilyen deszinkronizációs hiba esetén a legnegyobb IP vel rendelkező gép mester mementó listát küld szét a reszinkronizációhoz
 
 //TODO #5 automatic lock conflict feloldás (akinek nagyobb az IP-je az kapja a lockot)

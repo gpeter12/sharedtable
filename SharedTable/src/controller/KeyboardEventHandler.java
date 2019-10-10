@@ -4,8 +4,8 @@ import javafx.scene.input.KeyEvent;
 import view.MainCanvas;
 
 public class KeyboardEventHandler {
-    public KeyboardEventHandler(MainCanvas mainCanvas) {
-        this.mainCanvas = mainCanvas;
+    public KeyboardEventHandler(CanvasController canvasController) {
+        this.canvasController = canvasController;
     }
 
     public void handleEvent(KeyEvent event) {
@@ -14,13 +14,13 @@ public class KeyboardEventHandler {
         if(event.isControlDown() && isZDown(event) && !event.isShiftDown()) {
 
             System.out.println("UNDOOOOO");
-            mainCanvas.undo();
+            canvasController.undo();
         }
 
         //undo keycombo
         if(event.isControlDown() && event.isShiftDown() && isZDown(event)) {
             System.out.println("REDOOOOO");
-            mainCanvas.redo();
+            canvasController.redo();
 
         }
     }
@@ -31,5 +31,5 @@ public class KeyboardEventHandler {
                 event.getText().equals("\u001A");
     }
 
-    MainCanvas mainCanvas;
+    CanvasController canvasController;
 }

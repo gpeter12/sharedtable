@@ -3,7 +3,6 @@ package controller;
 import view.MainCanvas;
 
 import java.util.UUID;
-import java.util.concurrent.BlockingQueue;
 
 public class CanvasController {
 
@@ -12,11 +11,13 @@ public class CanvasController {
         this.stateCaretaker = new StateCaretaker();
         this.stateOriginator = new StateOriginator();
 
-
         StateMemento firstMemento = stateOriginator.createMemento();
         actMementoID = firstMemento.getId();
         stateCaretaker.addMemento(firstMemento);
+        commandExecuterThread.start();
     }
+
+
 
     public void mouseDown(Point p) {
         lastPoint = p;
@@ -29,13 +30,7 @@ public class CanvasController {
         insertNewMementoAfterActual();
     }
 
-    private void addCommandToCommandQueue(Command command) {
-        try {
-            commandQueue.put(command);
-        } catch (Exception e) {
-            addCommandToCommandQueue(command);
-        }
-    }
+
 
     public void mouseMove(Point p) {
         if(isMouseDown) {
@@ -44,7 +39,7 @@ public class CanvasController {
                 command = new DrawLineCommand(mainCanvas,lastPoint,p);
             }
             stateOriginator.addCommand(command);
-            addCommandToCommandQueue(command);
+            commandExecuterThread.addCommandToCommandQueue(command);
             lastPoint = p;
         }
     }
@@ -82,26 +77,33 @@ public class CanvasController {
     }
 
     private void restoreMemento(StateMemento memento) {
-        addCommandToCommandQueue(new ClearCommand(mainCanvas));
+        commandExecuterThread.addCommandToCommandQueue(new ClearCommand(mainCanvas));
         actMementoID = memento.getId();
         for (Command act: memento.getAllCommands()) {
-            addCommandToCommandQueue(act);
+            commandExecuterThread.addCommandToCommandQueue(act);
         }
     }
 
-    private void commandExecuter() throws InterruptedException {
-        for (;;) {
-            commandQueue.take().execute();
-        }
+    public void stop() {
+        commandExecuterThread.timeToStop();
+    }
+
+    public void redo() {
+        restoreNextMemento();
+    }
+
+    public void undo() {
+        restorePreviosMemento();
     }
 
     StateCaretaker stateCaretaker;
     StateOriginator stateOriginator;
-
     boolean isMouseDown = false;
     Point lastPoint;
     MainCanvas mainCanvas;
     DrawingMode currentMode = DrawingMode.ContinousLine;
     UUID actMementoID;
-    BlockingQueue<Command> commandQueue;
+    CommandExecuterThread commandExecuterThread = new CommandExecuterThread();
+
+
 }
