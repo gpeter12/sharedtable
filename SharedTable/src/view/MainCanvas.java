@@ -10,11 +10,10 @@ import javafx.scene.input.MouseEvent;
 public class MainCanvas extends Canvas {
 
     public MainCanvas() {
-        gCont = this.getGraphicsContext2D();
+        graphicsContext = this.getGraphicsContext2D();
     }
 
     public void initEventHandlers(CanvasController canvasController) {
-        this.canvasController = canvasController;
         this.addEventHandler(MouseEvent.MOUSE_PRESSED,
                 event -> {
                     Point p = new Point(event.getX(),event.getY());
@@ -34,14 +33,12 @@ public class MainCanvas extends Canvas {
 
 
     public void drawLine(Point x, Point y) {
-        gCont.strokeLine(x.getX(),x.getY(),y.getX(),y.getY());
+        graphicsContext.strokeLine(x.getX(),x.getY(),y.getX(),y.getY());
     }
 
     public void clear() {
-        gCont.clearRect(0.0,0.0,gCont.getCanvas().getWidth(),gCont.getCanvas().getHeight());
+        graphicsContext.clearRect(0.0,0.0, graphicsContext.getCanvas().getWidth(), graphicsContext.getCanvas().getHeight());
     }
 
-
-    private CanvasController canvasController;
-    private GraphicsContext gCont;
+    private GraphicsContext graphicsContext;
 }

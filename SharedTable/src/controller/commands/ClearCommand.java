@@ -1,5 +1,6 @@
-package controller;
+package controller.commands;
 
+import controller.Command;
 import view.MainCanvas;
 
 public class ClearCommand implements Command {

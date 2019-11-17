@@ -1,5 +1,7 @@
 package controller;
 
+import controller.commands.DrawLineCommand;
+
 import java.util.ArrayList;
 
 public class StateOriginator {
@@ -26,7 +28,6 @@ public class StateOriginator {
     }
 
     public void addCommand(Command command) {
-
         currentCommandList.add(command);
     }
 

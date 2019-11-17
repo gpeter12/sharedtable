@@ -5,6 +5,7 @@ import java.util.concurrent.BlockingQueue;
 
 public class CommandExecuterThread extends Thread {
 
+    @Override
     public void run() {
         try {
             while (!timeToStop) {
@@ -15,7 +16,7 @@ public class CommandExecuterThread extends Thread {
                 System.out.println("CommandExecuterThread shutting down");
             }
         } catch(Exception e) {
-            System.out.println(e);
+            throw new RuntimeException("Error during CommandExecuterThread shutdown\n"+e);
         }
     }
 

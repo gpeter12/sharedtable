@@ -1,47 +1,78 @@
 package model;
 
-import controller.StateMemento;
+import controller.CanvasController;
+import controller.Command;
+import controller.CommandFactory;
 
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Scanner;
 
-public class ClientEntity {
+public class ClientEntity extends Thread {
 
-    public ClientEntity(Socket socket) throws IOException {
+    public ClientEntity(Socket socket, CanvasController canvasController) {
         this.socket = socket;
-        initializeStreams(socket);
+        this.canvasController = canvasController;
+        try {
+            initializeStreams(socket);
+        } catch (Exception e) {
+            throw new RuntimeException("Inititalization of input/output network streams failed.");
+        }
+        start();
     }
 
-    /*public ClientEntity(Socket socket) throws IOException {
-        this.socket = socket;
-        initializeStreams();
-    }*/
+    @Override
+    public void run() {
+        System.out.println("run()");
+        while (scanner.hasNext()) {
+            canvasController.processRemoteCommand(receiveCommand());
+        }
+        scanner.close();
+        try {
+            socket.close();
+        } catch (IOException e) {
+            System.out.println(e);
+        }
+        System.out.println("end run()");
+    }
 
     private void initializeStreams(Socket socket) throws IOException {
         outputStream = socket.getOutputStream();
         inputStream = socket.getInputStream();
-        bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+        scanner = new Scanner(new InputStreamReader(inputStream));
         bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
+        System.out.println("outgoing connections's I/O streams are initialized!");
     }
 
-    public void sendState(StateMemento memento) throws IOException {
-        bufferedWriter.write(memento.toString());
+    public void sendCommand(Command command) {
+        System.out.println("command sending: "+command.toString());
+        try{
+            bufferedWriter.write(command.toString());
+            bufferedWriter.flush();
+        } catch (Exception e) {
+            System.out.println("TheException"+e);
+        }
+        System.out.println("command sent: "+command.toString());
     }
 
-    public StateMemento receiveState() throws IOException {
-        String mementoData = bufferedReader.readLine();
-        if (!mementoData.isEmpty())
-            return new StateMemento(mementoData);
+    public Command receiveCommand() {
+        String receivedCommand = scanner.nextLine();
+        System.out.println("received command: "+receivedCommand);
+        if (!receivedCommand.isEmpty())
+            return CommandFactory.getCommand(receivedCommand,canvasController.getMainCanvas());
         else
-            throw new RuntimeException("input memento data is empty!");
+            throw new RuntimeException("input command data is empty!");
     }
 
     Socket socket;
     OutputStream outputStream;
     InputStream inputStream;
     BufferedWriter bufferedWriter;
-    BufferedReader bufferedReader;
+    Scanner scanner;
+    CanvasController canvasController;
 
 
+    public void timeToStop() {
+        interrupt();
+    }
 }

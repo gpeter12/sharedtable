@@ -10,8 +10,10 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import model.NetworkService;
 
 import java.io.IOException;
+import java.util.Scanner;
 
 
 public class MainView extends Application {
@@ -24,13 +26,21 @@ public class MainView extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-
         MainCanvas mainCanvas = (MainCanvas)scene.lookup("#canvas");
         this.mainCanvas = mainCanvas;
+        //CanvasInstanceHolder.setInstance(mainCanvas);
         CanvasController canvasController = new CanvasController(mainCanvas);
         this.canvasController = canvasController;
         mainCanvas.initEventHandlers(canvasController);
-        //initCanvas(mainCanvas,canvasController);
+
+        Scanner scanner = new Scanner(System.in);
+
+        if(Integer.parseInt(scanner.next())>0) {
+            NetworkService networkService = new NetworkService(true,canvasController);
+        } else {
+            NetworkService networkService = new NetworkService(false,canvasController);
+            NetworkService.connect("127.0.0.1",2222);
+        }
 
         KeyboardEventHandler keyboardEventHandler = new KeyboardEventHandler(canvasController);
         primaryStage.addEventHandler(KeyEvent.KEY_PRESSED,
@@ -43,6 +53,7 @@ public class MainView extends Application {
     @Override
     public void stop() {
         canvasController.stop();
+        NetworkService.timeToStop();
     }
 
     private void initCanvas(MainCanvas mainCanvas, CanvasController canvasController) {
@@ -72,13 +83,20 @@ public class MainView extends Application {
             // and unboxes mementoes
     //TODO #1.1 láncolt lista RAM effektivitásért DONE
     //TODO #1.2 viszavonási idővonal problémája DONE
-    //TODO #2 blocking bufferlista a canvashoz
-    //TODO #X Threading
+    //TODO #2 blocking bufferlista a canvashoz DONE
+    //TODO #X Threading DONE
     //TODO #3 Basic connection élő rajzolással
     //TODO #X fában kör kialakulásának megakadályozása
     //TODO #4 login utáni szinkronbahozás
     //TODO #5 ha egy csomópont kiszáll, megpróbál sorrendben csatlakozni bármely más klienshez
     //TODO #6 Bármilyen deszinkronizációs hiba esetén a legnegyobb IP vel rendelkező gép mester mementó listát küld szét a reszinkronizációhoz
+
+
+
+
+    //TODO #X a ConnectWindow-ra kiírni a stconnect linket, és a link mezőt. súgógombok a linkek mellé.
+    //TODO #X kiírni rögtön init után, ha nem lehet UPNP-n portot nyitni, és tájékoztatni a tűzfalról is
+
 
 //TODO #5 automatic lock conflict feloldás (akinek nagyobb az IP-je az kapja a lockot)
 }

@@ -1,5 +1,8 @@
 package controller;
 
+import controller.commands.ClearCommand;
+import controller.commands.DrawLineCommand;
+import model.NetworkService;
 import view.MainCanvas;
 
 import java.util.UUID;
@@ -37,10 +40,14 @@ public class CanvasController {
             Command command = null;
             if(currentMode == DrawingMode.ContinousLine){
                 command = new DrawLineCommand(mainCanvas,lastPoint,p);
+            } else {
+                throw new RuntimeException("no drawing mode selected");
             }
             stateOriginator.addCommand(command);
             commandExecuterThread.addCommandToCommandQueue(command);
             lastPoint = p;
+            NetworkService.propagateDataDownwards(command);
+            NetworkService.propagateDataUpwards(command);
         }
     }
 
@@ -59,7 +66,6 @@ public class CanvasController {
     }
 
     public void restorePreviosMemento() {
-
         System.out.println(stateCaretaker.getMementoIndexByID(actMementoID)-1);
         restoreMemento(
                 stateCaretaker.getMementoByIndex(
@@ -84,6 +90,10 @@ public class CanvasController {
         }
     }
 
+    public void processRemoteCommand(Command receivedCommand) {
+        commandExecuterThread.addCommandToCommandQueue(receivedCommand);
+    }
+
     public void stop() {
         commandExecuterThread.timeToStop();
     }
@@ -96,6 +106,19 @@ public class CanvasController {
         restorePreviosMemento();
     }
 
+
+    public StateCaretaker getStateCaretaker() {
+        return stateCaretaker;
+    }
+
+    public StateOriginator getStateOriginator() {
+        return stateOriginator;
+    }
+
+    public MainCanvas getMainCanvas() {
+        return mainCanvas;
+    }
+
     StateCaretaker stateCaretaker;
     StateOriginator stateOriginator;
     boolean isMouseDown = false;
@@ -104,6 +127,7 @@ public class CanvasController {
     DrawingMode currentMode = DrawingMode.ContinousLine;
     UUID actMementoID;
     CommandExecuterThread commandExecuterThread = new CommandExecuterThread();
+
 
 
 }

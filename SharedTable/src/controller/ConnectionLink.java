@@ -5,9 +5,7 @@ public class ConnectionLink {
     public ConnectionLink(String link) {
         processLink(link);
     }
-
-
-
+    
     private void processLink(String input) {
         String[] parts = input.split("stconnect://");
         String[] portAndIP = parts[1].split("@");
@@ -25,7 +23,7 @@ public class ConnectionLink {
         this.IP = IP;
     }
 
-    private static boolean validateIP(String ip) {
+    private boolean validateIP(String ip) {
         String PATTERN = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
         return ip.matches(PATTERN);
     }

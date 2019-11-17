@@ -36,7 +36,6 @@ public class StateCaretaker {
         printAllMementos();
     }
 
-
     private void relinkMementoChain(int ind) {
         for(int i=ind; i<mementos.size()-1; i++) {
             mementos.get(i).setPreviousMemento(mementos.get(i-1));
