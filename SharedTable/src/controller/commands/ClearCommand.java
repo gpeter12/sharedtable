@@ -3,9 +3,12 @@ package controller.commands;
 import controller.Command;
 import view.MainCanvas;
 
+import java.util.UUID;
+
 public class ClearCommand implements Command {
 
-    public ClearCommand(MainCanvas mainCanvas) {
+    public ClearCommand(MainCanvas mainCanvas, UUID creatorID) {
+        this.creatorID = creatorID;
         this.mainCanvas = mainCanvas;
     }
 
@@ -20,4 +23,11 @@ public class ClearCommand implements Command {
     public void deepCopy(Command command) {
 
     }
+
+    @Override
+    public UUID getCreatorID() {
+        return creatorID;
+    }
+
+    private UUID creatorID;
 }

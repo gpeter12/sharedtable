@@ -2,12 +2,8 @@ package model;
 
 import controller.CanvasController;
 import controller.Command;
-import controller.StateMemento;
-import view.MainCanvas;
 
-import java.lang.reflect.Array;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.util.ArrayList;
 
 public class NetworkService {
@@ -17,6 +13,7 @@ public class NetworkService {
         if(isServer)
             prepareReceievingConnections();
     }
+
 
     //launch connection receiver thread
     public void prepareReceievingConnections() {
@@ -82,6 +79,22 @@ public class NetworkService {
             act.timeToStop();
         }
         //throw new UnsupportedOperationException();
+    }
+
+    public static void sendMementoOpenerSignal() {
+
+    }
+
+    public static void sendMementoCloserSignal() {
+
+    }
+
+    public static void forwardMessageUpwards(String message) {
+
+    }
+
+    public static void forwardMessageDownwards(String message) {
+
     }
 
     private static UpperClientEntity upperClientEntity = null;

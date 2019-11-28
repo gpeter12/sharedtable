@@ -36,12 +36,12 @@ public class StateCaretaker {
         printAllMementos();
     }
 
-    private void relinkMementoChain(int ind) {
+    /*private void relinkMementoChain(int ind) {
         for(int i=ind; i<mementos.size()-1; i++) {
             mementos.get(i).setPreviousMemento(mementos.get(i-1));
             mementos.get(i).setNextMemento(mementos.get(i+1));
         }
-    }
+    }*/
 
     private void cleanupAfterStateInsertion(int ind) {
         System.out.println("before cleanup");
