@@ -10,11 +10,12 @@ import java.util.UUID;
 
 public class DrawLineCommand implements Command {
 
-    public DrawLineCommand(MainCanvas canvas, Point x, Point y) {
+    public DrawLineCommand(MainCanvas canvas, Point x, Point y, UUID creatorID) {
         this.x = x;
         this.y = y;
         this.canvas = canvas;
         this.ID = UUID.randomUUID();
+        this.creatorID = creatorID;
     }
 
     public DrawLineCommand(){}
@@ -31,7 +32,7 @@ public class DrawLineCommand implements Command {
         y = new Point(p2x,p2y);
     }
 
-    @Override
+    /*@Override
     public void deepCopy(Command command) {
         if(command instanceof DrawLineCommand) {
             this.x = ((DrawLineCommand) command).x;
@@ -40,7 +41,7 @@ public class DrawLineCommand implements Command {
         }
         else
             throw new RuntimeException("Cannot cast command to DrawLineCommand");
-    }
+    }*/
 
     @Override
     public UUID getCreatorID() {

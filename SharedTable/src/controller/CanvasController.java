@@ -39,7 +39,7 @@ public class CanvasController {
         if(isMouseDown) {
             Command command = null;
             if(currentMode == DrawingMode.ContinousLine){
-                command = new DrawLineCommand(mainCanvas,lastPoint,p);
+                command = new DrawLineCommand(mainCanvas,lastPoint,p,UserID.getUserID());
             } else {
                 throw new RuntimeException("no drawing mode selected");
             }

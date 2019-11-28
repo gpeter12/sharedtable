@@ -12,12 +12,12 @@ public class StateOriginator {
 
     public StateMemento createMemento(){
         StateMemento stateMemento = new StateMemento();
-        stateMemento.addCommands(deepCopyCommands(currentCommandList));
+        stateMemento.addCommands(currentCommandList);
         currentCommandList.clear();
         return stateMemento;
     }
 
-    private ArrayList<Command> deepCopyCommands(ArrayList<Command> cmds) {
+    /*private ArrayList<Command> deepCopyCommands(ArrayList<Command> cmds) {
         ArrayList<Command> ret = new ArrayList<>();
         for(Command act : cmds) {
             Command command = new DrawLineCommand();
@@ -25,7 +25,7 @@ public class StateOriginator {
             ret.add(command);
         }
         return ret;
-    }
+    }*/
 
     public void addCommand(Command command) {
         currentCommandList.add(command);

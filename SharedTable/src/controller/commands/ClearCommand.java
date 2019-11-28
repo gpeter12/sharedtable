@@ -20,11 +20,6 @@ public class ClearCommand implements Command {
     }
 
     @Override
-    public void deepCopy(Command command) {
-
-    }
-
-    @Override
     public UUID getCreatorID() {
         return creatorID;
     }

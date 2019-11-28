@@ -24,5 +24,4 @@ public class OpenMementoCommand {
     }
 
     UUID mementoID;
-}
-*/
+}*/
