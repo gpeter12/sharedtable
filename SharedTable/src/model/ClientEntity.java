@@ -6,7 +6,10 @@ import controller.CommandFactory;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
+import java.util.UUID;
 
 public class ClientEntity extends Thread {
 
@@ -64,15 +67,19 @@ public class ClientEntity extends Thread {
             throw new RuntimeException("input command data is empty!");
     }
 
-    Socket socket;
-    OutputStream outputStream;
-    InputStream inputStream;
-    BufferedWriter bufferedWriter;
-    Scanner scanner;
-    CanvasController canvasController;
-
 
     public void timeToStop() {
         interrupt();
     }
+
+
+    private Socket socket;
+    private OutputStream outputStream;
+    private InputStream inputStream;
+    private BufferedWriter bufferedWriter;
+    private Scanner scanner;
+    private CanvasController canvasController;
+
+
+
 }

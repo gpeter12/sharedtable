@@ -81,11 +81,12 @@ public class MainView extends Application {
         //Caretaker: Holds the array list of commands
         //Originator: Collects data and Creates mementoes from them
             // and unboxes mementoes
-    //TODO #1.1 láncolt lista RAM effektivitásért DONE
+    //TODO #1.1 láncolt "lista" RAM effektivitásért DONE
     //TODO #1.2 viszavonási idővonal problémája DONE
     //TODO #2 blocking bufferlista a canvashoz DONE
     //TODO #X Threading DONE
-    //TODO #3 Basic connection élő rajzolással
+    //TODO #3 Basic connection élő rajzolással DONE
+    //TODO #X megkeresni és be semaphorozni azokat a pontokat a command és memento handlingban amiket kell...
     //TODO #X fában kör kialakulásának megakadályozása
     //TODO #4 login utáni szinkronbahozás
     //TODO #5 ha egy csomópont kiszáll, megpróbál sorrendben csatlakozni bármely más klienshez
@@ -100,6 +101,15 @@ public class MainView extends Application {
 
 //TODO #5 automatic lock conflict feloldás (akinek nagyobb az IP-je az kapja a lockot)
 }
+
+/*
+Párhuzamos rajzolásnál felmerül a hiba lehetőség, hogy lokális gépen egyel több command kerül
+be a state be, amit egy másik kliens indított. Ez azért lehetséges, mert a CloseMementoCommandnak
+a másik klienstől propagációs ideje van. Ebben az esetben azt a memento-t kell mindenkinek megtartania
+amelyik több commandot tartalmaz. Így minden záráskor össze kell hasonlítani a lokálisan keletkezett
+hashCode-ot a távolról érkező (close command által tartalmazottal) hashCode-al, és állítólagos
+command számmal.
+ */
 
 /*
 ------------CONSIDERATIONS------------

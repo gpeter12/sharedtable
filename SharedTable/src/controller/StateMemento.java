@@ -2,7 +2,9 @@ package controller;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.Semaphore;
 
 public class StateMemento implements Serializable {
 
@@ -20,11 +22,29 @@ public class StateMemento implements Serializable {
     }
 
     public void addCommands(ArrayList<Command> commands) {
-        this.commands = commands;
+        for(Command act : commands) {
+            commands.add(act);
+        }
     }
 
     public ArrayList<Command> getCommands() {
         return commands;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        StateMemento that = (StateMemento) o;
+        return id.equals(that.id) &&
+                previousMementoID.equals(that.previousMementoID) &&
+                nextMementoID.equals(that.nextMementoID) &&
+                commands.equals(that.commands);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, previousMementoID, nextMementoID, commands);
     }
 
     public ArrayList<Command> getAllCommands() {
@@ -37,6 +57,10 @@ public class StateMemento implements Serializable {
 
     public UUID getId() {
         return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     private UUID id;
@@ -67,13 +91,15 @@ public class StateMemento implements Serializable {
         return nextMementoID;
     }
 
+    public int getCommandNumber() {
+        return commands.size();
+    }
+
 
     private StateMemento previousMemento;
     private StateMemento nextMemento;
 
     private UUID previousMementoID;
     private UUID nextMementoID;
-    private ArrayList<Command> commands;
-
-
+    private ArrayList<Command> commands = new ArrayList<>();
 }
