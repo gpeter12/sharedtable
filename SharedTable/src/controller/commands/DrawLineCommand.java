@@ -5,6 +5,7 @@ import controller.DrawingMode;
 import controller.Point;
 import view.MainCanvas;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class DrawLineCommand implements Command {
@@ -30,6 +31,7 @@ public class DrawLineCommand implements Command {
         y = new Point(p2x,p2y);
     }
 
+    @Override
     public void deepCopy(Command command) {
         if(command instanceof DrawLineCommand) {
             this.x = ((DrawLineCommand) command).x;
@@ -41,6 +43,26 @@ public class DrawLineCommand implements Command {
     }
 
     @Override
+    public UUID getCreatorID() {
+        return creatorID;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DrawLineCommand that = (DrawLineCommand) o;
+        return ID.equals(that.ID) &&
+                x.equals(that.x) &&
+                y.equals(that.y);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ID, x, y);
+    }
+
+    @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(DrawingMode.ContinousLine.ordinal()).append(";").append(ID).append(";")
@@ -49,15 +71,18 @@ public class DrawLineCommand implements Command {
         return stringBuilder.toString();
     }
 
-    UUID ID;
-    Point x;
-    Point y;
-    MainCanvas canvas;
-
     @Override
     public void execute() {
         canvas.drawLine(x,y);
     }
+
+    private UUID ID;
+    private Point x;
+    private Point y;
+    private MainCanvas canvas;
+    private UUID creatorID;
+
+
 
 
 

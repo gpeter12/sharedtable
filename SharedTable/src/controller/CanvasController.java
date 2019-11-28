@@ -5,7 +5,9 @@ import controller.commands.DrawLineCommand;
 import model.NetworkService;
 import view.MainCanvas;
 
+import java.util.ArrayList;
 import java.util.UUID;
+import java.util.concurrent.Semaphore;
 
 public class CanvasController {
 
@@ -20,20 +22,18 @@ public class CanvasController {
         commandExecuterThread.start();
     }
 
-
-
     public void mouseDown(Point p) {
         lastPoint = p;
         isMouseDown = true;
+        NetworkService.sendMementoOpenerSignal();
     }
 
     public void mouseUp(Point p) {
         isMouseDown = false;
         lastPoint = p;
-        insertNewMementoAfterActual();
+        StateMemento stateMemento = insertNewMementoAfterActual();
+        NetworkService.sendMementoCloserSignal();
     }
-
-
 
     public void mouseMove(Point p) {
         if(isMouseDown) {
@@ -51,7 +51,8 @@ public class CanvasController {
         }
     }
 
-    private UUID insertNewMementoAfterActual() {
+    private StateMemento insertNewMementoAfterActual() {
+
         StateMemento memento = stateOriginator.createMemento();
         if(actMementoID.equals(stateCaretaker.getLastMementoID())) {
             stateCaretaker.addMemento(memento);
@@ -59,10 +60,15 @@ public class CanvasController {
         else {
             stateCaretaker.addMemento(memento,actMementoID);
         }
-
         actMementoID = memento.getId();
         System.out.println("actMementoID "+actMementoID);
-        return memento.getId();
+        return memento;
+    }
+
+    private StateMemento insertNewMementoAfterActual(UUID id) {
+        StateMemento memento = insertNewMementoAfterActual();
+        memento.setId(id);
+        return memento;
     }
 
     public void restorePreviosMemento() {
@@ -83,7 +89,7 @@ public class CanvasController {
     }
 
     private void restoreMemento(StateMemento memento) {
-        commandExecuterThread.addCommandToCommandQueue(new ClearCommand(mainCanvas));
+        commandExecuterThread.addCommandToCommandQueue(new ClearCommand(mainCanvas,UserID.getUserID()));
         actMementoID = memento.getId();
         for (Command act: memento.getAllCommands()) {
             commandExecuterThread.addCommandToCommandQueue(act);
@@ -92,6 +98,10 @@ public class CanvasController {
 
     public void processRemoteCommand(Command receivedCommand) {
         commandExecuterThread.addCommandToCommandQueue(receivedCommand);
+    }
+
+    public void addRemoteStateMemento(ArrayList<Command> commands, UUID id) {
+        insertNewMementoAfterActual(id);
     }
 
     public void stop() {
@@ -119,15 +129,14 @@ public class CanvasController {
         return mainCanvas;
     }
 
-    StateCaretaker stateCaretaker;
-    StateOriginator stateOriginator;
-    boolean isMouseDown = false;
-    Point lastPoint;
-    MainCanvas mainCanvas;
-    DrawingMode currentMode = DrawingMode.ContinousLine;
-    UUID actMementoID;
-    CommandExecuterThread commandExecuterThread = new CommandExecuterThread();
-
+    private StateCaretaker stateCaretaker;
+    private StateOriginator stateOriginator;
+    private boolean isMouseDown = false;
+    private Point lastPoint;
+    private MainCanvas mainCanvas;
+    private DrawingMode currentMode = DrawingMode.ContinousLine;
+    private UUID actMementoID;
+    private CommandExecuterThread commandExecuterThread = new CommandExecuterThread();
 
 
 }
