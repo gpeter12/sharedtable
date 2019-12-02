@@ -1,43 +1,56 @@
 package controller;
 
+import controller.commands.ChangeStateCommand;
+import controller.commands.ClearCommand;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
+/**
+ * Ha nem választjuk szét userenként és lezárulási idő szerint a commandokat, akkor összemosnak egy state-be
+ * itt különválasztva tároljuk, a készülő state mementókat creator userek szerint szétbontva
+ * amíg le nem zárulnak. Az számít időben későbbi mementónak amelyik később zárul le.
+ */
+
+
 public class RemoteCommandBufferHandler {
 
-    public RemoteCommandBufferHandler() {
-
+    public RemoteCommandBufferHandler(CanvasController canvasController) {
+        this.canvasController = canvasController;
     }
 
     public static void addCommand(Command command) {
+        if(!(command instanceof ClearCommand) && !(command instanceof ChangeStateCommand)) {
+            if (!commandBuffers.containsKey(command.getCreatorID())) {
+                throw new RuntimeException("user related command buffer does not exists!");
+            }
+            commandBuffers.get(command.getCreatorID()).add(command);
+        }
 
     }
 
-    private static boolean isMementoOpener(String[] input) {
-        if(input[1].equals("OPEN")) {
-            return true;
-        }
-        return false;
+    public static void closeMemento(UUID userID, UUID mementoID) {
+        canvasController.insertRemoteMementoAfterActual(mementoID,commandBuffers.get(userID));
+        printAllCommands(commandBuffers.get(userID));
+        commandBuffers.remove(userID);
     }
 
-    private static boolean isMementoCloser(String[] input) {
-        if(input[1].equals("CLOSE")) {
-            return true;
+    public static void openNewMemento(UUID userID, UUID mementoID) {
+        if (commandBuffers.containsKey(userID)) {
+            throw new RuntimeException("user related command buffer already exists!");
         }
-        return false;
+        commandBuffers.put(userID, new ArrayList<Command>());
     }
 
-    private static ArrayList<Command> getBufferByID(String[] input) {
-        UUID userID = UUID.fromString(input[0]);
-        if(commandBuffers.containsKey(userID))
-            return commandBuffers.get(userID);
-        else {
-            commandBuffers.put(userID,new ArrayList<Command>());
-            return commandBuffers.get(userID);
+    private static void printAllCommands(ArrayList<Command> input) {
+        System.out.println("BufferPrint-------------------");
+        for(Command act : input) {
+            System.out.println(act.toString());
         }
+        System.out.println("-------------------");
     }
 
     private static HashMap<UUID, ArrayList<Command>> commandBuffers = new HashMap<>();
-
+    private static CanvasController canvasController;
 }

@@ -3,6 +3,13 @@ package controller;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+
+/*
+ * Mivel a MainCanvas-t egyszerre csak egy thread kezeleheti, így szükséges egy command buffer, ami
+ * sorban dolgozza fel a különböző threadekről akár egyszerre beérkező parancsokat. nagyon jól kihasználja a
+ * command pattern sajátosságát.
+ * */
+
 public class CommandExecuterThread extends Thread {
 
     @Override
@@ -15,8 +22,8 @@ public class CommandExecuterThread extends Thread {
             if (timeToStop == true) {
                 System.out.println("CommandExecuterThread shutting down");
             }
-        } catch(Exception e) {
-            throw new RuntimeException("Error during CommandExecuterThread shutdown\n"+e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error during CommandExecuterThread shutdown\n" + e);
         }
     }
 
@@ -29,7 +36,7 @@ public class CommandExecuterThread extends Thread {
     }
 
     public void timeToStop() {
-        timeToStop=true;
+        timeToStop = true;
         interrupt();
     }
 

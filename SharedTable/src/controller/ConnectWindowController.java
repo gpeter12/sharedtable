@@ -19,8 +19,8 @@ public class ConnectWindowController {
     }
 
     private void closeStage(ActionEvent event) {
-        Node  source = (Node)  event.getSource();
-        Stage stage  = (Stage) source.getScene().getWindow();
+        Node source = (Node) event.getSource();
+        Stage stage = (Stage) source.getScene().getWindow();
         stage.close();
     }
 

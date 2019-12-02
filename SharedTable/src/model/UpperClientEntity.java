@@ -1,4 +1,4 @@
-package model;
+/*package model;
 
 import controller.CanvasController;
 import controller.StateMemento;
@@ -20,12 +20,9 @@ public class UpperClientEntity extends ClientEntity {
         while(bufferedReader.ready()) {
             ret.add(receiveState());
         }
-        return ret;*/
+        return ret;
     }
 
 
-
-
-
-
 }
+            */

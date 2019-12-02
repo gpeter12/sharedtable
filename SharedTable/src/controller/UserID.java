@@ -9,7 +9,7 @@ public class UserID {
     }
 
     public static UUID getUserID() {
-        if(userID == null)
+        if (userID == null)
             userID = UUID.randomUUID();
         return userID;
     }

@@ -1,35 +1,33 @@
 package controller;
 
-import controller.commands.DrawLineCommand;
-
 import java.util.ArrayList;
+import java.util.UUID;
+
+/*
+ * A state originator a memento desgin pattern része. Ő felel a commandok valós időben történő összegyűjtséséért
+ * majd mementóvá formálásáért, amint egy mementó lezárultnak minősül.
+ * */
 
 public class StateOriginator {
 
-    public StateOriginator(){
-
+    public StateOriginator() {
+        nextMementoID = UUID.randomUUID();
     }
 
-    public StateMemento createMemento(){
-        StateMemento stateMemento = new StateMemento();
+    public StateMemento createMemento() {
+        StateMemento stateMemento = new StateMemento(nextMementoID);
         stateMemento.addCommands(currentCommandList);
         currentCommandList.clear();
+        nextMementoID = UUID.randomUUID();
         return stateMemento;
     }
-
-    /*private ArrayList<Command> deepCopyCommands(ArrayList<Command> cmds) {
-        ArrayList<Command> ret = new ArrayList<>();
-        for(Command act : cmds) {
-            Command command = new DrawLineCommand();
-            command.deepCopy(act);
-            ret.add(command);
-        }
-        return ret;
-    }*/
 
     public void addCommand(Command command) {
         currentCommandList.add(command);
     }
 
+    public UUID getNextMementoID() {return nextMementoID;}
+
     private ArrayList<Command> currentCommandList = new ArrayList<>();
+    private UUID nextMementoID;
 }

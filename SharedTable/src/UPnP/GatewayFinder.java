@@ -17,18 +17,12 @@
  * MA 02110-1301  USA
  */
 package UPnP;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
-import java.net.SocketTimeoutException;
+
+import java.net.*;
 import java.util.Enumeration;
 import java.util.LinkedList;
 
 /**
- *
  * @author Federico
  */
 abstract class GatewayFinder {
@@ -61,7 +55,7 @@ abstract class GatewayFinder {
                 DatagramSocket s = new DatagramSocket(new InetSocketAddress(ip, 0));
                 s.send(new DatagramPacket(req, req.length, new InetSocketAddress("239.255.255.250", 1900)));
                 s.setSoTimeout(3000);
-                for (;;) {
+                for (; ; ) {
                     try {
                         DatagramPacket recv = new DatagramPacket(new byte[1536], 1536);
                         s.receive(recv);

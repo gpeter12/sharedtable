@@ -1,24 +1,29 @@
 package controller;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.Semaphore;
 
-public class StateMemento implements Serializable {
+/*
+ * A mementók egy láncot alkotnak azáltal, hogy tárolják az őket megelőzők ID-ját
+ * és címét. így aztán mikor egy adott state-et kell kirajzolni a canvasra, képesek
+ * a saját command-listjük mellett az összes őket megelőző state-ek commandjait is visszaadni.
+ * De alapból mindegyik state csak az őt megelőzőhöz képest történt változásokat tartalmazza
+ * */
 
-    public StateMemento() {
-        id = UUID.randomUUID();
+public class StateMemento {
+
+    public StateMemento(UUID id) {
+        this.id = id;
     }
-    
+
     @Override
     public String toString() {
         throw new UnsupportedOperationException();
     }
 
     public void addCommands(ArrayList<Command> commands) {
-        for(Command act : commands) {
+        for (Command act : commands) {
             this.commands.add(act);
         }
     }
@@ -45,7 +50,7 @@ public class StateMemento implements Serializable {
 
     public ArrayList<Command> getAllCommands() {
         ArrayList<Command> ret = new ArrayList<>();
-        if(getPreviousMemento() != null)
+        if (getPreviousMemento() != null)
             ret.addAll(getPreviousMemento().getAllCommands());
         ret.addAll(getCommands());
         return ret;

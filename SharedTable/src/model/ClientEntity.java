@@ -3,11 +3,10 @@ package model;
 import controller.CanvasController;
 import controller.Command;
 import controller.CommandFactory;
+import controller.RemoteCommandBufferHandler;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -26,17 +25,18 @@ public class ClientEntity extends Thread {
 
     @Override
     public void run() {
-        System.out.println("run()");
         while (scanner.hasNext()) {
-            canvasController.processRemoteCommand(receiveCommand());
+            Command recvdCmd = receiveCommand();
+            if(recvdCmd!=null)
+                canvasController.processRemoteCommand(recvdCmd);
         }
         scanner.close();
         try {
             socket.close();
+            interrupt();
         } catch (IOException e) {
             System.out.println(e);
         }
-        System.out.println("end run()");
     }
 
     private void initializeStreams(Socket socket) throws IOException {
@@ -48,25 +48,65 @@ public class ClientEntity extends Thread {
     }
 
     public void sendCommand(Command command) {
-        System.out.println("command sending: "+command.toString());
-        try{
-            bufferedWriter.write(command.toString());
+        //System.out.println("command sending: " + command.toString());
+        sendPlainText(command.toString());
+        //System.out.println("command sent: " + command.toString());
+    }
+
+    public void sendPlainText(String input) {
+        try {
+            bufferedWriter.write(input+"\n");
             bufferedWriter.flush();
         } catch (Exception e) {
-            System.out.println("TheException"+e);
+            System.out.println("Exception happened during sending plain text" + e);
         }
-        System.out.println("command sent: "+command.toString());
     }
 
     public Command receiveCommand() {
         String receivedCommand = scanner.nextLine();
-        System.out.println("received command: "+receivedCommand);
-        if (!receivedCommand.isEmpty())
-            return CommandFactory.getCommand(receivedCommand,canvasController.getMainCanvas());
-        else
-            throw new RuntimeException("input command data is empty!");
+        //System.out.println("received command: " + receivedCommand);
+        String[] splittedCommand = receivedCommand.split(";");
+        if (!receivedCommand.isEmpty()) {
+            if(handleMementoBarrierSignal(splittedCommand))
+                return null;
+            else {
+                Command rcvdcmd = CommandFactory.getCommand(splittedCommand, canvasController);
+                RemoteCommandBufferHandler.addCommand(rcvdcmd);
+                return rcvdcmd;
+            }
+
+        }
+        else {
+            System.out.println("input command data is empty!");
+            return null;
+        }
     }
 
+    private boolean handleMementoBarrierSignal(String[] input) {
+        if(isMementoOpener(input)){
+            RemoteCommandBufferHandler.openNewMemento(UUID.fromString(input[0]),UUID.fromString(input[2]));
+            return true;
+        }
+        if(isMementoCloser(input)){
+            RemoteCommandBufferHandler.closeMemento(UUID.fromString(input[0]),UUID.fromString(input[2]));
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isMementoOpener(String[] input) {
+        if (input[1].equals("OPEN")) {
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isMementoCloser(String[] input) {
+        if (input[1].equals("CLOSE")) {
+            return true;
+        }
+        return false;
+    }
 
     public void timeToStop() {
         interrupt();
@@ -79,7 +119,6 @@ public class ClientEntity extends Thread {
     private BufferedWriter bufferedWriter;
     private Scanner scanner;
     private CanvasController canvasController;
-
 
 
 }

@@ -1,7 +1,6 @@
 package controller;
 
 import javafx.scene.input.KeyEvent;
-import view.MainCanvas;
 
 public class KeyboardEventHandler {
     public KeyboardEventHandler(CanvasController canvasController) {
@@ -11,14 +10,14 @@ public class KeyboardEventHandler {
     public void handleEvent(KeyEvent event) {
 
         //redo keycombo
-        if(event.isControlDown() && isZDown(event) && !event.isShiftDown()) {
+        if (event.isControlDown() && isZDown(event) && !event.isShiftDown()) {
 
             System.out.println("UNDOOOOO");
             canvasController.undo();
         }
 
         //undo keycombo
-        if(event.isControlDown() && event.isShiftDown() && isZDown(event)) {
+        if (event.isControlDown() && event.isShiftDown() && isZDown(event)) {
             System.out.println("REDOOOOO");
             canvasController.redo();
 

@@ -1,5 +1,6 @@
 package controller;
 
+import controller.commands.ChangeStateCommand;
 import controller.commands.ClearCommand;
 import controller.commands.DrawLineCommand;
 import model.NetworkService;
@@ -7,7 +8,6 @@ import view.MainCanvas;
 
 import java.util.ArrayList;
 import java.util.UUID;
-import java.util.concurrent.Semaphore;
 
 public class CanvasController {
 
@@ -17,91 +17,57 @@ public class CanvasController {
         this.stateOriginator = new StateOriginator();
 
         StateMemento firstMemento = stateOriginator.createMemento();
+        //Az első mementónak egyezményesen MINDÍG ez a címe, hogy vissza lehessen rá vonni
+        //d38cc911-caf6-4541-b58f-1c5b7c817e05
+        firstMemento.setId(UUID.fromString("d38cc911-caf6-4541-b58f-1c5b7c817e05"));
         actMementoID = firstMemento.getId();
-        stateCaretaker.addMemento(firstMemento);
+        System.out.println("FIRST MEMENTO "+actMementoID);
+        stateCaretaker.addMemento(firstMemento,true);
         commandExecuterThread.start();
     }
 
     public void mouseDown(Point p) {
         lastPoint = p;
         isMouseDown = true;
-        NetworkService.sendMementoOpenerSignal();
+        NetworkService.sendMementoOpenerSignal(UserID.getUserID(),stateOriginator.getNextMementoID());
     }
 
     public void mouseUp(Point p) {
         isMouseDown = false;
         lastPoint = p;
-        StateMemento stateMemento = insertNewMementoAfterActual();
-        NetworkService.sendMementoCloserSignal();
+        NetworkService.sendMementoCloserSignal(UserID.getUserID(),insertNewMementoAfterActual(true).getId());
     }
 
     public void mouseMove(Point p) {
-        if(isMouseDown) {
-            Command command = null;
-            if(currentMode == DrawingMode.ContinousLine){
-                command = new DrawLineCommand(mainCanvas,lastPoint,p,UserID.getUserID());
+        if (isMouseDown) {
+            Command command;
+            if (currentMode == DrawingMode.ContinousLine) {
+                command = new DrawLineCommand(mainCanvas, lastPoint, p, UserID.getUserID());
             } else {
                 throw new RuntimeException("no drawing mode selected");
             }
             stateOriginator.addCommand(command);
             commandExecuterThread.addCommandToCommandQueue(command);
             lastPoint = p;
-            NetworkService.propagateDataDownwards(command);
-            NetworkService.propagateDataUpwards(command);
+            NetworkService.propagateCommandDownwards(command);
+            NetworkService.propagateCommandUpwards(command);
         }
     }
 
-    private StateMemento insertNewMementoAfterActual() {
-
-        StateMemento memento = stateOriginator.createMemento();
-        if(actMementoID.equals(stateCaretaker.getLastMementoID())) {
-            stateCaretaker.addMemento(memento);
-        }
-        else {
-            stateCaretaker.addMemento(memento,actMementoID);
-        }
-        actMementoID = memento.getId();
-        System.out.println("actMementoID "+actMementoID);
-        return memento;
+    public void clearCanvas() {
+        Command command = new ClearCommand(this, UserID.getUserID());
+        commandExecuterThread.addCommandToCommandQueue(command);
+        insertNewMementoAfterActual(false);
+        NetworkService.propagateCommandUpwards(command);
+        NetworkService.propagateCommandDownwards(command);
     }
 
-    private StateMemento insertNewMementoAfterActual(UUID id) {
-        StateMemento memento = insertNewMementoAfterActual();
-        memento.setId(id);
-        return memento;
-    }
-
-    public void restorePreviosMemento() {
-        System.out.println(stateCaretaker.getMementoIndexByID(actMementoID)-1);
-        restoreMemento(
-                stateCaretaker.getMementoByIndex(
-                        stateCaretaker.getMementoIndexByID(
-                                actMementoID)-1));
-    }
-
-    public void restoreNextMemento() {
-        System.out.println(stateCaretaker.getMementoIndexByID(actMementoID)+1);
-        restoreMemento(
-                stateCaretaker.getMementoByIndex(
-                        stateCaretaker.getMementoIndexByID(
-                                actMementoID)+1));
-
-    }
-
-    private void restoreMemento(StateMemento memento) {
-        commandExecuterThread.addCommandToCommandQueue(new ClearCommand(mainCanvas,UserID.getUserID()));
-        actMementoID = memento.getId();
-        for (Command act: memento.getAllCommands()) {
-            commandExecuterThread.addCommandToCommandQueue(act);
-        }
+    public void processSateChangeCommand(UUID targetMementoID) {
+        restoreMemento(stateCaretaker.getMementoByID(targetMementoID));
     }
 
     public void processRemoteCommand(Command receivedCommand) {
         commandExecuterThread.addCommandToCommandQueue(receivedCommand);
-    }
-
-    public void addRemoteStateMemento(ArrayList<Command> commands, UUID id) {
-        insertNewMementoAfterActual(id);
     }
 
     public void stop() {
@@ -129,6 +95,68 @@ public class CanvasController {
         return mainCanvas;
     }
 
+    public StateMemento insertRemoteMementoAfterActual(UUID id,ArrayList<Command> commands) {
+        StateMemento memento = insertNewMementoAfterActual(true);
+        memento.setId(id);
+        memento.addCommands(commands);
+        actMementoID = memento.getId();
+        return memento;
+    }
+
+
+
+    //////////////////////////////////////private section////////////////////////////////////////
+
+    private StateMemento insertNewMementoAfterActual(boolean link) {
+
+        StateMemento memento = stateOriginator.createMemento();
+        //amin éppen vagy az az utolsó-e
+        if (actMementoID.equals(stateCaretaker.getLastMementoID())) {
+            stateCaretaker.addMemento(memento, link);
+        } else {
+            stateCaretaker.addMemento(memento, actMementoID, link);
+        }
+        actMementoID = memento.getId();
+        System.out.println("actMementoID " + actMementoID);
+        return memento;
+    }
+
+    private void restorePreviosMemento() {
+        System.out.println(stateCaretaker.getMementoIndexByID(actMementoID) - 1);
+        StateMemento memento =stateCaretaker.getMementoByIndex(
+                stateCaretaker.getMementoIndexByID(
+                        actMementoID) - 1);
+        createAndSendChangeStateCommand(memento.getId());
+        restoreMemento(memento);
+    }
+
+    private void restoreNextMemento() {
+        System.out.println(stateCaretaker.getMementoIndexByID(actMementoID) + 1);
+        StateMemento memento = stateCaretaker.getMementoByIndex(
+                stateCaretaker.getMementoIndexByID(
+                        actMementoID) + 1);
+        createAndSendChangeStateCommand(memento.getId());
+        restoreMemento(memento);
+
+    }
+
+    private void createAndSendChangeStateCommand(UUID mementoID) {
+        Command changeStateCommand = new ChangeStateCommand(this,UserID.getUserID(),mementoID);
+        System.out.println("Changing state to: "+changeStateCommand.getCreatorID());
+        NetworkService.propagateCommandDownwards(changeStateCommand);
+        NetworkService.propagateCommandUpwards(changeStateCommand);
+    }
+
+    private void restoreMemento(StateMemento memento) {
+        commandExecuterThread.addCommandToCommandQueue(new ClearCommand(this, UserID.getUserID()));
+        actMementoID = memento.getId();
+        for (Command act : memento.getAllCommands()) {
+            commandExecuterThread.addCommandToCommandQueue(act);
+        }
+    }
+
+
+
     private StateCaretaker stateCaretaker;
     private StateOriginator stateOriginator;
     private boolean isMouseDown = false;
@@ -137,6 +165,4 @@ public class CanvasController {
     private DrawingMode currentMode = DrawingMode.ContinousLine;
     private UUID actMementoID;
     private CommandExecuterThread commandExecuterThread = new CommandExecuterThread();
-
-
 }

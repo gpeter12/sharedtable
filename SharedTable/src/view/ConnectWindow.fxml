@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 <VBox xmlns="http://javafx.com/javafx"
-        xmlns:fx="http://javafx.com/fxml"
-        fx:controller="controller.ConnectWindowController"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="controller.ConnectWindowController"
       alignment="center">
-    <Label >Kapcsolódási link (PL.: stconnect://2222@178.164.137.147)</Label>
+    <Label>Kapcsolódási link (PL.: stconnect://2222@178.164.137.147)</Label>
     <HBox alignment="center">
-        <TextField fx:id="connectionLinkField" minWidth="400" minHeight="20" promptText="Kapcsolódási link (stconnect://2222@178.164.137.147)"></TextField>
+        <TextField fx:id="connectionLinkField" minWidth="400" minHeight="20"
+                   promptText="Kapcsolódási link (stconnect://2222@178.164.137.147)"></TextField>
         <Button onAction="#btnConnectButtonClicked" text="Kapcsolódás"></Button>
     </HBox>
 </VBox>

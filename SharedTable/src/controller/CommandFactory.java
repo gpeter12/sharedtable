@@ -1,21 +1,24 @@
 package controller;
 
+import controller.commands.ChangeStateCommand;
+import controller.commands.ClearCommand;
+import controller.commands.CommandID;
 import controller.commands.DrawLineCommand;
 import view.MainCanvas;
 
 public class CommandFactory {
 
-    public static Command getCommand(String data, MainCanvas mainCanvas) {
-        String[] splittedData = data.split(";");
-        int commandType = Integer.parseInt(splittedData[0]);
-        DrawingMode drawingMode = DrawingMode.values()[commandType];
-        switch(drawingMode) {
-            case ContinousLine:
-                return new DrawLineCommand(mainCanvas,splittedData);
-            case Ellipse:
-                throw new UnsupportedOperationException("Ellipse is not supported yet.");
-            case Rectangle:
-                throw new UnsupportedOperationException("Rectangle is not supported yet.");
+    public static Command getCommand(String[] data, CanvasController canvasController) {
+        String[] splittedData = data;
+        int commandIDint = Integer.parseInt(splittedData[1]);
+        CommandID commandID = CommandID.values()[commandIDint];
+        switch (commandID) {
+            case DrawLineCommand:
+                return new DrawLineCommand(canvasController.getMainCanvas(), splittedData);
+            case ClearCommand:
+                return new ClearCommand(canvasController,splittedData);
+            case ChangeStateCommand:
+                return new ChangeStateCommand(canvasController,splittedData);
         }
         throw new RuntimeException("Invalid Command recivied");
     }

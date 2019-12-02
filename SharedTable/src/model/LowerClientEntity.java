@@ -1,6 +1,7 @@
-package model;
+/*package model;
 
 import controller.CanvasController;
+import controller.Command;
 import view.MainCanvas;
 
 import java.io.*;
@@ -13,6 +14,5 @@ public class LowerClientEntity extends ClientEntity{
         super(socket,canvasController);
     }
 
-
-
 }
+*/

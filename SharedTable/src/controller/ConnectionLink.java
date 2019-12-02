@@ -5,17 +5,17 @@ public class ConnectionLink {
     public ConnectionLink(String link) {
         processLink(link);
     }
-    
+
     private void processLink(String input) {
         String[] parts = input.split("stconnect://");
         String[] portAndIP = parts[1].split("@");
         int port = Integer.parseInt(portAndIP[0]);
         String IP = portAndIP[1];
 
-        if(port<1024 || port>65535) {
+        if (port < 1024 || port > 65535) {
             throw new RuntimeException("Invalid port number");
         }
-        if(!validateIP(IP)) {
+        if (!validateIP(IP)) {
             throw new RuntimeException("Invalid IP address");
         }
 
