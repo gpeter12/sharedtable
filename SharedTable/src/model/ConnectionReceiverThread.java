@@ -2,6 +2,7 @@ package model;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.SocketException;
 
 public class ConnectionReceiverThread extends Thread {
 
@@ -29,6 +30,10 @@ public class ConnectionReceiverThread extends Thread {
                 System.out.println("Connection received!");
             }
         } catch (Exception e) {
+            if(e instanceof SocketException && timeToStop){
+                System.out.println("connection receiver thread shutting down");
+                return;
+            }
             throw new RuntimeException("Error during accepting socket\n" + e);
         }
     }

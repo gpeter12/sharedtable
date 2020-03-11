@@ -2,8 +2,6 @@
   <library name="lib">
     <CLASSES>
       <root url="file://$PROJECT_DIR$/../../IdeaProjects/javafx-sdk-11.0.2/lib" />
-      <root url="file://$PROJECT_DIR$/ice4j" />
-      <root url="file://$PROJECT_DIR$/javax" />
     </CLASSES>
     <JAVADOC />
     <NATIVE>

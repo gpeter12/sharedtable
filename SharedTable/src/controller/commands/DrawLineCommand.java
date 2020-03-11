@@ -1,11 +1,9 @@
 package controller.commands;
 
 import controller.Command;
-import controller.DrawingMode;
 import controller.Point;
 import view.MainCanvas;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class DrawLineCommand implements Command {
@@ -54,6 +52,6 @@ public class DrawLineCommand implements Command {
     private Point x;
     private Point y;
     private MainCanvas canvas;
-    private UUID creatorID;
+    private UUID creatorID; //userID
 
 }

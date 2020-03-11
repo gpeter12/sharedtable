@@ -1,5 +1,6 @@
-package controller;
+package controller.controllers;
 
+import controller.*;
 import controller.commands.ChangeStateCommand;
 import controller.commands.ClearCommand;
 import controller.commands.DrawLineCommand;
@@ -8,6 +9,7 @@ import view.MainCanvas;
 
 import java.util.ArrayList;
 import java.util.UUID;
+import java.util.concurrent.Semaphore;
 
 public class CanvasController {
 
@@ -55,8 +57,9 @@ public class CanvasController {
     }
 
     public void clearCanvas() {
-        Command command = new ClearCommand(this, UserID.getUserID());
+        Command command = new ClearCommand(this, UserID.getUserID(), stateOriginator.getNextMementoID());
         commandExecuterThread.addCommandToCommandQueue(command);
+        //nem láncoljuk az új mementót ilyenkor, mert a visszavonás visszahozná az előtte levő állapotokat
         insertNewMementoAfterActual(false);
         NetworkService.propagateCommandUpwards(command);
         NetworkService.propagateCommandDownwards(command);
@@ -95,20 +98,18 @@ public class CanvasController {
         return mainCanvas;
     }
 
-    public StateMemento insertRemoteMementoAfterActual(UUID id,ArrayList<Command> commands) {
-        StateMemento memento = insertNewMementoAfterActual(true);
+    public StateMemento insertRemoteMementoAfterActual(UUID id,ArrayList<Command> commands, boolean link) {
+        StateMemento memento = insertNewMementoAfterActual(link);
         memento.setId(id);
         memento.addCommands(commands);
         actMementoID = memento.getId();
         return memento;
     }
 
-
-
     //////////////////////////////////////private section////////////////////////////////////////
 
-    private StateMemento insertNewMementoAfterActual(boolean link) {
-
+    private StateMemento insertNewMementoAfterActual(boolean link) {//link: kell-e láncolni az új mementót a régivel
+        try { semaphore.acquire(); } catch (Exception e) {System.out.println(e);}
         StateMemento memento = stateOriginator.createMemento();
         //amin éppen vagy az az utolsó-e
         if (actMementoID.equals(stateCaretaker.getLastMementoID())) {
@@ -118,6 +119,7 @@ public class CanvasController {
         }
         actMementoID = memento.getId();
         System.out.println("actMementoID " + actMementoID);
+        semaphore.release();
         return memento;
     }
 
@@ -148,7 +150,8 @@ public class CanvasController {
     }
 
     private void restoreMemento(StateMemento memento) {
-        commandExecuterThread.addCommandToCommandQueue(new ClearCommand(this, UserID.getUserID()));
+        commandExecuterThread.addCommandToCommandQueue(new ClearCommand(this, UserID.getUserID(),
+                stateOriginator.getNextMementoID()));
         actMementoID = memento.getId();
         for (Command act : memento.getAllCommands()) {
             commandExecuterThread.addCommandToCommandQueue(act);
@@ -165,4 +168,5 @@ public class CanvasController {
     private DrawingMode currentMode = DrawingMode.ContinousLine;
     private UUID actMementoID;
     private CommandExecuterThread commandExecuterThread = new CommandExecuterThread();
+    private Semaphore semaphore = new Semaphore(1);
 }

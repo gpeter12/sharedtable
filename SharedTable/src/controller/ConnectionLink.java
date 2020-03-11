@@ -8,9 +8,9 @@ public class ConnectionLink {
 
     private void processLink(String input) {
         String[] parts = input.split("stconnect://");
-        String[] portAndIP = parts[1].split("@");
-        int port = Integer.parseInt(portAndIP[0]);
-        String IP = portAndIP[1];
+        String[] portAndIP = parts[1].split(":");
+        int port = Integer.parseInt(portAndIP[1]);
+        String IP = portAndIP[0];
 
         if (port < 1024 || port > 65535) {
             throw new RuntimeException("Invalid port number");
@@ -38,10 +38,9 @@ public class ConnectionLink {
 
     @Override
     public String toString() {
-        return "ConnectionLink{" +
-                "port=" + port +
-                ", IP='" + IP + '\'' +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("stconnect://").append(IP).append(":").append(port);
+        return sb.toString();
     }
 
     private int port;

@@ -1,26 +1,32 @@
 package controller.commands;
 
-import controller.CanvasController;
+import controller.controllers.CanvasController;
 import controller.Command;
-import view.MainCanvas;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class ClearCommand implements Command {
 
-    public ClearCommand(CanvasController canvasController, UUID creatorID) {
+    public ClearCommand(CanvasController canvasController, UUID creatorID, UUID blankMementoID) {
+        this.blankMementoID = blankMementoID;
         this.creatorID = creatorID;
         this.canvasController = canvasController;
     }
 
     public ClearCommand(CanvasController canvasController, String[] input) {
-        creatorID = UUID.fromString(input[0]);
+        this.creatorID = UUID.fromString(input[0]);
         this.canvasController = canvasController;
+        this.blankMementoID = UUID.fromString(input[2]);
     }
 
     @Override
     public void execute() {
         canvasController.getMainCanvas().clear();
+        if(isRemote) {
+            canvasController.insertRemoteMementoAfterActual(
+                    blankMementoID,new ArrayList<Command>(),false);
+        }
     }
 
     @Override
@@ -34,6 +40,14 @@ public class ClearCommand implements Command {
         sb.append(creatorID.toString()).append(";").append(CommandID.ClearCommand.ordinal());
         return sb.toString();
     }
+
+    public void setRemote(boolean remote) {
+        isRemote = remote;
+    }
+
+
     private CanvasController canvasController;
     private UUID creatorID;
+    private UUID blankMementoID;
+    private boolean isRemote;
 }

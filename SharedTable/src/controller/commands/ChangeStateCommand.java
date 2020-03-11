@@ -1,6 +1,6 @@
 package controller.commands;
 
-import controller.CanvasController;
+import controller.controllers.CanvasController;
 import controller.Command;
 
 import java.util.UUID;

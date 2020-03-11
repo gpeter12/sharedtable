@@ -4,7 +4,7 @@ import controller.commands.ChangeStateCommand;
 import controller.commands.ClearCommand;
 import controller.commands.CommandID;
 import controller.commands.DrawLineCommand;
-import view.MainCanvas;
+import controller.controllers.CanvasController;
 
 public class CommandFactory {
 

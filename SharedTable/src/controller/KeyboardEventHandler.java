@@ -1,5 +1,6 @@
 package controller;
 
+import controller.controllers.CanvasController;
 import javafx.scene.input.KeyEvent;
 
 public class KeyboardEventHandler {

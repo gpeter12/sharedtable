@@ -1,6 +1,6 @@
 /*package model;
 
-import controller.CanvasController;
+import controller.controllers.CanvasController;
 import controller.StateMemento;
 import view.MainCanvas;
 

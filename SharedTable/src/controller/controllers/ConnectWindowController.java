@@ -1,5 +1,6 @@
-package controller;
+package controller.controllers;
 
+import controller.ConnectionLink;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;

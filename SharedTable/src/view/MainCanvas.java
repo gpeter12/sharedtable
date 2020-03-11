@@ -1,6 +1,6 @@
 package view;
 
-import controller.CanvasController;
+import controller.controllers.CanvasController;
 import controller.Point;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;

@@ -1,6 +1,6 @@
 package model;
 
-import controller.CanvasController;
+import controller.controllers.CanvasController;
 import controller.Command;
 
 import java.net.Socket;
@@ -26,7 +26,7 @@ public class NetworkService {
     //make outgoing connection
     public static void connect(final String IP, int port) {
         try {
-            upperClientEntity = new ClientEntity(new Socket(IP, port), canvasController);
+            upperClientEntity = new ClientEntity(new Socket(IP, port), canvasController,false);
 
         } catch (Exception e) {
             throw new RuntimeException("Error during connect to another client" + "\nEXCEPTION: " + e);
@@ -58,12 +58,13 @@ public class NetworkService {
     }
 
     public static void addReceivedConnection(Socket connection) {
-        lowerClientEntities.add(new ClientEntity(connection, canvasController));
+        lowerClientEntities.add(new ClientEntity(connection, canvasController,true));
     }
 
     public static void timeToStop() {
         connectionReceiverThread.timeToStop();
-        upperClientEntity.timeToStop();
+        if(upperClientEntity != null)
+            upperClientEntity.timeToStop();
         for (ClientEntity act : lowerClientEntities) {
             act.timeToStop();
         }

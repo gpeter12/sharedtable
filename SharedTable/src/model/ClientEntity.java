@@ -1,9 +1,12 @@
 package model;
 
-import controller.CanvasController;
+import controller.commands.DrawLineCommand;
+import controller.controllers.CanvasController;
 import controller.Command;
 import controller.CommandFactory;
-import controller.RemoteCommandBufferHandler;
+import controller.RemoteDrawLineCommandBufferHandler;
+import controller.commands.ChangeStateCommand;
+import controller.commands.ClearCommand;
 
 import java.io.*;
 import java.net.Socket;
@@ -12,8 +15,9 @@ import java.util.UUID;
 
 public class ClientEntity extends Thread {
 
-    public ClientEntity(Socket socket, CanvasController canvasController) {
+    public ClientEntity(Socket socket, CanvasController canvasController, boolean isLowerClientEntity) {
         this.socket = socket;
+        this.isLowerClientEntity = isLowerClientEntity;
         this.canvasController = canvasController;
         try {
             initializeStreams(socket);
@@ -64,17 +68,24 @@ public class ClientEntity extends Thread {
 
     public Command receiveCommand() {
         String receivedCommand = scanner.nextLine();
-        //System.out.println("received command: " + receivedCommand);
+        if(isLowerClientEntity){
+            NetworkService.forwardMessageUpwards(receivedCommand);
+        } else {
+            NetworkService.forwardMessageDownwards(receivedCommand);
+        }
         String[] splittedCommand = receivedCommand.split(";");
         if (!receivedCommand.isEmpty()) {
-            if(handleMementoBarrierSignal(splittedCommand))
+            if(isMementoBarrierSignal(splittedCommand)){
+                handleMementoBarrierSignal(splittedCommand);
                 return null;
+            }
             else {
                 Command rcvdcmd = CommandFactory.getCommand(splittedCommand, canvasController);
-                RemoteCommandBufferHandler.addCommand(rcvdcmd);
+                if(rcvdcmd instanceof DrawLineCommand) {
+                    RemoteDrawLineCommandBufferHandler.addCommand(rcvdcmd);
+                }
                 return rcvdcmd;
             }
-
         }
         else {
             System.out.println("input command data is empty!");
@@ -82,13 +93,20 @@ public class ClientEntity extends Thread {
         }
     }
 
+    private boolean isMementoBarrierSignal(String[] input) {
+        if(isMementoOpener(input) || isMementoCloser(input)){
+            return true;
+        }
+        return false;
+    }
+
     private boolean handleMementoBarrierSignal(String[] input) {
         if(isMementoOpener(input)){
-            RemoteCommandBufferHandler.openNewMemento(UUID.fromString(input[0]),UUID.fromString(input[2]));
+            RemoteDrawLineCommandBufferHandler.openNewMemento(UUID.fromString(input[0]),UUID.fromString(input[2]));
             return true;
         }
         if(isMementoCloser(input)){
-            RemoteCommandBufferHandler.closeMemento(UUID.fromString(input[0]),UUID.fromString(input[2]));
+            RemoteDrawLineCommandBufferHandler.closeMemento(UUID.fromString(input[0]),UUID.fromString(input[2]));
             return true;
         }
         return false;
@@ -109,6 +127,11 @@ public class ClientEntity extends Thread {
     }
 
     public void timeToStop() {
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         interrupt();
     }
 
@@ -119,6 +142,7 @@ public class ClientEntity extends Thread {
     private BufferedWriter bufferedWriter;
     private Scanner scanner;
     private CanvasController canvasController;
+    private boolean isLowerClientEntity;
 
 
 }

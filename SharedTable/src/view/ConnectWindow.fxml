@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.VBox?>
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
-      fx:controller="controller.ConnectWindowController"
+      fx:controller="controller.controllers.ConnectWindowController"
       alignment="center">
     <Label>Kapcsolódási link (PL.: stconnect://2222@178.164.137.147)</Label>
     <HBox alignment="center">

@@ -1,7 +1,6 @@
 package controller;
 
-import controller.commands.ChangeStateCommand;
-import controller.commands.ClearCommand;
+import controller.controllers.CanvasController;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,24 +13,24 @@ import java.util.UUID;
  */
 
 
-public class RemoteCommandBufferHandler {
+public class RemoteDrawLineCommandBufferHandler {
 
-    public RemoteCommandBufferHandler(CanvasController canvasController) {
+    public RemoteDrawLineCommandBufferHandler(CanvasController canvasController) {
         this.canvasController = canvasController;
     }
 
     public static void addCommand(Command command) {
-        if(!(command instanceof ClearCommand) && !(command instanceof ChangeStateCommand)) {
-            if (!commandBuffers.containsKey(command.getCreatorID())) {
-                throw new RuntimeException("user related command buffer does not exists!");
-            }
-            commandBuffers.get(command.getCreatorID()).add(command);
+
+        if (!commandBuffers.containsKey(command.getCreatorID())) {
+            throw new RuntimeException("user related command buffer does not exists!");
         }
+        commandBuffers.get(command.getCreatorID()).add(command);
+
 
     }
 
     public static void closeMemento(UUID userID, UUID mementoID) {
-        canvasController.insertRemoteMementoAfterActual(mementoID,commandBuffers.get(userID));
+        canvasController.insertRemoteMementoAfterActual(mementoID,commandBuffers.get(userID),true);
         printAllCommands(commandBuffers.get(userID));
         commandBuffers.remove(userID);
     }

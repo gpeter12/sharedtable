@@ -1,8 +1,8 @@
 package view;
 
-import controller.CanvasController;
+import controller.controllers.CanvasController;
 import controller.KeyboardEventHandler;
-import controller.RemoteCommandBufferHandler;
+import controller.RemoteDrawLineCommandBufferHandler;
 import javafx.application.Application;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -13,9 +13,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import model.NetworkService;
 
-import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.util.Scanner;
 
 
 public class MainView extends Application {
@@ -24,7 +22,7 @@ public class MainView extends Application {
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("MainView.fxml"));
         primaryStage.setTitle("Shared Table");
-        Scene scene = new Scene(root, 1366, 768);
+        Scene scene = new Scene(root, 640, 480);
         primaryStage.setScene(scene);
         primaryStage.show();
 
@@ -32,7 +30,7 @@ public class MainView extends Application {
         CanvasController canvasController = new CanvasController(mainCanvas);
         this.canvasController = canvasController;
         mainCanvas.initEventHandlers(canvasController);
-        new RemoteCommandBufferHandler(canvasController);
+        new RemoteDrawLineCommandBufferHandler(canvasController);
 
         //FOR DEBUG PURPUSES
         if (startMode == 2) {
@@ -57,10 +55,6 @@ public class MainView extends Application {
     public void stop() {
         canvasController.stop();
         NetworkService.timeToStop();
-    }
-
-    private void initCanvas(MainCanvas mainCanvas, CanvasController canvasController) {
-
     }
 
     private void initConnectWindow() throws IOException {
@@ -99,6 +93,20 @@ public class MainView extends Application {
     //TODO #2 blocking bufferlista a canvashoz DONE
     //TODO #X Threading DONE
     //TODO #3 Basic connection élő rajzolással DONE
+    //TODO #X a clear command által létrehozott BlankMemento UUID-je aszinkronba kerül a többiekével.
+    //TODO #X mi történik helyileg, ha valaki távol befejez egy rajzolást a rajzolásom alatt
+    //      Válasz: az eddig bufferelt commandokból azonnal létrejön helyileg a saját mementóm és lezárul,
+    //      az ő helyileg külön bufferelt commandjai ezután kerülnek egy újabb mementóba, majd azt is lezárjuk.
+    //      (ezzel megőrizzük az időbeliséget, de nem mossuk össze a felhasználók commandjait egy mementóba)
+    //TODO #X stateOriginator.getNextMementoID() időbelisége problémákat okozhat!!!
+    //TODO #X mivan, ha akkor vonok vissza mikor valaki más rajzol?
+    //      Válasz: a mementó váltás megtörténik, de a rajzoló mementó lezárásakor minden későbbi mementó törlődik, így
+    //          Ő lesz a legújabb mementó az egér elengedésével.
+    //TODO #X mivan ha valaki akkor clearel amikor valaki más rajzol, és a rajzolás tovább folyik?
+    //      Válasz: a rajzoló mementó tényleges rögzítése a clear parancs utáni menetó rögzítése után történik meg,
+    //              így visszaállítható a törölt vonalrész, de elsőre eltűnik...
+    //TODO #X hogyan választom szét az egyszerre keletkező helyi és távoli drawLine commandokat -->
+    //          RemoteDrawLineCommandBufferHandler DONE
     //TODO #X megkeresni és be semaphorozni azokat a pontokat a command és memento handlingban amiket kell...
     //TODO #X fában kör kialakulásának megakadályozása
     //TODO #4 login utáni szinkronbahozás
