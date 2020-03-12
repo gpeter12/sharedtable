@@ -37,7 +37,8 @@ public class ClearCommand implements Command {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(creatorID.toString()).append(";").append(CommandID.ClearCommand.ordinal());
+        sb.append(creatorID.toString()).append(";").append(CommandID.ClearCommand.ordinal())
+            .append(";").append(blankMementoID);
         return sb.toString();
     }
 
@@ -45,9 +46,8 @@ public class ClearCommand implements Command {
         isRemote = remote;
     }
 
-
     private CanvasController canvasController;
     private UUID creatorID;
     private UUID blankMementoID;
-    private boolean isRemote;
+    private boolean isRemote = false;
 }

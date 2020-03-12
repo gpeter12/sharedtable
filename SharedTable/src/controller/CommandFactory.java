@@ -16,7 +16,9 @@ public class CommandFactory {
             case DrawLineCommand:
                 return new DrawLineCommand(canvasController.getMainCanvas(), splittedData);
             case ClearCommand:
-                return new ClearCommand(canvasController,splittedData);
+                ClearCommand c = new ClearCommand(canvasController,splittedData);
+                c.setRemote(true);
+                return c;
             case ChangeStateCommand:
                 return new ChangeStateCommand(canvasController,splittedData);
         }

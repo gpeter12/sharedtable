@@ -22,6 +22,8 @@ public class StateOriginator {
         return stateMemento;
     }
 
+    public boolean isCommandBufferEmpty() {return currentCommandList.isEmpty();}
+
     public void addCommand(Command command) {
         currentCommandList.add(command);
     }

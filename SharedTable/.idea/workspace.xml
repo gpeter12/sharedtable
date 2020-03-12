@@ -2,30 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="cdb932d9-7e58-4d94-93a9-e7b232ef17da" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/lib.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/lib.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SharedTable.iml" beforeDir="false" afterPath="$PROJECT_DIR$/SharedTable.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/controller/CanvasController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/controller/controllers/CanvasController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/controller/CommandFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/controller/CommandFactory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/controller/ConnectWindowController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/controller/controllers/ConnectWindowController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/controller/ConnectionLink.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/controller/ConnectionLink.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/controller/KeyboardEventHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/controller/KeyboardEventHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/controller/RemoteCommandBufferHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/controller/RemoteDrawLineCommandBufferHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/controller/commands/ChangeStateCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/controller/commands/ChangeStateCommand.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/controller/StateOriginator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/controller/StateOriginator.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/controller/commands/ClearCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/controller/commands/ClearCommand.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/controller/commands/CloseMementoCommand.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/controller/commands/DrawLineCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/controller/commands/DrawLineCommand.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/controller/commands/OpenMementoCommand.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/model/ClientEntity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/model/ClientEntity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/model/ConnectionReceiverThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/model/ConnectionReceiverThread.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/model/LowerClientEntity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/model/LowerClientEntity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/model/NetworkService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/model/NetworkService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/model/UpperClientEntity.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/model/UpperClientEntity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/view/ConnectWindow.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/view/ConnectWindow.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/view/MainCanvas.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/view/MainCanvas.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/view/MainView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/view/MainView.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/controller/controllers/CanvasController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/controller/controllers/CanvasController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/view/MainView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/view/MainView.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -132,7 +113,7 @@
     <property name="recentsLimit" value="5" />
     <property name="restartRequiresConfirmation" value="false" />
     <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
-    <property name="settings.editor.selected.configurable" value="reference.projectsettings.compiler.javacompiler" />
+    <property name="settings.editor.selected.configurable" value="reference.settings.project.maven.ignored.files" />
   </component>
   <component name="RunManager">
     <configuration default="true" type="Applet">
@@ -314,29 +295,29 @@
       <screen x="70" y="27" width="1850" height="1053" />
     </state>
     <state x="836" y="445" width="308" height="223" key="#com.intellij.ide.util.projectWizard.JdkChooserPanel.MyDialog/70.27.1850.1053/1920.0.1280.720@70.27.1850.1053" timestamp="1575497597384" />
-    <state width="1804" height="129" key="GridCell.Tab.0.bottom" timestamp="1583959788186">
+    <state width="1804" height="129" key="GridCell.Tab.0.bottom" timestamp="1583970369288">
       <screen x="70" y="27" width="1850" height="1053" />
     </state>
     <state width="1804" height="129" key="GridCell.Tab.0.bottom/1280.0.1920.1080/0.27.1280.997@1280.0.1920.1080" timestamp="1583866516859" />
-    <state width="1804" height="129" key="GridCell.Tab.0.bottom/70.27.1850.1053/1920.0.1280.720@70.27.1850.1053" timestamp="1583959788186" />
+    <state width="1804" height="129" key="GridCell.Tab.0.bottom/70.27.1850.1053/1920.0.1280.720@70.27.1850.1053" timestamp="1583970369288" />
     <state width="1804" height="231" key="GridCell.Tab.0.bottom/70.27.1850.1053@70.27.1850.1053" timestamp="1575556352042" />
-    <state width="1804" height="129" key="GridCell.Tab.0.center" timestamp="1583959788186">
+    <state width="1804" height="129" key="GridCell.Tab.0.center" timestamp="1583970369288">
       <screen x="70" y="27" width="1850" height="1053" />
     </state>
     <state width="1804" height="129" key="GridCell.Tab.0.center/1280.0.1920.1080/0.27.1280.997@1280.0.1920.1080" timestamp="1583866516859" />
-    <state width="1804" height="129" key="GridCell.Tab.0.center/70.27.1850.1053/1920.0.1280.720@70.27.1850.1053" timestamp="1583959788186" />
+    <state width="1804" height="129" key="GridCell.Tab.0.center/70.27.1850.1053/1920.0.1280.720@70.27.1850.1053" timestamp="1583970369288" />
     <state width="1804" height="231" key="GridCell.Tab.0.center/70.27.1850.1053@70.27.1850.1053" timestamp="1575556352042" />
-    <state width="1804" height="129" key="GridCell.Tab.0.left" timestamp="1583959788185">
+    <state width="1804" height="129" key="GridCell.Tab.0.left" timestamp="1583970369288">
       <screen x="70" y="27" width="1850" height="1053" />
     </state>
     <state width="1804" height="129" key="GridCell.Tab.0.left/1280.0.1920.1080/0.27.1280.997@1280.0.1920.1080" timestamp="1583866516859" />
-    <state width="1804" height="129" key="GridCell.Tab.0.left/70.27.1850.1053/1920.0.1280.720@70.27.1850.1053" timestamp="1583959788185" />
+    <state width="1804" height="129" key="GridCell.Tab.0.left/70.27.1850.1053/1920.0.1280.720@70.27.1850.1053" timestamp="1583970369288" />
     <state width="1804" height="231" key="GridCell.Tab.0.left/70.27.1850.1053@70.27.1850.1053" timestamp="1575556352042" />
-    <state width="1804" height="129" key="GridCell.Tab.0.right" timestamp="1583959788186">
+    <state width="1804" height="129" key="GridCell.Tab.0.right" timestamp="1583970369288">
       <screen x="70" y="27" width="1850" height="1053" />
     </state>
     <state width="1804" height="129" key="GridCell.Tab.0.right/1280.0.1920.1080/0.27.1280.997@1280.0.1920.1080" timestamp="1583866516859" />
-    <state width="1804" height="129" key="GridCell.Tab.0.right/70.27.1850.1053/1920.0.1280.720@70.27.1850.1053" timestamp="1583959788186" />
+    <state width="1804" height="129" key="GridCell.Tab.0.right/70.27.1850.1053/1920.0.1280.720@70.27.1850.1053" timestamp="1583970369288" />
     <state width="1804" height="231" key="GridCell.Tab.0.right/70.27.1850.1053@70.27.1850.1053" timestamp="1575556352042" />
     <state width="1804" height="231" key="GridCell.Tab.1.bottom" timestamp="1575556352043">
       <screen x="70" y="27" width="1850" height="1053" />
@@ -354,13 +335,13 @@
       <screen x="70" y="27" width="1850" height="1053" />
     </state>
     <state width="1804" height="231" key="GridCell.Tab.1.right/70.27.1850.1053@70.27.1850.1053" timestamp="1575556352043" />
-    <state x="484" y="188" width="1226" height="737" key="SettingsEditor" timestamp="1575497905466">
+    <state x="484" y="188" width="1226" height="737" key="SettingsEditor" timestamp="1584017391729">
       <screen x="70" y="27" width="1850" height="1053" />
     </state>
-    <state x="484" y="188" width="1226" height="737" key="SettingsEditor/70.27.1850.1053/1920.0.1280.720@70.27.1850.1053" timestamp="1575497905466" />
-    <state x="2438" y="0" width="612" height="707" maximized="true" key="dock-window-1" timestamp="1583959843722">
+    <state x="484" y="188" width="1226" height="737" key="SettingsEditor/70.27.1850.1053/1920.0.1280.720@70.27.1850.1053" timestamp="1584017391729" />
+    <state x="2438" y="0" width="602" height="714" maximized="true" key="dock-window-1" timestamp="1584013316281">
       <screen x="1920" y="0" width="1280" height="720" />
     </state>
-    <state x="2438" y="0" width="612" height="707" maximized="true" key="dock-window-1/70.27.1850.1053/1920.0.1280.720@70.27.1850.1053" timestamp="1583959843722" />
+    <state x="2438" y="0" width="602" height="714" maximized="true" key="dock-window-1/70.27.1850.1053/1920.0.1280.720@70.27.1850.1053" timestamp="1584013316281" />
   </component>
 </project>

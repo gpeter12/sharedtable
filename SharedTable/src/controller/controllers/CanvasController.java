@@ -99,6 +99,10 @@ public class CanvasController {
     }
 
     public StateMemento insertRemoteMementoAfterActual(UUID id,ArrayList<Command> commands, boolean link) {
+        //mi történik helyileg, ha valaki távol befejez egy rajzolást a rajzolásom alatt
+        if(!stateOriginator.isCommandBufferEmpty()) {//ha nem üres akkor épp rajzolok...
+            NetworkService.sendMementoCloserSignal(UserID.getUserID(),insertNewMementoAfterActual(true).getId());
+        }
         StateMemento memento = insertNewMementoAfterActual(link);
         memento.setId(id);
         memento.addCommands(commands);

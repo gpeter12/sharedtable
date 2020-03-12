@@ -34,12 +34,12 @@ public class MainView extends Application {
 
         //FOR DEBUG PURPUSES
         if (startMode == 2) {
-            new NetworkService(true, canvasController,2222);
-        } else if(startMode == 1) {
-            new NetworkService(true, canvasController,2223);
+            new NetworkService(true, canvasController, 2222);
+        } else if (startMode == 1) {
+            new NetworkService(true, canvasController, 2223);
             NetworkService.connect("127.0.0.1", 2222);
-        } else if(startMode == 0) {
-            new NetworkService(false, canvasController,-1);
+        } else if (startMode == 0) {
+            new NetworkService(false, canvasController, -1);
             NetworkService.connect("127.0.0.1", 2223);
         }
 
@@ -81,7 +81,7 @@ public class MainView extends Application {
     private static int startMode;
     private static CanvasController canvasController;
 
-
+}
 
 
     //TODO #1 Memento állapottárolásra (Caretaker, originator) DONE
@@ -91,35 +91,46 @@ public class MainView extends Application {
     //TODO #1.1 láncolt "lista" RAM effektivitásért DONE
     //TODO #1.2 viszavonási idővonal problémája DONE
     //TODO #2 blocking bufferlista a canvashoz DONE
-    //TODO #X Threading DONE
+    //TODO #X Threading (with blocking queues) DONE
     //TODO #3 Basic connection élő rajzolással DONE
-    //TODO #X a clear command által létrehozott BlankMemento UUID-je aszinkronba kerül a többiekével.
-    //TODO #X mi történik helyileg, ha valaki távol befejez egy rajzolást a rajzolásom alatt
-    //      Válasz: az eddig bufferelt commandokból azonnal létrejön helyileg a saját mementóm és lezárul,
-    //      az ő helyileg külön bufferelt commandjai ezután kerülnek egy újabb mementóba, majd azt is lezárjuk.
-    //      (ezzel megőrizzük az időbeliséget, de nem mossuk össze a felhasználók commandjait egy mementóba)
-    //TODO #X stateOriginator.getNextMementoID() időbelisége problémákat okozhat!!!
-    //TODO #X mivan, ha akkor vonok vissza mikor valaki más rajzol?
-    //      Válasz: a mementó váltás megtörténik, de a rajzoló mementó lezárásakor minden későbbi mementó törlődik, így
-    //          Ő lesz a legújabb mementó az egér elengedésével.
-    //TODO #X mivan ha valaki akkor clearel amikor valaki más rajzol, és a rajzolás tovább folyik?
-    //      Válasz: a rajzoló mementó tényleges rögzítése a clear parancs utáni menetó rögzítése után történik meg,
-    //              így visszaállítható a törölt vonalrész, de elsőre eltűnik...
-    //TODO #X hogyan választom szét az egyszerre keletkező helyi és távoli drawLine commandokat -->
-    //          RemoteDrawLineCommandBufferHandler DONE
+    //TODO #4 a clear command által létrehozott BlankMemento UUID-je aszinkronba kerül a többiekével. DONE
     //TODO #X megkeresni és be semaphorozni azokat a pontokat a command és memento handlingban amiket kell...
     //TODO #X fában kör kialakulásának megakadályozása
     //TODO #4 login utáni szinkronbahozás
     //TODO #5 ha egy csomópont kiszáll, megpróbál sorrendben csatlakozni bármely más klienshez
     //TODO #6 Bármilyen deszinkronizációs hiba esetén a legnegyobb IP vel rendelkező gép mester mementó listát küld szét a reszinkronizációhoz
 
-
+    //---------LOW PRIORITY-------------------------
     //TODO #X a ConnectWindow-ra kiírni a stconnect linket, és a link mezőt. súgógombok a linkek mellé.
     //TODO #X kiírni rögtön init után, ha nem lehet UPNP-n portot nyitni, és tájékoztatni a tűzfalról is
 
 
 //TODO #5 automatic lock conflict feloldás (akinek nagyobb az IP-je az kapja a lockot)
-}
+
+    /*
+    ------------------------------SCENARIOS----------------------------------------------------
+    SCEN #1: mi történik helyileg, ha valaki távol befejez egy rajzolást a rajzolásom alatt
+          Válasz: az eddig bufferelt commandokból azonnal létrejön helyileg a saját mementóm és lezárul,
+          az ő helyileg külön bufferelt commandjai ezután kerülnek egy újabb mementóba, majd azt is lezárjuk.
+          (ezzel megőrizzük az időbeliséget, de nem mossuk össze a felhasználók commandjait egy mementóba)
+    stateOriginator.getNextMementoID() időbelisége problémákat okozhat!!!
+    -------------------------
+    SCEN #2: mivan, ha akkor vonok vissza mikor valaki más rajzol?
+          Válasz: a mementó váltás megtörténik, de a rajzoló mementó lezárásakor minden későbbi mementó törlődik, így
+              Ő lesz a legújabb mementó az egér elengedésével.
+    -------------------------
+    SCEN #3: mivan ha valaki akkor clearel amikor valaki más rajzol, és a rajzolás tovább folyik?
+          Válasz: a rajzoló mementó tényleges rögzítése a clear parancs utáni menetó rögzítése után történik meg,
+                  így visszaállítható a törölt vonalrész, de elsőre eltűnik... a lejújabb mementó utén lesz rögzítve
+    -------------------------
+    SCEN #4: hogyan választom szét az egyszerre keletkező helyi és távoli drawLine commandokat -->
+              RemoteDrawLineCommandBufferHandler DONE
+
+
+
+     */
+
+
 
 /*
 Párhuzamos rajzolásnál felmerül a hiba lehetőség, hogy lokális gépen egyel több command kerül
