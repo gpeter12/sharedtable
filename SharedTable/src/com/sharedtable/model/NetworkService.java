@@ -139,6 +139,13 @@ public class NetworkService {
         }
     }
 
+    public static void forwardMesageDownwardsWithException(String message, UUID except) {
+        for(ClientEntity act : lowerClientEntities) {
+            if(!act.getUserId().equals(except))
+                act.sendPlainText(message);
+        }
+    }
+
     //!!!!!!!!!!!!!!!!!!!!!
     public static void sendMessageToClient(UUID uuid, String message) {
         ClientEntity clientEntity = getClientEntityByUUID(uuid);

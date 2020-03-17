@@ -1,6 +1,7 @@
 package com.sharedtable.model;
 
 import com.sharedtable.controller.*;
+import com.sharedtable.controller.commands.ChangeStateCommand;
 import com.sharedtable.controller.commands.DrawLineCommand;
 import com.sharedtable.controller.controllers.CanvasController;
 
@@ -57,6 +58,7 @@ public class ClientEntity extends Thread {
 
     private void sendSynchronizationCommands() {
         sendAllMementos();
+        sendCommand(new ChangeStateCommand(canvasController,UserID.getUserID(),canvasController.getCurrentMementoID()));
     }
 
     private HandshakingInfo receiveHandshakingInfo() {
@@ -160,6 +162,7 @@ public class ClientEntity extends Thread {
         String receivedCommand = scanner.nextLine();
         if(isLowerClientEntity){
             NetworkService.forwardMessageUpwards(receivedCommand);
+            NetworkService.forwardMesageDownwardsWithException(receivedCommand,id);
         } else {
             NetworkService.forwardMessageDownwards(receivedCommand);
         }
@@ -246,6 +249,6 @@ public class ClientEntity extends Thread {
     private CanvasController canvasController;
     private boolean isLowerClientEntity;
     private UUID id = UUID.randomUUID();
-
+    private String IP;
 
 }

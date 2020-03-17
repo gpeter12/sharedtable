@@ -117,6 +117,8 @@ public class CanvasController {
         stateCaretaker.printAllMementos();
     }
 
+    public UUID getCurrentMementoID() {return actMementoID;}
+
     //////////////////////////////////////private section////////////////////////////////////////
 
     private StateMemento insertNewMementoAfterActual(boolean link) {//link: kell-e láncolni az új mementót a régivel
