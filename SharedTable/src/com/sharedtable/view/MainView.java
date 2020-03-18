@@ -22,7 +22,7 @@ public class MainView extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("MainView.fxml"));
-        primaryStage.setTitle("Shared Table");
+        primaryStage.setTitle("Shared Table (mode: "+startMode+")");
         Scene scene = new Scene(root, 640, 480);
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -100,6 +100,11 @@ public class MainView extends Application {
         canvasController.printAllMementos();
     }
 
+    @FXML
+    public void onMakeCirclePressed(ActionEvent actionEvent) {
+        NetworkService.connect("127.0.0.1", 2223);
+    }
+
     public static void main(String[] args) {
         startMode = Integer.parseInt(args[0]);
         if(args.length > 1){
@@ -113,7 +118,6 @@ public class MainView extends Application {
     private static String IP = null;
     private static int port =-1;
     private static CanvasController canvasController;
-
 
 
 }
@@ -130,9 +134,9 @@ public class MainView extends Application {
     //TODO #3 Basic connection élő rajzolással DONE
     //TODO #4 a clear command által létrehozott BlankMemento UUID-je aszinkronba kerül a többiekével. DONE
     //TODO #X megkeresni és be semaphorozni azokat a pontokat a command és memento handlingban amiket kell...
-    //TODO #X fában kör kialakulásának megakadályozása
+    //TODO #X fában kör kialakulásának megakadályozása DONE
     //TODO #4 login utáni szinkronbahozás DONE
-    //TODO ## Exception happened during sending plain textjava.net.SocketException: Socket closed
+    //TODO ## Exception happened during sending plain textjava.net.SocketException: Socket closed DONE
     //TODO #5 ha egy csomópont kiszáll, megpróbál sorrendben csatlakozni bármely más klienshez
     //TODO #6 Bármilyen deszinkronizációs hiba esetén a legnegyobb IP vel rendelkező gép mester mementó listát küld szét a reszinkronizációhoz
     //TODO #7 ellipszis

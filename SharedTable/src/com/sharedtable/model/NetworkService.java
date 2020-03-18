@@ -6,6 +6,7 @@ import com.sharedtable.controller.Command;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.UUID;
+import java.util.concurrent.Semaphore;
 
 public class NetworkService {
 
@@ -27,7 +28,7 @@ public class NetworkService {
     public static void connect(final String IP, int port) {
         try {
             upperClientEntity = new ClientEntity(new Socket(IP, port), canvasController,false);
-
+            addNewTransitiveClient(upperClientEntity.getUserId());
         } catch (Exception e) {
             throw new RuntimeException("Error during connect to another client" + "\nEXCEPTION: " + e);
         }
@@ -53,24 +54,29 @@ public class NetworkService {
     }
 
     public static void addReceivedConnection(Socket connection) {
+        try { semaphore.acquire(); } catch (Exception e) {System.out.println(e);}
         ClientEntity clientEntity = new ClientEntity(connection, canvasController,true);
         clientEntity.setLowerClientEntity(true);
         lowerClientEntities.add(clientEntity);
+        addNewTransitiveClient(clientEntity.getUserId());
+        semaphore.release();
     }
 
     public static void removeClientEntity(UUID id) {
+        try { semaphore.acquire(); } catch (Exception e) {System.out.println(e);}
         if(upperClientEntity != null && upperClientEntity.getUserId().equals(id)) {
             upperClientEntity = null;
+            semaphore.release();
             return;
         }
         for(ClientEntity act : lowerClientEntities) {
             if(act.getUserId().equals(id)){
                 lowerClientEntities.remove(act);
+                semaphore.release();
                 return;
             }
         }
-
-
+        semaphore.release();
     }
 
     public static void timeToStop() {
@@ -94,14 +100,14 @@ public class NetworkService {
 
     public static String getMementoCloserSignal(UUID userID,UUID mementoID,boolean isLinked) {
         StringBuilder sb = new StringBuilder();
-        sb.append(userID.toString()).append(";CLOSE;").append(mementoID.toString()).append(";")
+        sb.append("SIG;").append(userID.toString()).append(";CLOSE;").append(mementoID.toString()).append(";")
                 .append(isLinked);
         return sb.toString();
     }
 
     public static String getMementoOpenerSignal(UUID userID,UUID mementoID,boolean isLinked) {
         StringBuilder sb = new StringBuilder();
-        sb.append(userID.toString()).append(";OPEN;").append(mementoID.toString()).append(";")
+        sb.append("SIG;").append(userID.toString()).append(";OPEN;").append(mementoID.toString()).append(";")
                 .append(isLinked);
         return sb.toString();
     }
@@ -118,6 +124,26 @@ public class NetworkService {
     }
     public static void sendMementoCloserSignalDownwards(UUID userID,UUID mementoID,boolean isLinked) {
         forwardMessageDownwards(getMementoCloserSignal(userID,mementoID,isLinked));
+    }
+
+    public static void addNewTransitiveClient(UUID clientID) {
+        transitiveClientIDs.add(clientID);
+        System.out.println("transitive client added: "+clientID.toString());
+    }
+
+    public static boolean isClientInNetwork(UUID clientID) {
+        /*for(ClientEntity act : lowerClientEntities) {
+            if(act.getUserId().equals(clientID))
+                return true;
+        }
+        if(upperClientEntity.getUserId().equals(clientID))
+            return true;*/
+        if(transitiveClientIDs.contains(clientID)){
+            System.out.println("transitive client found: "+clientID.toString());
+            return true;
+        }
+
+        return false;
     }
 
     /*public static void sendMementoOpenerSignalToClient(UUID userID,UUID mementoID) {
@@ -166,9 +192,12 @@ public class NetworkService {
 
     private static ClientEntity upperClientEntity = null;
     private static ArrayList<ClientEntity> lowerClientEntities = new ArrayList<>();
+    private static ArrayList<UUID> transitiveClientIDs = new ArrayList<>();
 
     private static ConnectionReceiverThread connectionReceiverThread;
     private static CanvasController canvasController;
+
+    private static Semaphore semaphore = new Semaphore(1);
 
     /*
     -ha alulról kap infót, azt felfele, és lefel is továbbküldi (értelemszerűen a forrásnak nem)

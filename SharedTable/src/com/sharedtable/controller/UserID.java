@@ -9,11 +9,16 @@ public class UserID {
     }
 
     public static UUID getUserID() {
-        if (userID == null)
-            userID = UUID.randomUUID();
         return userID;
     }
 
-    private static UUID userID = null;
+    private static UUID generateUserID() {
+        UUID uuid = UUID.randomUUID();
+        System.out.println("MY USR ID: "+uuid.toString());
+        System.out.println("-----------------");
+        return uuid;
+    }
+
+    private static UUID userID = generateUserID();
 
 }

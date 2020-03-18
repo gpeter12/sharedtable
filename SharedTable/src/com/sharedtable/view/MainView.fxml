@@ -13,6 +13,8 @@
                 <MenuItem text="Undo" onAction="#onUndoPressed"></MenuItem>
                 <MenuItem text="Redo" onAction="#onRedoPressed"></MenuItem>
                 <MenuItem text="ListMementos" onAction="#onListMementosPressed"></MenuItem>
+                <MenuItem text="MakeCrircle" onAction="#onMakeCirclePressed"></MenuItem>
+
             </Menu>
         </MenuBar>
 
