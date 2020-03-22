@@ -14,6 +14,7 @@
                 <MenuItem text="Redo" onAction="#onRedoPressed"></MenuItem>
                 <MenuItem text="ListMementos" onAction="#onListMementosPressed"></MenuItem>
                 <MenuItem text="MakeCrircle" onAction="#onMakeCirclePressed"></MenuItem>
+                <MenuItem text="WriteAllKnownClients" onAction="#onWriteAllKnownClientsPressed"></MenuItem>
 
             </Menu>
         </MenuBar>

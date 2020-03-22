@@ -105,6 +105,11 @@ public class MainView extends Application {
         NetworkService.connect("127.0.0.1", 2223);
     }
 
+    @FXML
+    public void onWriteAllKnownClientsPressed(ActionEvent actionEvent) {
+        NetworkService.printClientList();
+    }
+
     public static void main(String[] args) {
         startMode = Integer.parseInt(args[0]);
         if(args.length > 1){
@@ -137,14 +142,17 @@ public class MainView extends Application {
     //TODO #X fában kör kialakulásának megakadályozása DONE
     //TODO #4 login utáni szinkronbahozás DONE
     //TODO ## Exception happened during sending plain textjava.net.SocketException: Socket closed DONE
-    //TODO #5 ha egy csomópont kiszáll, megpróbál sorrendben csatlakozni bármely más klienshez
-    //TODO #6 Bármilyen deszinkronizációs hiba esetén a legnegyobb IP vel rendelkező gép mester mementó listát küld szét a reszinkronizációhoz
+    //TODO #5 befejezni a HandshakingInfo és NetworkClientEntity új fieldjeit (IP,nickname) DONE
+    //TODO ## minden hálózatban levő kliens folyamatos nyilvántartása (kell az átcsatlakozáshoz) DONE
+    //TODO #6 ha egy csomópont kiszáll, megpróbál sorrendben csatlakozni bármely más klienshez
+
     //TODO #7 ellipszis
     //TODO #8 téglalap
     //TODO #9 háromszög
     //---------LOW PRIORITY-------------------------
     //TODO #X a ConnectWindow-ra kiírni a stconnect linket, és a link mezőt. súgógombok a linkek mellé.
     //TODO #X kiírni rögtön init után, ha nem lehet UPNP-n portot nyitni, és tájékoztatni a tűzfalról is
+    //TODO #6 Bármilyen deszinkronizációs hiba esetén a legnegyobb IP vel rendelkező gép mester mementó listát küld szét a reszinkronizációhoz
 
 
 //TODO #5 automatic lock conflict feloldás (akinek nagyobb az IP-je az kapja a lockot)

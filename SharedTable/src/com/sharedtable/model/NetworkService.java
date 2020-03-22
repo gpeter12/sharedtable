@@ -1,9 +1,13 @@
 package com.sharedtable.model;
 
+import com.sharedtable.controller.UserID;
 import com.sharedtable.controller.controllers.CanvasController;
 import com.sharedtable.controller.Command;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.Socket;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;
@@ -27,8 +31,7 @@ public class NetworkService {
     //make outgoing connection
     public static void connect(final String IP, int port) {
         try {
-            upperClientEntity = new ClientEntity(new Socket(IP, port), canvasController,false);
-            addNewTransitiveClient(upperClientEntity.getUserId());
+            upperConnectedClientEntity = new ConnectedClientEntity(new Socket(IP, port), canvasController,false);
         } catch (Exception e) {
             throw new RuntimeException("Error during connect to another client" + "\nEXCEPTION: " + e);
         }
@@ -37,7 +40,7 @@ public class NetworkService {
 
     //sends all data to clients that connected to this client
     public static void propagateCommandDownwards(Command command) {
-        for (ClientEntity act : lowerClientEntities) {
+        for (ConnectedClientEntity act : lowerConnectedClientEntities) {
             try {
                 act.sendCommand(command);
             } catch (Exception e) {
@@ -48,30 +51,32 @@ public class NetworkService {
 
     //sends data to the client that this client connected
     public static void propagateCommandUpwards(Command command) {
-        if (upperClientEntity != null) {
-            upperClientEntity.sendCommand(command);
+        if (upperConnectedClientEntity != null) {
+            upperConnectedClientEntity.sendCommand(command);
         }
     }
 
     public static void addReceivedConnection(Socket connection) {
         try { semaphore.acquire(); } catch (Exception e) {System.out.println(e);}
-        ClientEntity clientEntity = new ClientEntity(connection, canvasController,true);
-        clientEntity.setLowerClientEntity(true);
-        lowerClientEntities.add(clientEntity);
-        addNewTransitiveClient(clientEntity.getUserId());
+        ConnectedClientEntity connectedClientEntity = new ConnectedClientEntity(connection, canvasController,true);
+        connectedClientEntity.setLowerClientEntity(true);
+        lowerConnectedClientEntities.add(connectedClientEntity);
         semaphore.release();
     }
 
     public static void removeClientEntity(UUID id) {
         try { semaphore.acquire(); } catch (Exception e) {System.out.println(e);}
-        if(upperClientEntity != null && upperClientEntity.getUserId().equals(id)) {
-            upperClientEntity = null;
+
+        allNetworkClients.removeIf(act -> act.getID().equals(id));
+
+        if(upperConnectedClientEntity != null && upperConnectedClientEntity.getUserId().equals(id)) {
+            upperConnectedClientEntity = null;
             semaphore.release();
             return;
         }
-        for(ClientEntity act : lowerClientEntities) {
+        for(ConnectedClientEntity act : lowerConnectedClientEntities) {
             if(act.getUserId().equals(id)){
-                lowerClientEntities.remove(act);
+                lowerConnectedClientEntities.remove(act);
                 semaphore.release();
                 return;
             }
@@ -81,9 +86,9 @@ public class NetworkService {
 
     public static void timeToStop() {
         connectionReceiverThread.timeToStop();
-        if(upperClientEntity != null)
-            upperClientEntity.timeToStop();
-        for (ClientEntity act : lowerClientEntities) {
+        if(upperConnectedClientEntity != null)
+            upperConnectedClientEntity.timeToStop();
+        for (ConnectedClientEntity act : lowerConnectedClientEntities) {
             act.timeToStop();
         }
     }
@@ -126,23 +131,21 @@ public class NetworkService {
         forwardMessageDownwards(getMementoCloserSignal(userID,mementoID,isLinked));
     }
 
-    public static void addNewTransitiveClient(UUID clientID) {
-        transitiveClientIDs.add(clientID);
-        System.out.println("transitive client added: "+clientID.toString());
+    public static void addNetworkClientEntity(NetworkClientEntity networkClientEntity) {
+        if(!UserID.getUserID().equals(networkClientEntity.getID()) &&
+                !allNetworkClients.contains(networkClientEntity))
+        {
+            allNetworkClients.add(networkClientEntity);
+            System.out.println("NetworkClientEntity added: "+networkClientEntity.getID().toString());
+        }
     }
 
     public static boolean isClientInNetwork(UUID clientID) {
-        /*for(ClientEntity act : lowerClientEntities) {
-            if(act.getUserId().equals(clientID))
+        for(NetworkClientEntity act : allNetworkClients) {
+            if(act.getID().equals(clientID)){
                 return true;
+            }
         }
-        if(upperClientEntity.getUserId().equals(clientID))
-            return true;*/
-        if(transitiveClientIDs.contains(clientID)){
-            System.out.println("transitive client found: "+clientID.toString());
-            return true;
-        }
-
         return false;
     }
 
@@ -155,18 +158,18 @@ public class NetworkService {
     }*/
 
     public static void forwardMessageUpwards(String message) {
-        if(upperClientEntity != null)
-            upperClientEntity.sendPlainText(message);
+        if(upperConnectedClientEntity != null)
+            upperConnectedClientEntity.sendPlainText(message);
     }
 
     public static void forwardMessageDownwards(String message) {
-        for(ClientEntity act : lowerClientEntities) {
+        for(ConnectedClientEntity act : lowerConnectedClientEntities) {
             act.sendPlainText(message);
         }
     }
 
     public static void forwardMesageDownwardsWithException(String message, UUID except) {
-        for(ClientEntity act : lowerClientEntities) {
+        for(ConnectedClientEntity act : lowerConnectedClientEntities) {
             if(!act.getUserId().equals(except))
                 act.sendPlainText(message);
         }
@@ -174,15 +177,15 @@ public class NetworkService {
 
     //!!!!!!!!!!!!!!!!!!!!!
     public static void sendMessageToClient(UUID uuid, String message) {
-        ClientEntity clientEntity = getClientEntityByUUID(uuid);
-        clientEntity.sendPlainText(message);
+        ConnectedClientEntity connectedClientEntity = getClientEntityByUUID(uuid);
+        connectedClientEntity.sendPlainText(message);
     }
 
-    private static ClientEntity getClientEntityByUUID(UUID uuid) {
-        if(upperClientEntity != null && upperClientEntity.getUserId().equals(uuid)) {
-            return upperClientEntity;
+    private static ConnectedClientEntity getClientEntityByUUID(UUID uuid) {
+        if(upperConnectedClientEntity != null && upperConnectedClientEntity.getUserId().equals(uuid)) {
+            return upperConnectedClientEntity;
         }
-        for(ClientEntity act : lowerClientEntities) {
+        for(ConnectedClientEntity act : lowerConnectedClientEntities) {
             if(act.getUserId().equals(uuid)) {
                 return act;
             }
@@ -190,9 +193,39 @@ public class NetworkService {
         throw new RuntimeException("User nof found by ID");
     }
 
-    private static ClientEntity upperClientEntity = null;
-    private static ArrayList<ClientEntity> lowerClientEntities = new ArrayList<>();
-    private static ArrayList<UUID> transitiveClientIDs = new ArrayList<>();
+    public static String getPublicIP() {
+        String systemipaddress = "";
+        try
+        {
+            URL url_name = new URL("http://bot.whatismyipaddress.com");
+
+            BufferedReader sc =
+                    new BufferedReader(new InputStreamReader(url_name.openStream()));
+
+            // reads system IPAddress
+            systemipaddress = sc.readLine().trim();
+        }
+        catch (Exception e)
+        {
+            systemipaddress = "Cannot Execute Properly";
+        }
+        return systemipaddress;
+    }
+
+    public static void printClientList() {
+        System.out.println("---------CLIENT LIST----------");
+        for(NetworkClientEntity act : allNetworkClients) {
+            System.out.println(act);
+        }
+        System.out.println("---------CLIENT LIST END----------");
+    }
+
+    public static ArrayList<NetworkClientEntity> getAllNetworkClients() {return allNetworkClients;}
+
+    private static ArrayList<NetworkClientEntity> allNetworkClients = new ArrayList<>();
+    private static ConnectedClientEntity upperConnectedClientEntity = null;
+    private static ArrayList<ConnectedClientEntity> lowerConnectedClientEntities = new ArrayList<>();
+    //private static ArrayList<UUID> transitiveClientIDs = new ArrayList<>();
 
     private static ConnectionReceiverThread connectionReceiverThread;
     private static CanvasController canvasController;

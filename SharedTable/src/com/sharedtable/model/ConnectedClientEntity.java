@@ -12,9 +12,9 @@ import java.util.Objects;
 import java.util.Scanner;
 import java.util.UUID;
 
-public class ClientEntity extends Thread {
+public class ConnectedClientEntity extends Thread {
 
-    public ClientEntity(Socket socket, CanvasController canvasController, boolean isLowerClientEntity) {
+    public ConnectedClientEntity(Socket socket, CanvasController canvasController, boolean isLowerClientEntity) {
         this.socket = socket;
         this.isLowerClientEntity = isLowerClientEntity;
         this.canvasController = canvasController;
@@ -37,7 +37,7 @@ public class ClientEntity extends Thread {
     @Override
     public void run() {
         handshakingProcess();
-        while (scanner.hasNext()) {
+        while (scanner.hasNext() && !timeToStop) {
             String receivedMessage = scanner.nextLine();
             forwardMessage(receivedMessage);
             String[] splittedMessage = receivedMessage.split(";");
@@ -49,9 +49,12 @@ public class ClientEntity extends Thread {
                     canvasController.processRemoteCommand(recvdCmd);
                 }
             } else {
-                System.out.println("ClientEntity: receivedMessage was empty!");
+                System.out.println("ConnectedClientEntity: receivedMessage was empty!");
             }
         }
+        System.out.println("Connection closed by remote client!");
+        forwardMessage(getNewDisconnectSignal(networkClientEntity.getID(),networkClientEntity.getNickname(),
+                networkClientEntity.getIP()));
         timeToStop();
     }
 
@@ -59,7 +62,7 @@ public class ClientEntity extends Thread {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ClientEntity that = (ClientEntity) o;
+        ConnectedClientEntity that = (ConnectedClientEntity) o;
         return id.equals(that.id);
     }
 
@@ -99,6 +102,7 @@ public class ClientEntity extends Thread {
             inputStream.close();
             socket.close();
             NetworkService.removeClientEntity(id);
+            timeToStop = true;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -111,9 +115,16 @@ public class ClientEntity extends Thread {
 
     //--------------SIGNAL HANDLING-----------------------------------------
 
-    private String getNewClientInfoSignal(UUID clientID) {
+    private String getNewClientInfoSignal(UUID clientID,String nickname,String IP,int mementoNumber) {
         StringBuilder sb = new StringBuilder();
-        sb.append("SIG;CONN;").append(clientID);
+        sb.append("SIG;CONN;").append(clientID).append(";").append(nickname).append(";").append(IP).
+                append(";").append(mementoNumber);
+        return sb.toString();
+    }
+
+    private String getNewDisconnectSignal(UUID clientID,String nickname,String IP) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SIG;DISCONN;").append(clientID).append(";").append(nickname).append(";").append(IP);
         return sb.toString();
     }
 
@@ -137,31 +148,23 @@ public class ClientEntity extends Thread {
         return false;
     }
 
-    private void handleConnectionSignal(String[] input) {
-        NetworkService.addNewTransitiveClient(UUID.fromString(input[2]));
+    private boolean isDisconnectionSignal(String[] input) {
+        if(input[1].equals("DISCONN"))
+            return true;
+        return false;
     }
 
-    private void handleSignal(String[] input) {
-        if(isMementoBarrierSignal(input))
-            handleMementoBarrierSignal(input);
-        else if(isConnectionSignal(input))
-            handleConnectionSignal(input);
+    private void handleConnectionSignal(String[] input) {
+        NetworkService.addNetworkClientEntity(new NetworkClientEntity(UUID.fromString(input[2]),
+                input[3],input[4], Integer.parseInt(input[5])));
+    }
+
+    private void handleDisconnectionSignal(String[] input) {
+        NetworkService.removeClientEntity(UUID.fromString(input[2]));
     }
 
     private boolean isMementoBarrierSignal(String[] input) {
         if(isMementoOpenerSignal(input) || isMementoCloserSignal(input)){
-            return true;
-        }
-        return false;
-    }
-
-    private boolean handleMementoBarrierSignal(String[] input) {
-        if(isMementoOpenerSignal(input)){
-            RemoteDrawLineCommandBufferHandler.openNewMemento(UUID.fromString(input[1]));
-            return true;
-        }
-        if(isMementoCloserSignal(input)){
-            RemoteDrawLineCommandBufferHandler.closeMemento(UUID.fromString(input[1]),UUID.fromString(input[3]),Boolean.parseBoolean(input[4]));
             return true;
         }
         return false;
@@ -181,13 +184,34 @@ public class ClientEntity extends Thread {
         return false;
     }
 
+    private void handleSignal(String[] input) {
+        if(isMementoBarrierSignal(input))
+            handleMementoBarrierSignal(input);
+        else if(isConnectionSignal(input))
+            handleConnectionSignal(input);
+        else if(isDisconnectionSignal(input))
+            handleDisconnectionSignal(input);
+    }
+
+
+    private boolean handleMementoBarrierSignal(String[] input) {
+        if(isMementoOpenerSignal(input)){
+            RemoteDrawLineCommandBufferHandler.openNewMemento(UUID.fromString(input[1]));
+            return true;
+        }
+        if(isMementoCloserSignal(input)){
+            RemoteDrawLineCommandBufferHandler.closeMemento(UUID.fromString(input[1]),UUID.fromString(input[3]),Boolean.parseBoolean(input[4]));
+            return true;
+        }
+        return false;
+    }
+
     //--------------END OF SIGNAL HANDLING-----------------------------------------
 
 
     //--------------COMMAND HANDLING-----------------------------------------
 
     private Command processCommand(String[] splittedCommand) {
-
         Command rcvdcmd = CommandFactory.getCommand(splittedCommand, canvasController);
         if(rcvdcmd instanceof DrawLineCommand) {
             RemoteDrawLineCommandBufferHandler.addCommand(rcvdcmd);
@@ -206,40 +230,56 @@ public class ClientEntity extends Thread {
         sendCommand(new ChangeStateCommand(canvasController,UserID.getUserID(),canvasController.getCurrentMementoID()));
     }
 
-    private HandshakingInfo receiveHandshakingInfo() {
-        HandshakingInfo remoteHandshakingInfo;
+    private NetworkClientEntity receiveNetworkClientEntityInfo() {
+        NetworkClientEntity remoteHandshakingInfo;
         if(scanner.hasNext()) {
-            remoteHandshakingInfo = new HandshakingInfo(scanner.nextLine());
+            remoteHandshakingInfo = new NetworkClientEntity(scanner.nextLine().split(";"));
         } else {
             throw new RuntimeException("connection dropped during handshakingProcess");
         }
         return remoteHandshakingInfo;
     }
 
-    private void propagateNewClientInfo(UUID clientID) {
-        NetworkService.forwardMesageDownwardsWithException(getNewClientInfoSignal(clientID), clientID);
-        NetworkService.forwardMessageUpwards(getNewClientInfoSignal(clientID));
+    private void propagateNewClientInfo(NetworkClientEntity networkClientEntity) {
+        NetworkService.forwardMesageDownwardsWithException(getNewClientInfoSignal(networkClientEntity.getID(),
+                networkClientEntity.getNickname(),networkClientEntity.getIP(),networkClientEntity.getMementoNumber()),
+                networkClientEntity.getID());
+        NetworkService.forwardMessageUpwards(getNewClientInfoSignal(networkClientEntity.getID(),
+                networkClientEntity.getNickname(),networkClientEntity.getIP(),networkClientEntity.getMementoNumber()));
     }
 
     private void handshakingProcess() {
-        HandshakingInfo remoteHandshakingInfo = null;
-        HandshakingInfo myHandshakingInfo = new HandshakingInfo(UserID.getUserID(),canvasController.getMementos().size());
+        NetworkClientEntity remoteHandshakingInfo = null;
+        NetworkClientEntity myHandshakingInfo = new NetworkClientEntity(UserID.getUserID(),"nickname",
+                NetworkService.getPublicIP(),canvasController.getMementos().size());
 
-        if(isLowerClientEntity == true) {//I'm the server
-            remoteHandshakingInfo = receiveHandshakingInfo();
+        boolean imServer = isLowerClientEntity;
+
+        if(imServer) {//I'm the server
+            remoteHandshakingInfo = receiveNetworkClientEntityInfo();
             sendPlainText(myHandshakingInfo.toString());
         }
-        if(isLowerClientEntity == false) {//I'm the client
+        if(!imServer) {//I'm the client
             sendPlainText(myHandshakingInfo.toString());
-            remoteHandshakingInfo = receiveHandshakingInfo();
+            remoteHandshakingInfo = receiveNetworkClientEntityInfo();
         }
-        id = remoteHandshakingInfo.getId();
+
+        id = remoteHandshakingInfo.getID();
+
         if(NetworkService.isClientInNetwork(id)){
             System.out.println("This new client is in the network! Closing connection.");
             timeToStop();
+            return;
+        }
+        NetworkService.addNetworkClientEntity(remoteHandshakingInfo);
+        networkClientEntity = remoteHandshakingInfo;
+        if(imServer) {
+            for(NetworkClientEntity act : NetworkService.getAllNetworkClients()) {
+                propagateNewClientInfo(act);
+            }
         }
 
-        propagateNewClientInfo(id);
+
 
         //kinek üres a memento stackje?
         if(myHandshakingInfo.getMementoNumber() == 1 &&
@@ -256,9 +296,6 @@ public class ClientEntity extends Thread {
         {
             throw new UnsupportedOperationException("mindkét kliens rendelkezik már mementókkal");
         }
-
-
-
     }
 
     //--------------END OF HANDSHAKING-----------------------------------------
@@ -294,7 +331,7 @@ public class ClientEntity extends Thread {
 
 
 
-
+    private boolean timeToStop = false;
     private Socket socket;
     private OutputStream outputStream;
     private InputStream inputStream;
@@ -303,6 +340,5 @@ public class ClientEntity extends Thread {
     private CanvasController canvasController;
     private boolean isLowerClientEntity;
     private UUID id = UUID.randomUUID();
-    private String IP;
-
+    private NetworkClientEntity networkClientEntity;
 }
