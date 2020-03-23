@@ -54,7 +54,7 @@ public class ConnectedClientEntity extends Thread {
         }
         if(!timeToStop){
             System.out.println("Connection closed by remote client!");
-            forwardMessage(getNewDisconnectSignal(networkClientEntity.getID(),networkClientEntity.getNickname(),
+            forwardMessage(SignalFactory.getNewDisconnectSignal(networkClientEntity.getID(),networkClientEntity.getNickname(),
                     networkClientEntity.getIP()));
         }
         timeToStop();
@@ -111,7 +111,7 @@ public class ConnectedClientEntity extends Thread {
         interrupt();
     }
 
-    public boolean isConnectionAlive() {return socket.isConnected();}
+    public NetworkClientEntity getNetworkClientEntity() {return networkClientEntity;}
 
     //---------------PRIVATE SECTION-----------------------------------------
     //------------------------------------------------------------------------
@@ -119,29 +119,23 @@ public class ConnectedClientEntity extends Thread {
 
     //--------------SIGNAL HANDLING-----------------------------------------
 
-    private String getNewClientSignal(UUID clientID, String nickname, String IP, int port, int mementoNumber) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("SIG;CONN;").append(clientID).append(";").append(nickname).append(";").append(IP).
-                append(";").append(port).append(";").append(mementoNumber);
-        return sb.toString();
-    }
-
-    private String getNewDisconnectSignal(UUID clientID,String nickname,String IP) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("SIG;DISCONN;").append(clientID).append(";").append(nickname).append(";").append(IP);
-        return sb.toString();
-    }
 
     private void sendMementoOpenerSignalToClient(UUID creatorID,UUID mementoID,boolean isLinked) {
-        sendPlainText(NetworkService.getMementoOpenerSignal(creatorID, mementoID,isLinked));
+        sendPlainText(SignalFactory.getMementoOpenerSignal(creatorID, mementoID,isLinked));
     }
 
     private void sendMementoCloserSignalToClient(UUID creatorID,UUID mementoID,boolean isLinked) {
-        sendPlainText(NetworkService.getMementoCloserSignal(creatorID, mementoID,isLinked));
+        sendPlainText(SignalFactory.getMementoCloserSignal(creatorID, mementoID,isLinked));
     }
 
     private boolean isSignal(String[] input) {
         if(input[0].equals("SIG"))
+            return true;
+        return false;
+    }
+
+    private boolean isNewRootSignal(String[] input) {
+        if(input[1].equals("NEWROOT"))
             return true;
         return false;
     }
@@ -159,12 +153,21 @@ public class ConnectedClientEntity extends Thread {
     }
 
     private void handleConnectionSignal(String[] input) {
+        UUID parentID = null;
+        if(input[7] != "NULL") {
+            parentID = UUID.fromString(input[7]);
+        }
         NetworkService.addNetworkClientEntity(new NetworkClientEntity(UUID.fromString(input[2]),
-                input[3],input[4],Integer.parseInt(input[5]), Integer.parseInt(input[6])));
+            input[3], input[4], Integer.parseInt(input[5]), Integer.parseInt(input[6]), parentID));
     }
+
 
     private void handleDisconnectionSignal(String[] input) {
         NetworkService.removeClientEntity(UUID.fromString(input[2]));
+    }
+
+    private void handleNewRootSignal(String[] input) {
+        NetworkService.newRoot(UUID.fromString(input[2]));
     }
 
     private boolean isMementoBarrierSignal(String[] input) {
@@ -244,18 +247,9 @@ public class ConnectedClientEntity extends Thread {
         return remoteHandshakingInfo;
     }
 
-    private void propagateNewClientInfo(NetworkClientEntity networkClientEntity) {
-        NetworkService.forwardMesageDownwardsWithException(getNewClientSignal(networkClientEntity.getID(),
-                networkClientEntity.getNickname(),networkClientEntity.getIP(),networkClientEntity.getPort(),networkClientEntity.getMementoNumber()),
-                networkClientEntity.getID());
-        NetworkService.forwardMessageUpwards(getNewClientSignal(networkClientEntity.getID(),
-                networkClientEntity.getNickname(),networkClientEntity.getIP(),networkClientEntity.getPort(),networkClientEntity.getMementoNumber()));
-    }
-
     private void handshakingProcess() {
         NetworkClientEntity remoteHandshakingInfo = null;
-        NetworkClientEntity myHandshakingInfo = new NetworkClientEntity(UserID.getUserID(),"nickname",
-                NetworkService.getPublicIP(),NetworkService.getOpenedPort(),canvasController.getMementos().size());
+        NetworkClientEntity myHandshakingInfo = NetworkService.getMyHanshakingInfo();
 
         boolean imServer = isLowerClientEntity;
 
@@ -275,13 +269,7 @@ public class ConnectedClientEntity extends Thread {
             timeToStop();
             return;
         }
-        NetworkService.addNetworkClientEntity(remoteHandshakingInfo);
         networkClientEntity = remoteHandshakingInfo;
-        if(imServer) {
-            for(NetworkClientEntity act : NetworkService.getAllNetworkClients()) {
-                propagateNewClientInfo(act);
-            }
-        }
 
 
 

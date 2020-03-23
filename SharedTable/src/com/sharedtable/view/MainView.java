@@ -136,21 +136,23 @@ public class MainView extends Application {
 
     //TODO #1 Memento állapottárolásra (Caretaker, originator) DONE
     //Caretaker: Holds the array list of commands
-    //Originator: Collects data and Creates mementoes from them
-    // and unboxes mementoes
+    //Originator: Collects data and Creates mementos from them
+    // and unboxes mementos
     //TODO #1.1 "láncolt lista" RAM effektivitásért DONE
     //TODO #1.2 viszavonási idővonal problémája DONE
     //TODO #2 blocking bufferlista a canvashoz DONE
     //TODO #X Threading (with blocking queues) DONE
     //TODO #3 Basic connection élő rajzolással DONE
     //TODO #4 a clear command által létrehozott BlankMemento UUID-je aszinkronba kerül a többiekével. DONE
-    //TODO #X megkeresni és be semaphorozni azokat a pontokat a command és memento handlingban amiket kell...
+    //TODO #X megkeresni és be semaphorozni azokat a pontokat a command és memento handlingban amiket kell... DONE
     //TODO #X fában kör kialakulásának megakadályozása DONE
     //TODO #4 login utáni szinkronbahozás DONE
     //TODO ## Exception happened during sending plain textjava.net.SocketException: Socket closed DONE
     //TODO #5 befejezni a HandshakingInfo és NetworkClientEntity új fieldjeit (IP,nickname) DONE
-    //TODO ## minden hálózatban levő kliens folyamatos nyilvántartása (kell az átcsatlakozáshoz) DONE
+    //TODO ## minden hálózatban levő kliens folyamatos nyilvántartása NetworkClientEntityTree-ban (kell az átcsatlakozáshoz)
     //TODO #6 ha egy csomópont kiszáll, megpróbál sorrendben csatlakozni bármely más klienshez
+    //TODO #7 multi canvas
+    //TODO #8 chat
 
     //TODO #7 ellipszis
     //TODO #8 téglalap

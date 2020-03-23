@@ -5,17 +5,18 @@ import java.util.UUID;
 
 public class NetworkClientEntity {
 
-    public NetworkClientEntity(UUID uuid, String nickname, String IP, int port, int mementoNumber) {
+    public NetworkClientEntity(UUID uuid, String nickname, String IP, int port, int mementoNumber,UUID parentID) {
         this.id = uuid;
         this.IP = IP;
         this.port = port;
         this.nickname = nickname;
         this.mementoNumber = mementoNumber;
+        this.upperClientID = parentID;
     }
 
     public NetworkClientEntity(String[] input) {
         String[] splittedInput = input;
-        if(splittedInput.length != 5) {
+        if(splittedInput.length != 6) {
             throw new RuntimeException("corrupted handshaking info");
         }
         id = UUID.fromString(splittedInput[0]);
@@ -23,12 +24,16 @@ public class NetworkClientEntity {
         IP = splittedInput[2];
         port = Integer.parseInt(splittedInput[3]);
         mementoNumber = Integer.parseInt(input[4]);
+        if(!input[5].isEmpty())
+            upperClientID = UUID.fromString(input[5]);
+        else
+            upperClientID = null;
     }
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(id.toString()).append(";").append(nickname).append(";").append(IP).
-                append(";").append(port).append(";").append(mementoNumber);
+                append(";").append(port).append(";").append(mementoNumber).append(";").append(upperClientID);
         return sb.toString();
     }
 
@@ -58,7 +63,10 @@ public class NetworkClientEntity {
     public void setUpperClientID(UUID id) {upperClientID = id;}
     public UUID getUpperClientID() {return upperClientID;}
     public void setUpperClientEntity(NetworkClientEntity upperClientEntity)
-    { this.upperClientEntity = upperClientEntity; }
+    {
+        this.upperClientEntity = upperClientEntity;
+        this.upperClientID = upperClientEntity.id;
+    }
     public NetworkClientEntity getUpperClientEntity() { return upperClientEntity; }
 
     @Override
