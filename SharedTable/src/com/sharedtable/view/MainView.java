@@ -20,8 +20,14 @@ import java.io.IOException;
 public class MainView extends Application {
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("MainView.fxml"));
+    public void start(Stage primaryStage) {
+        Parent root;
+        try {
+             root = FXMLLoader.load(getClass().getResource("MainView.fxml"));
+        } catch (IOException e) {
+            System.out.println("failed to get resource MainView.fxml");
+            return;
+        }
         primaryStage.setTitle("Shared Table (mode: "+startMode+")");
         Scene scene = new Scene(root, 640, 480);
         primaryStage.setScene(scene);
@@ -31,7 +37,8 @@ public class MainView extends Application {
         CanvasController canvasController = new CanvasController(mainCanvas);
         this.canvasController = canvasController;
         mainCanvas.initEventHandlers(canvasController);
-        new RemoteDrawLineCommandBufferHandler(canvasController);
+
+        RemoteDrawLineCommandBufferHandler.setCanvasController(canvasController);
 
         //FOR DEBUG PURPUSES
         if(IP == null)
@@ -49,11 +56,17 @@ public class MainView extends Application {
         } else if (startMode == 1) {
             new NetworkService(true, canvasController, 2223);
             //NetworkService.connect("127.0.0.1", 2223);
-            NetworkService.connect(IP, port);
+            try {NetworkService.connect(IP, port);}
+            catch (IOException e) {
+                System.out.println("failed to connect in startMode 1");
+            }
         } else if (startMode == 0) {
             new NetworkService(false, canvasController, -1);
             //NetworkService.connect(IP, port);
-            NetworkService.connect(IP, port);
+            try {NetworkService.connect(IP, port);}
+            catch (IOException e) {
+                System.out.println("failed to connect in startMode 0");
+            }
         }
 
         KeyboardEventHandler keyboardEventHandler = new KeyboardEventHandler(canvasController);
@@ -68,16 +81,6 @@ public class MainView extends Application {
     public void stop() {
         canvasController.stop();
         NetworkService.timeToStop();
-    }
-
-    private void initConnectWindow() throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("ConnectWindow.fxml"));
-        Parent parent = fxmlLoader.load();
-        Scene scene = new Scene(parent, 600, 100);
-        Stage stage = new Stage();
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.setScene(scene);
-        stage.showAndWait();
     }
 
     @FXML
@@ -102,7 +105,10 @@ public class MainView extends Application {
 
     @FXML
     public void onMakeCirclePressed(ActionEvent actionEvent) {
-        NetworkService.connect("127.0.0.1", 2223);
+        try {NetworkService.connect("127.0.0.1", 2223);}
+        catch (IOException e) {
+            System.out.println("failed to conect in MakeCircle");
+        }
     }
 
     @FXML
@@ -132,7 +138,7 @@ public class MainView extends Application {
     //Caretaker: Holds the array list of commands
     //Originator: Collects data and Creates mementoes from them
     // and unboxes mementoes
-    //TODO #1.1 láncolt "lista" RAM effektivitásért DONE
+    //TODO #1.1 "láncolt lista" RAM effektivitásért DONE
     //TODO #1.2 viszavonási idővonal problémája DONE
     //TODO #2 blocking bufferlista a canvashoz DONE
     //TODO #X Threading (with blocking queues) DONE

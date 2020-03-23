@@ -15,8 +15,8 @@ import java.util.UUID;
 
 public class RemoteDrawLineCommandBufferHandler {
 
-    public RemoteDrawLineCommandBufferHandler(CanvasController canvasController) {
-        this.canvasController = canvasController;
+    public static void setCanvasController(CanvasController cc) {
+        canvasController = cc;
     }
 
     public static void addCommand(Command command) {

@@ -52,9 +52,11 @@ public class ConnectedClientEntity extends Thread {
                 System.out.println("ConnectedClientEntity: receivedMessage was empty!");
             }
         }
-        System.out.println("Connection closed by remote client!");
-        forwardMessage(getNewDisconnectSignal(networkClientEntity.getID(),networkClientEntity.getNickname(),
-                networkClientEntity.getIP()));
+        if(!timeToStop){
+            System.out.println("Connection closed by remote client!");
+            forwardMessage(getNewDisconnectSignal(networkClientEntity.getID(),networkClientEntity.getNickname(),
+                    networkClientEntity.getIP()));
+        }
         timeToStop();
     }
 
@@ -97,17 +99,19 @@ public class ConnectedClientEntity extends Thread {
 
     public void timeToStop() {
         try {
+            timeToStop = true;
             bufferedWriter.close();
             outputStream.close();
             inputStream.close();
             socket.close();
             NetworkService.removeClientEntity(id);
-            timeToStop = true;
         } catch (IOException e) {
             e.printStackTrace();
         }
         interrupt();
     }
+
+    public boolean isConnectionAlive() {return socket.isConnected();}
 
     //---------------PRIVATE SECTION-----------------------------------------
     //------------------------------------------------------------------------
@@ -115,10 +119,10 @@ public class ConnectedClientEntity extends Thread {
 
     //--------------SIGNAL HANDLING-----------------------------------------
 
-    private String getNewClientInfoSignal(UUID clientID,String nickname,String IP,int mementoNumber) {
+    private String getNewClientSignal(UUID clientID, String nickname, String IP, int port, int mementoNumber) {
         StringBuilder sb = new StringBuilder();
         sb.append("SIG;CONN;").append(clientID).append(";").append(nickname).append(";").append(IP).
-                append(";").append(mementoNumber);
+                append(";").append(port).append(";").append(mementoNumber);
         return sb.toString();
     }
 
@@ -156,7 +160,7 @@ public class ConnectedClientEntity extends Thread {
 
     private void handleConnectionSignal(String[] input) {
         NetworkService.addNetworkClientEntity(new NetworkClientEntity(UUID.fromString(input[2]),
-                input[3],input[4], Integer.parseInt(input[5])));
+                input[3],input[4],Integer.parseInt(input[5]), Integer.parseInt(input[6])));
     }
 
     private void handleDisconnectionSignal(String[] input) {
@@ -241,17 +245,17 @@ public class ConnectedClientEntity extends Thread {
     }
 
     private void propagateNewClientInfo(NetworkClientEntity networkClientEntity) {
-        NetworkService.forwardMesageDownwardsWithException(getNewClientInfoSignal(networkClientEntity.getID(),
-                networkClientEntity.getNickname(),networkClientEntity.getIP(),networkClientEntity.getMementoNumber()),
+        NetworkService.forwardMesageDownwardsWithException(getNewClientSignal(networkClientEntity.getID(),
+                networkClientEntity.getNickname(),networkClientEntity.getIP(),networkClientEntity.getPort(),networkClientEntity.getMementoNumber()),
                 networkClientEntity.getID());
-        NetworkService.forwardMessageUpwards(getNewClientInfoSignal(networkClientEntity.getID(),
-                networkClientEntity.getNickname(),networkClientEntity.getIP(),networkClientEntity.getMementoNumber()));
+        NetworkService.forwardMessageUpwards(getNewClientSignal(networkClientEntity.getID(),
+                networkClientEntity.getNickname(),networkClientEntity.getIP(),networkClientEntity.getPort(),networkClientEntity.getMementoNumber()));
     }
 
     private void handshakingProcess() {
         NetworkClientEntity remoteHandshakingInfo = null;
         NetworkClientEntity myHandshakingInfo = new NetworkClientEntity(UserID.getUserID(),"nickname",
-                NetworkService.getPublicIP(),canvasController.getMementos().size());
+                NetworkService.getPublicIP(),NetworkService.getOpenedPort(),canvasController.getMementos().size());
 
         boolean imServer = isLowerClientEntity;
 

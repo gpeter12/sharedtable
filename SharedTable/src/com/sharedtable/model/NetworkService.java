@@ -5,6 +5,7 @@ import com.sharedtable.controller.controllers.CanvasController;
 import com.sharedtable.controller.Command;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.URL;
@@ -20,22 +21,17 @@ public class NetworkService {
             prepareReceievingConnections(port);
     }
 
-
     //launch connection receiver thread
     public void prepareReceievingConnections(int port) {
         connectionReceiverThread = new ConnectionReceiverThread(port);
         connectionReceiverThread.start();
+        openedPort = port;
         System.out.println("Prepared for receiving connections");
     }
 
     //make outgoing connection
-    public static void connect(final String IP, int port) {
-        try {
-            upperConnectedClientEntity = new ConnectedClientEntity(new Socket(IP, port), canvasController,false);
-        } catch (Exception e) {
-            throw new RuntimeException("Error during connect to another client" + "\nEXCEPTION: " + e);
-        }
-        //TODO: Synchronize
+    public static void connect(final String IP, int port) throws IOException {
+        upperConnectedClientEntity = new ConnectedClientEntity(new Socket(IP, port), canvasController,false);
     }
 
     //sends all data to clients that connected to this client
@@ -64,13 +60,36 @@ public class NetworkService {
         semaphore.release();
     }
 
+    private static void reconnectToAnotherNetworkClient() {
+        for(NetworkClientEntity act : allNetworkClients) {
+            if(act.hasOpenedPort()){
+                try {connect(act.getIP(),act.getPort());}
+                catch (IOException e) {
+                    System.out.println("reconnection failed with: "+act.getID());
+                    continue;
+                }
+                System.out.println("reconnection succesfull with: "+act.getID());
+                return;
+            } else {
+                System.out.println("doesn't have opened port: "+act.getID());
+            }
+        }
+    }
+
+    public static void setUpperClientEntity(ConnectedClientEntity connectedClientEntity) {
+        /*if(connectedClientEntity == null && lowerConnectedClientEntities.isEmpty() ) {
+            reconnectToAnotherNetworkClient();
+        }*/
+        upperConnectedClientEntity = connectedClientEntity;
+    }
+
     public static void removeClientEntity(UUID id) {
         try { semaphore.acquire(); } catch (Exception e) {System.out.println(e);}
 
         allNetworkClients.removeIf(act -> act.getID().equals(id));
 
         if(upperConnectedClientEntity != null && upperConnectedClientEntity.getUserId().equals(id)) {
-            upperConnectedClientEntity = null;
+            setUpperClientEntity(null);
             semaphore.release();
             return;
         }
@@ -181,6 +200,12 @@ public class NetworkService {
         connectedClientEntity.sendPlainText(message);
     }
 
+    public static boolean isPortOpened() {return openedPort != -1;}
+
+    public static int getOpenedPort() {
+        return openedPort;
+    }
+
     private static ConnectedClientEntity getClientEntityByUUID(UUID uuid) {
         if(upperConnectedClientEntity != null && upperConnectedClientEntity.getUserId().equals(uuid)) {
             return upperConnectedClientEntity;
@@ -209,7 +234,8 @@ public class NetworkService {
         {
             systemipaddress = "Cannot Execute Properly";
         }
-        return systemipaddress;
+        //return systemipaddress;
+        return "127.0.0.1";
     }
 
     public static void printClientList() {
@@ -226,7 +252,7 @@ public class NetworkService {
     private static ConnectedClientEntity upperConnectedClientEntity = null;
     private static ArrayList<ConnectedClientEntity> lowerConnectedClientEntities = new ArrayList<>();
     //private static ArrayList<UUID> transitiveClientIDs = new ArrayList<>();
-
+    private static int openedPort = -1;
     private static ConnectionReceiverThread connectionReceiverThread;
     private static CanvasController canvasController;
 
