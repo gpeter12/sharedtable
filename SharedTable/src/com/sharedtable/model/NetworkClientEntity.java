@@ -5,7 +5,9 @@ import java.util.UUID;
 
 public class NetworkClientEntity {
 
-    public NetworkClientEntity(UUID uuid, String nickname, String IP, int port, int mementoNumber,UUID parentID) {
+    public NetworkClientEntity(UUID uuid, String nickname, String IP, int port,
+                               int mementoNumber,UUID parentID)
+    {
         this.id = uuid;
         this.IP = IP;
         this.port = port;

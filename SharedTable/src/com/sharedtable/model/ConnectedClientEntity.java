@@ -4,6 +4,7 @@ import com.sharedtable.controller.*;
 import com.sharedtable.controller.commands.ChangeStateCommand;
 import com.sharedtable.controller.commands.DrawLineCommand;
 import com.sharedtable.controller.controllers.CanvasController;
+import com.sharedtable.model.signals.*;
 
 import java.io.*;
 import java.net.Socket;
@@ -11,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.UUID;
+
+import static com.sharedtable.model.signals.SignalFactory.getSignal;
 
 public class ConnectedClientEntity extends Thread {
 
@@ -42,8 +45,8 @@ public class ConnectedClientEntity extends Thread {
             forwardMessage(receivedMessage);
             String[] splittedMessage = receivedMessage.split(";");
             if (!receivedMessage.isEmpty()) {
-                if (isSignal(splittedMessage)) {
-                    handleSignal(splittedMessage);
+                if (SignalFactory.isSignal(splittedMessage)) {
+                    handleSignal(SignalFactory.getSignal(splittedMessage));
                 } else {
                     Command recvdCmd = processCommand(splittedMessage);
                     canvasController.processRemoteCommand(recvdCmd);
@@ -54,8 +57,8 @@ public class ConnectedClientEntity extends Thread {
         }
         if(!timeToStop){
             System.out.println("Connection closed by remote client!");
-            forwardMessage(SignalFactory.getNewDisconnectSignal(networkClientEntity.getID(),networkClientEntity.getNickname(),
-                    networkClientEntity.getIP()));
+            forwardMessage(new DisconnectSignal(networkClientEntity.getID(),networkClientEntity.getNickname(),
+                    networkClientEntity.getIP()).toString());
         }
         timeToStop();
     }
@@ -83,19 +86,6 @@ public class ConnectedClientEntity extends Thread {
         }
     }
 
-    public void sendCommand(Command command) {
-        sendPlainText(command.toString());
-    }
-
-    public void sendPlainText(String input) {
-        try {
-            bufferedWriter.write(input+"\n");
-            bufferedWriter.flush();
-        } catch (Exception e) {
-            System.out.println("Exception happened during sending plain text! closing connection... " + e);
-            timeToStop();
-        }
-    }
 
     public void timeToStop() {
         try {
@@ -111,113 +101,84 @@ public class ConnectedClientEntity extends Thread {
         interrupt();
     }
 
-    public NetworkClientEntity getNetworkClientEntity() {return networkClientEntity;}
+    //<editor-fold desc="MESSAGING">
 
-    //---------------PRIVATE SECTION-----------------------------------------
-    //------------------------------------------------------------------------
+    public void sendCommand(Command command) {
+        sendPlainText(command.toString());
+    }
 
+    public void sendPlainText(String input) {
+        try {
+            bufferedWriter.write(input+"\n");
+            bufferedWriter.flush();
+        } catch (Exception e) {
+            System.out.println("Exception happened during sending plain text! closing connection... " + e);
+            timeToStop();
+        }
+    }
 
-    //--------------SIGNAL HANDLING-----------------------------------------
+    private void sendMenento(StateMemento stateMemento) {
+        ArrayList<Command> cmds = stateMemento.getCommands();
+        boolean isLinked = stateMemento.getPreviousMemento() != null;
+        System.out.println("sending memento created by: "+stateMemento.getCreatorID().toString());
+        sendMementoOpenerSignalToClient(stateMemento.getCreatorID(),stateMemento.getId(),isLinked);
+        for(Command act : cmds) {
+            sendCommand(act);
+        }
+        sendMementoCloserSignalToClient(stateMemento.getCreatorID(),stateMemento.getId(),isLinked);
+    }
 
+    private void forwardMessage(String messsage) {
+        if(isLowerClientEntity){
+            NetworkService.forwardMessageUpwards(messsage);
+            NetworkService.forwardMessageDownwardsWithException(messsage,id);
+        } else {
+            NetworkService.forwardMessageDownwards(messsage);
+        }
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="SIGNAL HANDLING">
 
     private void sendMementoOpenerSignalToClient(UUID creatorID,UUID mementoID,boolean isLinked) {
-        sendPlainText(SignalFactory.getMementoOpenerSignal(creatorID, mementoID,isLinked));
+        sendPlainText(new MementoOpenerSignal(creatorID, mementoID,isLinked).toString());
     }
 
     private void sendMementoCloserSignalToClient(UUID creatorID,UUID mementoID,boolean isLinked) {
-        sendPlainText(SignalFactory.getMementoCloserSignal(creatorID, mementoID,isLinked));
+        sendPlainText(new MementoCloserSignal(creatorID, mementoID,isLinked).toString());
     }
 
-    private boolean isSignal(String[] input) {
-        if(input[0].equals("SIG"))
-            return true;
-        return false;
-    }
-
-    private boolean isNewRootSignal(String[] input) {
-        if(input[1].equals("NEWROOT"))
-            return true;
-        return false;
-    }
-
-    private boolean isConnectionSignal(String[] input) {
-        if(input[1].equals("CONN"))
-            return true;
-        return false;
-    }
-
-    private boolean isDisconnectionSignal(String[] input) {
-        if(input[1].equals("DISCONN"))
-            return true;
-        return false;
-    }
-
-    private void handleConnectionSignal(String[] input) {
-        UUID parentID = null;
-        if(input[7] != "NULL") {
-            parentID = UUID.fromString(input[7]);
+    private void handleSignal(Signal signal) {
+        if(signal instanceof MementoOpenerSignal) {
+            RemoteDrawLineCommandBufferHandler.openNewMemento(
+                    ((MementoOpenerSignal) signal).getCreatorID());
+        } else if(signal instanceof MementoCloserSignal) {
+            MementoCloserSignal mementoCloserSignal = (MementoCloserSignal)signal;
+            RemoteDrawLineCommandBufferHandler.closeMemento(
+                    mementoCloserSignal.getCreatorID(),
+                    mementoCloserSignal.getMementoID(),
+                    mementoCloserSignal.isLinked());
+        } else if (signal instanceof NewClientSignal) {
+            NewClientSignal newClientSignal = (NewClientSignal)signal;
+            NetworkService.addNetworkClientEntity(new NetworkClientEntity(
+                    newClientSignal.getClientID(),
+                    newClientSignal.getNickname(),
+                    newClientSignal.getIP(),
+                    newClientSignal.getPort(),
+                    newClientSignal.getMementoNumber(),
+                    newClientSignal.getParentID()));
+        } else if(signal instanceof DisconnectSignal) {
+            DisconnectSignal disconnectSignal = (DisconnectSignal)signal;
+            NetworkService.removeClientEntity(disconnectSignal.getClientID());
+        } else if(signal instanceof NewRootSignal) {
+            NewRootSignal newRootSignal = (NewRootSignal)signal;
+            NetworkService.newRoot(newRootSignal.getNewRootID());
         }
-        NetworkService.addNetworkClientEntity(new NetworkClientEntity(UUID.fromString(input[2]),
-            input[3], input[4], Integer.parseInt(input[5]), Integer.parseInt(input[6]), parentID));
     }
 
+    //</editor-fold>
 
-    private void handleDisconnectionSignal(String[] input) {
-        NetworkService.removeClientEntity(UUID.fromString(input[2]));
-    }
-
-    private void handleNewRootSignal(String[] input) {
-        NetworkService.newRoot(UUID.fromString(input[2]));
-    }
-
-    private boolean isMementoBarrierSignal(String[] input) {
-        if(isMementoOpenerSignal(input) || isMementoCloserSignal(input)){
-            return true;
-        }
-        return false;
-    }
-
-    private static boolean isMementoOpenerSignal(String[] input) {
-        if (input[2].equals("OPEN")) {
-            return true;
-        }
-        return false;
-    }
-
-    private static boolean isMementoCloserSignal(String[] input) {
-        if (input[2].equals("CLOSE")) {
-            return true;
-        }
-        return false;
-    }
-
-    private void handleSignal(String[] input) {
-        if(isMementoBarrierSignal(input))
-            handleMementoBarrierSignal(input);
-        else if(isConnectionSignal(input))
-            handleConnectionSignal(input);
-        else if(isDisconnectionSignal(input))
-            handleDisconnectionSignal(input);
-    }
-
-
-    private boolean handleMementoBarrierSignal(String[] input) {
-        if(isMementoOpenerSignal(input)){
-            RemoteDrawLineCommandBufferHandler.openNewMemento(UUID.fromString(input[1]));
-            return true;
-        }
-        if(isMementoCloserSignal(input)){
-            RemoteDrawLineCommandBufferHandler.closeMemento(UUID.fromString(input[1]),UUID.fromString(input[3]),Boolean.parseBoolean(input[4]));
-            return true;
-        }
-        return false;
-    }
-
-    //--------------END OF SIGNAL HANDLING-----------------------------------------
-
-
-    //--------------COMMAND HANDLING-----------------------------------------
-
+    //<editor-fold desc="COMMAND HANDLING">
     private Command processCommand(String[] splittedCommand) {
         Command rcvdcmd = CommandFactory.getCommand(splittedCommand, canvasController);
         if(rcvdcmd instanceof DrawLineCommand) {
@@ -226,12 +187,9 @@ public class ConnectedClientEntity extends Thread {
         return rcvdcmd;
     }
 
+    //</editor-fold>
 
-    //--------------END OF COMMAND HANDLING-----------------------------------------
-
-
-    //--------------HANDSHAKING-----------------------------------------
-
+    //<editor-fold desc="HANDSHAKING">
     private void sendSynchronizationCommands() {
         sendAllMementos();
         sendCommand(new ChangeStateCommand(canvasController,UserID.getUserID(),canvasController.getCurrentMementoID()));
@@ -289,28 +247,7 @@ public class ConnectedClientEntity extends Thread {
             throw new UnsupportedOperationException("mindkét kliens rendelkezik már mementókkal");
         }
     }
-
-    //--------------END OF HANDSHAKING-----------------------------------------
-
-    private void sendMenento(StateMemento stateMemento) {
-        ArrayList<Command> cmds = stateMemento.getCommands();
-        boolean isLinked = stateMemento.getPreviousMemento() != null;
-        System.out.println("sending memento created by: "+stateMemento.getCreatorID().toString());
-        sendMementoOpenerSignalToClient(stateMemento.getCreatorID(),stateMemento.getId(),isLinked);
-        for(Command act : cmds) {
-            sendCommand(act);
-        }
-        sendMementoCloserSignalToClient(stateMemento.getCreatorID(),stateMemento.getId(),isLinked);
-    }
-
-    private void forwardMessage(String messsage) {
-        if(isLowerClientEntity){
-            NetworkService.forwardMessageUpwards(messsage);
-            NetworkService.forwardMesageDownwardsWithException(messsage,id);
-        } else {
-            NetworkService.forwardMessageDownwards(messsage);
-        }
-    }
+    //</editor-fold>
 
     private void initializeStreams(Socket socket) throws IOException {
         outputStream = socket.getOutputStream();
@@ -320,8 +257,7 @@ public class ConnectedClientEntity extends Thread {
         System.out.println("connections's I/O streams are initialized!");
     }
 
-
-
+    public NetworkClientEntity getNetworkClientEntity() {return networkClientEntity;}
 
     private boolean timeToStop = false;
     private Socket socket;

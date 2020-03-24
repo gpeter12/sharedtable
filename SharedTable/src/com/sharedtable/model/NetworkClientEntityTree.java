@@ -59,7 +59,8 @@ public class NetworkClientEntityTree {
     }
 
     public void removeNetworkClientEntityWithException(NetworkClientEntity entity,NetworkClientEntity exception) {
-        clients.remove(entity);
+        if(entity.getID().equals(exception.getID()))
+            return;
         for(NetworkClientEntity act : getCloseChildren(entity)) {
             if(!act.equals(exception)){
                 removeNetworkClientEntityWithException(act,exception);
