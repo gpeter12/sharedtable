@@ -1,7 +1,7 @@
 package com.sharedtable.controller.commands;
 
-import com.sharedtable.controller.controllers.CanvasController;
 import com.sharedtable.controller.Command;
+import com.sharedtable.controller.controllers.CanvasController;
 
 import java.util.ArrayList;
 import java.util.UUID;

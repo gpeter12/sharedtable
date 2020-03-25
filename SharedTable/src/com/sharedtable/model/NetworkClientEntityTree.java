@@ -8,6 +8,11 @@ import java.util.UUID;
 public class NetworkClientEntityTree {
     public NetworkClientEntityTree(NetworkClientEntity me) {
         root = me;
+        clients.add(me);
+    }
+
+    public NetworkClientEntityTree() {
+        root = null;
     }
 
     public void setRoot(NetworkClientEntity newRoot) {
@@ -30,15 +35,15 @@ public class NetworkClientEntityTree {
     }
 
     public void addNetworkClientEntity(NetworkClientEntity entity) {
-        /*if(!UserID.getUserID().equals(entity.getID()) &&
+        if(!UserID.getUserID().equals(entity.getID()) &&
                 !clients.contains(entity))
         {
             if(entity.getUpperClientID() == null)
                 setRoot(entity);
             else
-                entity.setUpperClientEntity(getNetworkClientEntity(entity.getUpperClientID()));*/
+                entity.setUpperClientEntity(getNetworkClientEntity(entity.getUpperClientID()));
             clients.add(entity);
-        //}
+        }
     }
 
     public void removeAllChildren(NetworkClientEntity entity) {
@@ -78,7 +83,7 @@ public class NetworkClientEntityTree {
             if(act.getID().equals(id))
                 return act;
         }
-        throw new RuntimeException("Client not found by ID");
+        throw new RuntimeException("Client not found by ID: "+id.toString());
     }
 
     public ArrayList<NetworkClientEntity> getCloseChildren(NetworkClientEntity entity) {
@@ -121,6 +126,35 @@ public class NetworkClientEntityTree {
         return res;
     }
 
+    public boolean isInPathBetween(NetworkClientEntity entityFrom, NetworkClientEntity entityTo,
+                                   NetworkClientEntity entity)
+    {
+        NetworkClientEntity act = entityFrom;
+        while (!act.equals(entityTo)){
+            if(act.equals(entity)) {
+                return true;
+            }
+            act = act.getUpperClientEntity();
+        }
+        return false;
+    }
+
+    public NetworkClientEntity getChildUnderEntityOnPathBetween(NetworkClientEntity entityFrom, NetworkClientEntity entityTo,
+                                             NetworkClientEntity entity) {
+        NetworkClientEntity act = entityFrom;
+        NetworkClientEntity prev= null;
+        while (!act.equals(entityTo)){
+            if(act.equals(entity)) {
+                return prev;
+            }
+            prev = act;
+            act = act.getUpperClientEntity();
+        }
+        throw new RuntimeException("entity not found on path");
+    }
+
     private ArrayList<NetworkClientEntity> clients = new ArrayList<>();
     private NetworkClientEntity root = null;
+
+
 }

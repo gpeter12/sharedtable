@@ -1,0 +1,41 @@
+    private static boolean isRoot(NetworkClientEntity entity) {
+        return entity.getUpperClientEntity() == null;
+    }
+
+    //még a törlés előtt kell meghívni
+    private static boolean willBeNewRootCreatedAfterRemove(NetworkClientEntity entity) {
+        if (entityTree.getRoot().getID().equals(entity.getID())) {
+            return true;
+        }
+        if (entityTree.isInPathBetween(entityTree.getNetworkClientEntity(UserID.getUserID()),
+                entityTree.getRoot(),
+                entity)) {
+            return true;
+        }
+        return false;
+    }
+
+    private static void removeEntityIfThereWillBeNoNewRoot(NetworkClientEntity entity) {
+        entityTree.removeNetworkClientEntity(entity);
+    }
+
+    private static NetworkClientEntity searchNewRootUnderEntity(NetworkClientEntity entity) {
+        return entityTree.getChildUnderEntityOnPathBetween(entityTree.getNetworkClientEntity(UserID.getUserID()),
+                entityTree.getRoot(),
+                entity);
+    }
+
+
+    private static void removeEntityIfThereWillBeNewRoot(NetworkClientEntity entity) {
+        NetworkClientEntity newRoot = searchNewRootUnderEntity(entity);
+        entityTree.removeNetworkClientEntityWithException(entityTree.getRoot(), newRoot);
+        entityTree.setRoot(newRoot);
+    }
+
+    //hozzáadás előtt kell megíhvni
+    private static boolean willBeNewRootCreatedAfterAdd(NewClientSignal signal) {
+        if(signal.getClientID().equals(entityTree.getRoot().getID())) {
+            return true;
+        }
+        return false;
+    }

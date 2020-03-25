@@ -2,13 +2,13 @@ package com.sharedtable.model.signals;
 
 import java.util.UUID;
 
-public class NewRootSignal implements Signal {
+public class RootSignal implements Signal {
 
-    public NewRootSignal(UUID newRootID) {
+    public RootSignal(UUID newRootID) {
         this.newRootID = newRootID;
     }
 
-    public NewRootSignal(String[] input) {
+    public RootSignal(String[] input) {
         newRootID = UUID.fromString(input[2]);
     }
 

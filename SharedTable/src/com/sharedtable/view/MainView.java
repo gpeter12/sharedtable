@@ -1,8 +1,9 @@
 package com.sharedtable.view;
 
-import com.sharedtable.controller.controllers.CanvasController;
 import com.sharedtable.controller.KeyboardEventHandler;
 import com.sharedtable.controller.RemoteDrawLineCommandBufferHandler;
+import com.sharedtable.controller.controllers.CanvasController;
+import com.sharedtable.model.NetworkService;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -10,9 +11,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import com.sharedtable.model.NetworkService;
 
 import java.io.IOException;
 

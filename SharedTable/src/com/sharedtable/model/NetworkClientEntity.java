@@ -16,26 +16,46 @@ public class NetworkClientEntity {
         this.upperClientID = parentID;
     }
 
+    private String printStringArray(String[] input) {
+        StringBuilder sb = new StringBuilder();
+        for(String act :input) {
+            sb.append(act).append(";");
+        }
+        return sb.toString();
+    }
+
     public NetworkClientEntity(String[] input) {
         String[] splittedInput = input;
         if(splittedInput.length != 6) {
-            throw new RuntimeException("corrupted handshaking info");
+            throw new RuntimeException("corrupted handshaking info! length:"+printStringArray(splittedInput));
         }
         id = UUID.fromString(splittedInput[0]);
         nickname = splittedInput[1];
         IP = splittedInput[2];
         port = Integer.parseInt(splittedInput[3]);
         mementoNumber = Integer.parseInt(input[4]);
-        if(!input[5].isEmpty())
-            upperClientID = UUID.fromString(input[5]);
-        else
-            upperClientID = null;
+        upperClientID = parentIDFromString(input[5]);
     }
+
+    private String parentIDToString(UUID parentID) {
+        if(parentID == null)
+            return "NULL";
+        else
+            return parentID.toString();
+    }
+
+    private UUID parentIDFromString(String parentID) {
+        if(parentID == "NULL")
+            return null;
+        else
+            return UUID.fromString(parentID);
+    }
+
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(id.toString()).append(";").append(nickname).append(";").append(IP).
-                append(";").append(port).append(";").append(mementoNumber).append(";").append(upperClientID);
+                append(";").append(port).append(";").append(mementoNumber).append(";").append(parentIDToString(upperClientID));
         return sb.toString();
     }
 

@@ -1,7 +1,7 @@
 package com.sharedtable.view;
 
-import com.sharedtable.controller.controllers.CanvasController;
 import com.sharedtable.controller.Point;
+import com.sharedtable.controller.controllers.CanvasController;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseEvent;

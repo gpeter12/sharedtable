@@ -29,12 +29,11 @@ public class ConnectionReceiverThread extends Thread {
                 NetworkService.addReceivedConnection(serverSocket.accept());
                 System.out.println("Connection received!");
             }
-        } catch (Exception e) {
-            if(e instanceof SocketException && timeToStop){
+        } catch (IOException e) {
+            if(timeToStop){
                 System.out.println("connection receiver thread shutting down");
-                return;
             }
-            throw new RuntimeException("Error during accepting socket\n" + e);
+
         }
     }
 

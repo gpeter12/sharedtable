@@ -13,8 +13,6 @@ import java.util.Objects;
 import java.util.Scanner;
 import java.util.UUID;
 
-import static com.sharedtable.model.signals.SignalFactory.getSignal;
-
 public class ConnectedClientEntity extends Thread {
 
     public ConnectedClientEntity(Socket socket, CanvasController canvasController, boolean isLowerClientEntity) {
@@ -170,9 +168,12 @@ public class ConnectedClientEntity extends Thread {
         } else if(signal instanceof DisconnectSignal) {
             DisconnectSignal disconnectSignal = (DisconnectSignal)signal;
             NetworkService.removeClientEntity(disconnectSignal.getClientID());
-        } else if(signal instanceof NewRootSignal) {
-            NewRootSignal newRootSignal = (NewRootSignal)signal;
-            NetworkService.newRoot(newRootSignal.getNewRootID());
+        } else if(signal instanceof RootSignal) {
+            RootSignal rootSignal = (RootSignal)signal;
+            //NetworkService.newRoot(rootSignal.getNewRootID());
+        } else if(signal instanceof EntityTreeSignal) {
+            EntityTreeSignal entityTreeSignal = (EntityTreeSignal)signal;
+
         }
     }
 
@@ -212,12 +213,13 @@ public class ConnectedClientEntity extends Thread {
         boolean imServer = isLowerClientEntity;
 
         if(imServer) {//I'm the server
-            remoteHandshakingInfo = receiveNetworkClientEntityInfo();
             sendPlainText(myHandshakingInfo.toString());
+            remoteHandshakingInfo = receiveNetworkClientEntityInfo();
         }
         if(!imServer) {//I'm the client
-            sendPlainText(myHandshakingInfo.toString());
             remoteHandshakingInfo = receiveNetworkClientEntityInfo();
+            myHandshakingInfo.setUpperClientID(remoteHandshakingInfo.getID());
+            sendPlainText(myHandshakingInfo.toString());
         }
 
         id = remoteHandshakingInfo.getID();
@@ -228,8 +230,11 @@ public class ConnectedClientEntity extends Thread {
             return;
         }
         networkClientEntity = remoteHandshakingInfo;
+        NetworkService.addNetworkClientEntity(remoteHandshakingInfo);
 
-
+        if(NetworkService.amiRoot() && !imServer) {
+            NetworkService.sendEntityTreeSignal();
+        }
 
         //kinek üres a memento stackje?
         if(myHandshakingInfo.getMementoNumber() == 1 &&
@@ -246,6 +251,8 @@ public class ConnectedClientEntity extends Thread {
         {
             throw new UnsupportedOperationException("mindkét kliens rendelkezik már mementókkal");
         }
+
+
     }
     //</editor-fold>
 

@@ -1,7 +1,5 @@
 package com.sharedtable.model.signals;
 
-import java.util.UUID;
-
 public class SignalFactory {
 
     public static boolean isSignal(String[] input) {
@@ -18,7 +16,7 @@ public class SignalFactory {
         else if(isMementoCloserSignal(input))
             return new MementoCloserSignal(input);
         else if(isNewRootSignal(input))
-            return new NewRootSignal(input);
+            return new RootSignal(input);
         else if(isNewClientSignal(input))
             return new NewClientSignal(input);
         else if(isDisconnectionSignal(input))
