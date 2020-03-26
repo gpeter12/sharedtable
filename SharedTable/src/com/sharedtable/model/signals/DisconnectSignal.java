@@ -33,6 +33,7 @@ public class DisconnectSignal implements Signal {
         this.clientID = clientID;
     }
 
+
     public String getNickname() {
         return nickname;
     }

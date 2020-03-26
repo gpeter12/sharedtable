@@ -8,10 +8,9 @@ import com.sharedtable.model.signals.*;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.Scanner;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 public class ConnectedClientEntity extends Thread {
 
@@ -40,12 +39,18 @@ public class ConnectedClientEntity extends Thread {
         handshakingProcess();
         while (scanner.hasNext() && !timeToStop) {
             String receivedMessage = scanner.nextLine();
-            forwardMessage(receivedMessage);
             String[] splittedMessage = receivedMessage.split(";");
             if (!receivedMessage.isEmpty()) {
                 if (SignalFactory.isSignal(splittedMessage)) {
-                    handleSignal(SignalFactory.getSignal(splittedMessage));
+                    Signal signal = SignalFactory.getSignal(splittedMessage);
+                    if(!(signal instanceof DiscoverySignal) &&
+                            !(signal instanceof NewClientSignal))
+                    {
+                        forwardMessage(receivedMessage);
+                    }
+                    handleSignal(signal);
                 } else {
+                    forwardMessage(receivedMessage);
                     Command recvdCmd = processCommand(splittedMessage);
                     canvasController.processRemoteCommand(recvdCmd);
                 }
@@ -55,7 +60,8 @@ public class ConnectedClientEntity extends Thread {
         }
         if(!timeToStop){
             System.out.println("Connection closed by remote client!");
-            forwardMessage(new DisconnectSignal(networkClientEntity.getID(),networkClientEntity.getNickname(),
+            NetworkService.forwardMessageUpwards(new DisconnectSignal(networkClientEntity.getID(),
+                    networkClientEntity.getNickname(),
                     networkClientEntity.getIP()).toString());
         }
         timeToStop();
@@ -75,7 +81,11 @@ public class ConnectedClientEntity extends Thread {
     }
 
 
-    public UUID getUserId() {return id;}
+    public UUID getUserId()
+    {
+        ;
+        return id;
+    }
 
     private void sendAllMementos() {
         ArrayList<StateMemento> mementos = canvasController.getMementos();
@@ -105,8 +115,10 @@ public class ConnectedClientEntity extends Thread {
         sendPlainText(command.toString());
     }
 
+
     public void sendPlainText(String input) {
         try {
+            System.out.println("sending: "+input+" TO: "+id);
             bufferedWriter.write(input+"\n");
             bufferedWriter.flush();
         } catch (Exception e) {
@@ -118,7 +130,6 @@ public class ConnectedClientEntity extends Thread {
     private void sendMenento(StateMemento stateMemento) {
         ArrayList<Command> cmds = stateMemento.getCommands();
         boolean isLinked = stateMemento.getPreviousMemento() != null;
-        System.out.println("sending memento created by: "+stateMemento.getCreatorID().toString());
         sendMementoOpenerSignalToClient(stateMemento.getCreatorID(),stateMemento.getId(),isLinked);
         for(Command act : cmds) {
             sendCommand(act);
@@ -134,7 +145,7 @@ public class ConnectedClientEntity extends Thread {
             NetworkService.forwardMessageDownwards(messsage);
         }
     }
-    //</editor-fold>
+    //</editor-fold> desc="MESSAGING">
 
     //<editor-fold desc="SIGNAL HANDLING">
 
@@ -147,6 +158,7 @@ public class ConnectedClientEntity extends Thread {
     }
 
     private void handleSignal(Signal signal) {
+        System.out.println("signal received: "+signal.toString());
         if(signal instanceof MementoOpenerSignal) {
             RemoteDrawLineCommandBufferHandler.openNewMemento(
                     ((MementoOpenerSignal) signal).getCreatorID());
@@ -154,30 +166,63 @@ public class ConnectedClientEntity extends Thread {
             MementoCloserSignal mementoCloserSignal = (MementoCloserSignal)signal;
             RemoteDrawLineCommandBufferHandler.closeMemento(
                     mementoCloserSignal.getCreatorID(),
+
                     mementoCloserSignal.getMementoID(),
                     mementoCloserSignal.isLinked());
         } else if (signal instanceof NewClientSignal) {
             NewClientSignal newClientSignal = (NewClientSignal)signal;
-            NetworkService.addNetworkClientEntity(new NetworkClientEntity(
-                    newClientSignal.getClientID(),
-                    newClientSignal.getNickname(),
-                    newClientSignal.getIP(),
-                    newClientSignal.getPort(),
-                    newClientSignal.getMementoNumber(),
-                    newClientSignal.getParentID()));
+            NetworkService.handleNewClientSignal(newClientSignal);
+            NetworkService.forwardMessageUpwards(newClientSignal.toString());
         } else if(signal instanceof DisconnectSignal) {
             DisconnectSignal disconnectSignal = (DisconnectSignal)signal;
-            NetworkService.removeClientEntity(disconnectSignal.getClientID());
-        } else if(signal instanceof RootSignal) {
-            RootSignal rootSignal = (RootSignal)signal;
-            //NetworkService.newRoot(rootSignal.getNewRootID());
+            NetworkService.handleDisconnectSignal(disconnectSignal);
         } else if(signal instanceof EntityTreeSignal) {
-            EntityTreeSignal entityTreeSignal = (EntityTreeSignal)signal;
-
+            EntityTreeSignal entityTreeSignal = (EntityTreeSignal) signal;
+            NetworkService.handleNetworkClientEntityTreeSignal(entityTreeSignal);
+        } else if(signal instanceof DiscoverySignal) {
+            DiscoverySignal discoverySignal = (DiscoverySignal)signal;
+            NetworkClientEntity me = NetworkService.getMyNetworkClientEntity();
+            NetworkService.forwardMessageUpwards(new NewClientSignal(me.getID(),
+                    me.getNickname(),
+                    me.getIP(),
+                    me.getPort(),
+                    me.getMementoNumber(),
+                    me.getUpperClientID()).toString());
+            NetworkService.forwardMessageDownwards(discoverySignal.toString());
+        } else if(signal instanceof PingSignal) {
+            //válaszküldés
+            PingSignal pingSignal = (PingSignal)signal;
+            if(pingSignal.getTargetClientID().equals(UserID.getUserID()) && !pingSignal.isRespond())
+                sendPingSignalResponse(pingSignal);
+            if(pingSignal.isRespond() &&
+                    pingSignal.getPingID().equals(currentPingIDToWaitFor))
+            {
+                pingFinish = System.nanoTime();
+                System.out.println("ping finished");
+            }
         }
     }
 
-    //</editor-fold>
+    private void sendPingSignalResponse(PingSignal signal) {
+        signal.setRespond(true);
+        System.out.println("sending ping response");
+        NetworkService.sendSignalDownwards(signal);
+        NetworkService.sendSignalUpwards(signal);
+    }
+
+    public void setPingIDtoWaitFor(UUID pingID) {
+        currentPingIDToWaitFor = pingID;
+    }
+
+    public long getPingResult(UUID pingID) {
+            if(pingID.equals(currentPingIDToWaitFor)){
+                return pingFinish;
+            } else {
+                return -1;
+            }
+    }
+
+    //</editor-fold> desc="SIGNAL HANDLING">
 
     //<editor-fold desc="COMMAND HANDLING">
     private Command processCommand(String[] splittedCommand) {
@@ -188,7 +233,7 @@ public class ConnectedClientEntity extends Thread {
         return rcvdcmd;
     }
 
-    //</editor-fold>
+    //</editor-fold> desc="COMMAND HANDLING">
 
     //<editor-fold desc="HANDSHAKING">
     private void sendSynchronizationCommands() {
@@ -208,7 +253,7 @@ public class ConnectedClientEntity extends Thread {
 
     private void handshakingProcess() {
         NetworkClientEntity remoteHandshakingInfo = null;
-        NetworkClientEntity myHandshakingInfo = NetworkService.getMyHanshakingInfo();
+        NetworkClientEntity myHandshakingInfo = NetworkService.getMyNetworkClientEntity();
 
         boolean imServer = isLowerClientEntity;
 
@@ -224,17 +269,26 @@ public class ConnectedClientEntity extends Thread {
 
         id = remoteHandshakingInfo.getID();
 
-        if(NetworkService.isClientInNetwork(id)){
-            System.out.println("This new client is in the network! Closing connection.");
-            timeToStop();
-            return;
-        }
+
         networkClientEntity = remoteHandshakingInfo;
         NetworkService.addNetworkClientEntity(remoteHandshakingInfo);
 
-        if(NetworkService.amiRoot() && !imServer) {
-            NetworkService.sendEntityTreeSignal();
+        if(imServer) {
+            NetworkService.sendSignalUpwards(new NewClientSignal(remoteHandshakingInfo.getID(),
+                    remoteHandshakingInfo.getNickname(),
+                    remoteHandshakingInfo.getIP(),
+                    remoteHandshakingInfo.getPort(),
+                    remoteHandshakingInfo.getMementoNumber(),
+                    remoteHandshakingInfo.getUpperClientID()));
         }
+
+        NetworkService.sendDiscoverySignal();
+
+        /*if(imServer && NetworkService.isClientInNetwork(id)){
+            System.out.println("This new client is in the network! Closing connection.");
+            timeToStop();
+            return;
+        }*/
 
         //kinek üres a memento stackje?
         if(myHandshakingInfo.getMementoNumber() == 1 &&
@@ -249,12 +303,11 @@ public class ConnectedClientEntity extends Thread {
         } else if(myHandshakingInfo.getMementoNumber() > 1 &&
                 remoteHandshakingInfo.getMementoNumber() > 1) //mindkét kliens rendelkezik már mementókkal
         {
-            throw new UnsupportedOperationException("mindkét kliens rendelkezik már mementókkal");
+            //throw new UnsupportedOperationException("mindkét kliens rendelkezik már mementókkal");
         }
 
-
     }
-    //</editor-fold>
+    //</editor-fold> desc="COMMAND HANDLING">
 
     private void initializeStreams(Socket socket) throws IOException {
         outputStream = socket.getOutputStream();
@@ -266,6 +319,11 @@ public class ConnectedClientEntity extends Thread {
 
     public NetworkClientEntity getNetworkClientEntity() {return networkClientEntity;}
 
+
+    private UUID currentPingIDToWaitFor = UUID.randomUUID();
+    private long pingStart;
+    private long pingFinish;
+
     private boolean timeToStop = false;
     private Socket socket;
     private OutputStream outputStream;
@@ -274,6 +332,6 @@ public class ConnectedClientEntity extends Thread {
     private Scanner scanner;
     private CanvasController canvasController;
     private boolean isLowerClientEntity;
-    private UUID id = UUID.randomUUID();
+    private UUID id = null;
     private NetworkClientEntity networkClientEntity;
 }

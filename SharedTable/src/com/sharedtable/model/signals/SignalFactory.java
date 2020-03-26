@@ -1,5 +1,7 @@
 package com.sharedtable.model.signals;
 
+import com.sharedtable.model.ArrayPrinter;
+
 public class SignalFactory {
 
     public static boolean isSignal(String[] input) {
@@ -8,21 +10,45 @@ public class SignalFactory {
         return false;
     }
 
+
     public static Signal getSignal(String[] input) {
         if(!isSignal(input))
-            throw new RuntimeException("input is not a signal! "+input.toString());
+            throw new RuntimeException("input is not a signal! "+ ArrayPrinter.printStringArray(input));
         if(isMementoOpenerSignal(input))
             return new MementoOpenerSignal(input);
         else if(isMementoCloserSignal(input))
             return new MementoCloserSignal(input);
-        else if(isNewRootSignal(input))
-            return new RootSignal(input);
         else if(isNewClientSignal(input))
             return new NewClientSignal(input);
         else if(isDisconnectionSignal(input))
             return new DisconnectSignal(input);
+        else if(isEntityTreeSignal(input))
+            return new EntityTreeSignal(input);
+        else if(isPingSignal(input))
+            return new PingSignal(input);
+        else if(isDiscoverySignal(input))
+            return new DiscoverySignal(input);
         else
-            throw new RuntimeException("Unrecognised signal! "+input.toString());
+            throw new RuntimeException("Unrecognised signal! "+ArrayPrinter.printStringArray(input));
+    }
+
+    private static boolean isDiscoverySignal(String[] input) {
+        if(input[1].equals("DISCOV"))
+            return true;
+        return false;
+    }
+
+    private static boolean isPingSignal(String[] input) {
+        if(input[1].equals("PING"))
+            return true;
+        return false;
+    }
+
+
+    private static boolean isEntityTreeSignal(String[] input) {
+        if(input[1].equals("TREE"))
+            return true;
+        return false;
     }
 
     private static boolean isNewRootSignal(String[] input) {

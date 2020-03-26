@@ -39,3 +39,97 @@
         }
         return false;
     }
+
+    /*public static void propagateAllClientInfo() {
+            for (NetworkClientEntity act : entityTree.getAllClients()) {
+                forwardMessageDownwardsWithException(new NewClientSignal(act.getID(),
+                                act.getNickname(), act.getIP(), act.getPort(),
+                                act.getMementoNumber(), act.getUpperClientID()).toString(),
+                        act.getID());
+                forwardMessageUpwards(new NewClientSignal(act.getID(),
+                        act.getNickname(), act.getIP(), act.getPort(),
+                        act.getMementoNumber(),
+                        act.getUpperClientID()).toString());
+            }
+        }*/
+
+
+         /*public static void sendMementoOpenerSignalToClient(UUID userID,UUID mementoID) {
+                sendMessageToClient(userID,getMementoOpenerSignal(userID, mementoID));
+            }
+
+            public static void sendMementoCloserSignalToClient(UUID userID,UUID mementoID) {
+                sendMessageToClient(userID,getMementoCloserSignal(userID, mementoID));
+            }*/
+
+            /*private static void reconnectToAnotherNetworkClient() {
+                for(NetworkClientEntity act : allNetworkClients) {
+                    if(act.hasOpenedPort()){
+                        try {connect(act.getIP(),act.getPort());}
+                        catch (IOException e) {
+                            System.out.println("reconnection failed with: "+act.getID());
+                            continue;
+                        }
+                        System.out.println("reconnection succesfull with: "+act.getID());
+                        return;
+                    } else {
+                        System.out.println("doesn't have opened port: "+act.getID());
+                    }
+                }
+            }*/
+
+
+             /*if(connectedClientEntity == null && lowerConnectedClientEntities.isEmpty() ) {
+                    reconnectToAnotherNetworkClient();
+                }*/
+
+
+
+
+ //épp most lesz új root, mert én voltam, és én csatlakozok
+        if(amiRootBeforeHandshaking) {
+            NetworkService.sendEntityTreeSignal(true);
+        }
+
+        if(!NetworkService.amiRoot() && imServer) {
+            Signal newClientSignal = new NewClientSignal(
+                    remoteHandshakingInfo.getID(),
+                    remoteHandshakingInfo.getNickname(),
+                    remoteHandshakingInfo.getIP(),
+                    remoteHandshakingInfo.getPort(),
+                    remoteHandshakingInfo.getMementoNumber(),
+                    remoteHandshakingInfo.getUpperClientID());
+            NetworkService.sendSignalUpwards(newClientSignal);
+        }
+
+package com.sharedtable.model.signals;
+
+import java.util.UUID;
+
+public class RootSignal implements Signal {
+
+    public RootSignal(UUID newRootID) {
+        this.newRootID = newRootID;
+    }
+
+    public RootSignal(String[] input) {
+        newRootID = UUID.fromString(input[2]);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SIG;NEWROOT;").append(newRootID);
+        return sb.toString();
+    }
+
+    public UUID getNewRootID() {
+        return newRootID;
+    }
+
+    public void setNewRootID(UUID newRootID) {
+        this.newRootID = newRootID;
+    }
+
+    private UUID newRootID;
+}

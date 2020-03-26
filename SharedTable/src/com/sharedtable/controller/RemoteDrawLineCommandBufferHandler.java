@@ -12,7 +12,6 @@ import java.util.UUID;
  * amíg le nem zárulnak. Az számít időben későbbi mementónak amelyik később zárul le.
  */
 
-
 public class RemoteDrawLineCommandBufferHandler {
 
     public static void setCanvasController(CanvasController cc) {
@@ -21,8 +20,7 @@ public class RemoteDrawLineCommandBufferHandler {
 
     public static void addCommand(Command command) {
         if (!commandBuffers.containsKey(command.getCreatorID())) {
-            System.out.println("buffer not exists for: "+command.getCreatorID());
-            throw new RuntimeException("user related command buffer does not exists!");
+            throw new RuntimeException("user related command buffer does not exists!\nbuffer not exists for: "+command.getCreatorID());
         }
         commandBuffers.get(command.getCreatorID()).add(command);
     }
@@ -36,7 +34,6 @@ public class RemoteDrawLineCommandBufferHandler {
     }
 
     public static void openNewMemento(UUID userID) {
-        System.out.println("opening new buffer to: "+userID.toString());
         if (commandBuffers.containsKey(userID)) {
             throw new RuntimeException("user related command buffer already exists!");
         }

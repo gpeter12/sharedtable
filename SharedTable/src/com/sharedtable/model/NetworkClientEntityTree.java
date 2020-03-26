@@ -7,46 +7,39 @@ import java.util.UUID;
 
 public class NetworkClientEntityTree {
     public NetworkClientEntityTree(NetworkClientEntity me) {
-        root = me;
         clients.add(me);
+        setMeRoot();
     }
 
     public NetworkClientEntityTree() {
-        root = null;
     }
 
-    public void setRoot(NetworkClientEntity newRoot) {
-        /*if(newRoot.getUpperClientEntity() != null)
-            throw new RuntimeException("Bad root given to set root!");
-        if(!(root.getUpperClientEntity().getID().equals(newRoot.getID()))) {
-            removeNetworkClientEntityWithException(root, newRoot);
-        }
-        else
-            root.setUpperClientEntity(newRoot);*/
-        root = newRoot;
-    }
-
-    public void setNewConnection(UUID child, UUID parent) {
-        getNetworkClientEntity(child).setUpperClientEntity(getNetworkClientEntity(parent));
+    public void setMeRoot() {
+        getNetworkClientEntity(UserID.getUserID()).setUpperClientEntity(null);
     }
 
     public NetworkClientEntity getRoot() {
-        return root;
+        return findRoot();
+    }
+
+    public void addNetworkClientEntities(ArrayList<NetworkClientEntity> entities) {
+        clients.addAll(entities);
     }
 
     public void addNetworkClientEntity(NetworkClientEntity entity) {
         if(!UserID.getUserID().equals(entity.getID()) &&
                 !clients.contains(entity))
         {
-            if(entity.getUpperClientID() == null)
-                setRoot(entity);
-            else
-                entity.setUpperClientEntity(getNetworkClientEntity(entity.getUpperClientID()));
+            //if(entity.getUpperClientID()!=null)
+                //entity.setUpperClientEntity(getNetworkClientEntity(entity.getUpperClientID()));
+            System.out.println("ADDING entity: "+entity.getID());
             clients.add(entity);
+        } else {
+            System.out.println("client already in the NetworkClientEntityTree!: "+entity.getID());
         }
     }
 
-    public void removeAllChildren(NetworkClientEntity entity) {
+    /*public void removeAllChildren(NetworkClientEntity entity) {
         for(NetworkClientEntity act : getAllChildren(entity)) {
             clients.remove(act);
         }
@@ -76,7 +69,7 @@ public class NetworkClientEntityTree {
 
     public void removeNetworkClientEntity(UUID id) {
         removeNetworkClientEntity(getNetworkClientEntity(id));
-    }
+    }*/
 
     public NetworkClientEntity getNetworkClientEntity(UUID id) {
         for(NetworkClientEntity act : clients) {
@@ -89,7 +82,9 @@ public class NetworkClientEntityTree {
     public ArrayList<NetworkClientEntity> getCloseChildren(NetworkClientEntity entity) {
         ArrayList<NetworkClientEntity> res = new ArrayList<>();
         for(NetworkClientEntity act : clients) {
-            if(act.getUpperClientEntity().getID().equals(entity.getID()))
+            if(act.getUpperClientID() == null)//a root senkinek a gyereke
+                continue;
+            if(act.getUpperClientID().equals(entity.getID()))
                 res.add(act);
         }
         return res;
@@ -97,19 +92,16 @@ public class NetworkClientEntityTree {
 
     public ArrayList<NetworkClientEntity> getAllChildren(NetworkClientEntity entity) {
         ArrayList<NetworkClientEntity> res = new ArrayList<>();
-        for(NetworkClientEntity act : clients) {
-            if(act.getUpperClientEntity().getID().equals(entity.getID())){
-                res.addAll(getAllChildren(entity));
-            }
+        for(NetworkClientEntity act : getCloseChildren(entity)) {
+            res.add(act);
+            res.addAll(getAllChildren(act));
         }
-        res.add(entity);
-        res.addAll(getCloseChildren(entity));
         return res;
     }
 
-    public NetworkClientEntity getParent(UUID uuid) {
+    /*public NetworkClientEntity getParent(UUID uuid) {
         return getNetworkClientEntity(uuid).getUpperClientEntity();
-    }
+    }*/
 
     public boolean contains(UUID id) {
         for(NetworkClientEntity act : clients) {
@@ -120,13 +112,23 @@ public class NetworkClientEntityTree {
         return false;
     }
 
-    public ArrayList<NetworkClientEntity> getAllClients() {
-        ArrayList<NetworkClientEntity> res = new ArrayList<>();
-        res.addAll(getAllChildren(root));
-        return res;
+    public NetworkClientEntity findRoot() {
+        for(NetworkClientEntity act : clients) {
+            if(act.getUpperClientID() == null) {
+                return act;
+            }
+        }
+        throw new RuntimeException("There is no Root in NetworkClientEntityTree");
     }
 
-    public boolean isInPathBetween(NetworkClientEntity entityFrom, NetworkClientEntity entityTo,
+    public ArrayList<NetworkClientEntity> getAllClients() {
+        /*ArrayList<NetworkClientEntity> res = new ArrayList<>();
+        res.addAll(getAllChildren(findRoot()));
+        res.add(findRoot());*/
+        return clients;
+    }
+
+    /*public boolean isInPathBetween(NetworkClientEntity entityFrom, NetworkClientEntity entityTo,
                                    NetworkClientEntity entity)
     {
         NetworkClientEntity act = entityFrom;
@@ -151,10 +153,8 @@ public class NetworkClientEntityTree {
             act = act.getUpperClientEntity();
         }
         throw new RuntimeException("entity not found on path");
-    }
+    }*/
 
     private ArrayList<NetworkClientEntity> clients = new ArrayList<>();
-    private NetworkClientEntity root = null;
-
 
 }

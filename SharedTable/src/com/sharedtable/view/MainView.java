@@ -14,6 +14,8 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.Scanner;
+import java.util.UUID;
 
 
 public class MainView extends Application {
@@ -115,6 +117,19 @@ public class MainView extends Application {
         NetworkService.printClientList();
     }
 
+    @FXML
+    public void onPingClientPressed(ActionEvent actionEvent) {
+        Scanner keyboard = new Scanner(System.in);
+        UUID id = UUID.fromString(keyboard.nextLine());
+        NetworkService.pingClient(id);
+        NetworkService.pingClient(id);
+        NetworkService.pingClient(id);
+        NetworkService.pingClient(id);
+        NetworkService.pingClient(id);
+        NetworkService.pingClient(id);
+        NetworkService.pingClient(id);
+    }
+
     public static void main(String[] args) {
         startMode = Integer.parseInt(args[0]);
         if(args.length > 1){
@@ -152,6 +167,7 @@ public class MainView extends Application {
     //TODO #6 ha egy csomópont kiszáll, megpróbál sorrendben csatlakozni bármely más klienshez
     //TODO #7 multi canvas
     //TODO #8 chat
+    //TODO #9 PINGING
 
     //TODO #7 ellipszis
     //TODO #8 téglalap

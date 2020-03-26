@@ -29,27 +29,17 @@ public class StateCaretaker {
     }
 
     public void addMemento(StateMemento stateMemento, UUID after, boolean link) {
-        System.out.println("cleaning up after " + after);
         cleanupAfterStateInsertion(after);
-        System.out.println("before adding new memento: "+stateMemento.getId());
-        printAllMementos();
         addMemento(stateMemento,link);
-        System.out.println("after adding new memento: "+stateMemento.getId());
-        printAllMementos();
     }
 
     private void cleanupAfterStateInsertion(UUID wantedMementoID) {
-        System.out.println("before cleanup");
-        printAllMementos();
         while (getMementoByIndex(mementos.size() - 1).getId() != wantedMementoID) {
-            System.out.println("removeing " + getMementoByIndex(mementos.size() - 1).getId());
             mementos.remove(getMementoByIndex(mementos.size() - 1));
             if(mementos.size()==0) {
                 throw new RuntimeException("target memento not found, all mementos were removed.");
             }
         }
-        System.out.println("after cleanup");
-        printAllMementos();
     }
 
     public StateMemento getMementoByIndex(int index) {

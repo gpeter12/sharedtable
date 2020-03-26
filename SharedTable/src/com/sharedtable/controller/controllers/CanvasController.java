@@ -131,7 +131,6 @@ public class CanvasController {
             stateCaretaker.addMemento(memento, actMementoID, link);
         }
         actMementoID = memento.getId();
-        System.out.println("actMementoID " + actMementoID);
         semaphore.release();
         return memento;
     }
@@ -157,7 +156,6 @@ public class CanvasController {
 
     private void createAndSendChangeStateCommand(UUID mementoID) {
         Command changeStateCommand = new ChangeStateCommand(this,UserID.getUserID(),mementoID);
-        System.out.println("Changing state to: "+mementoID);
         NetworkService.propagateCommandDownwards(changeStateCommand);
         NetworkService.propagateCommandUpwards(changeStateCommand);
     }

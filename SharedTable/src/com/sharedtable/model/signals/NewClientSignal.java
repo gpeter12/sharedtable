@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public class NewClientSignal implements Signal {
 
-    public NewClientSignal(UUID clientID, String nickname, String IP, int port,
+public NewClientSignal(UUID clientID, String nickname, String IP, int port,
                    int mementoNumber, UUID parentID)
     {
         this.clientID = clientID;
@@ -13,7 +13,6 @@ public class NewClientSignal implements Signal {
         this.port = port;
         this.mementoNumber = mementoNumber;
         this.parentID = parentID;
-
     }
 
     public NewClientSignal(String[] input) {
@@ -33,7 +32,7 @@ public class NewClientSignal implements Signal {
     }
 
     private UUID parentIDFromString(String parentID) {
-        if(parentID == "NULL")
+        if(parentID.equals( "NULL"))
             return null;
         else
             return UUID.fromString(parentID);

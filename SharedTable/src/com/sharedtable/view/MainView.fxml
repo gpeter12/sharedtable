@@ -13,7 +13,7 @@
                 <MenuItem text="ListMementos" onAction="#onListMementosPressed"></MenuItem>
                 <MenuItem text="MakeCrircle" onAction="#onMakeCirclePressed"></MenuItem>
                 <MenuItem text="WriteAllKnownClients" onAction="#onWriteAllKnownClientsPressed"></MenuItem>
-
+                <MenuItem text="PingClient" onAction="#onPingClientPressed"></MenuItem>
             </Menu>
         </MenuBar>
 

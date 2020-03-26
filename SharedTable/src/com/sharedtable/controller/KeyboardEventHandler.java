@@ -13,13 +13,11 @@ public class KeyboardEventHandler {
         //redo keycombo
         if (event.isControlDown() && isZDown(event) && !event.isShiftDown()) {
 
-            System.out.println("UNDOOOOO");
             canvasController.undo();
         }
 
         //undo keycombo
         if (event.isControlDown() && event.isShiftDown() && isZDown(event)) {
-            System.out.println("REDOOOOO");
             canvasController.redo();
 
         }
