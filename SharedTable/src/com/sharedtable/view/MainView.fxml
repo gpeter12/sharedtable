@@ -4,6 +4,7 @@
 <?import javafx.scene.layout.VBox?>
 <VBox fx:controller="com.sharedtable.view.MainView" xmlns:fx="http://javafx.com/fxml" alignment="center">
     <children>
+        <Label></Label>
         <MenuBar>
             <Menu text="Commands">
                 <MenuItem text="DrawLine"></MenuItem>
@@ -14,6 +15,8 @@
                 <MenuItem text="MakeCrircle" onAction="#onMakeCirclePressed"></MenuItem>
                 <MenuItem text="WriteAllKnownClients" onAction="#onWriteAllKnownClientsPressed"></MenuItem>
                 <MenuItem text="PingClient" onAction="#onPingClientPressed"></MenuItem>
+                <MenuItem text="ViewClientList" onAction="#onViewClientListPressed"></MenuItem>
+                <MenuItem text="Connect" onAction="#onConnectPressed"></MenuItem>
             </Menu>
         </MenuBar>
 

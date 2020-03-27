@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
+<VBox xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.sharedtable.view.ClientsWindow"
-            prefHeight="400.0" prefWidth="600.0">
+            fx:controller="com.sharedtable.controller.controllers.ClientsWindowController"
+            style="-fx-spacing: 10px">
+    <Label fx:id="label">Minden hálózathoz csatlakozott klienst tartalmazó fa:</Label>
+    <Label>Dupla kattintással több opció érhető el velük kapcsolatban!</Label>
+    <TreeView fx:id="treeView" prefHeight="600">
+        <TreeItem expanded="true" value="All clients in the network" fx:id="rootItem"></TreeItem>
+    </TreeView>
 
-</AnchorPane>
+</VBox>

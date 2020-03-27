@@ -18,15 +18,15 @@ public class NetworkClientEntity {
 
     public NetworkClientEntity(String[] input) {
         String[] splittedInput = input;
-        if(splittedInput.length != 6) {
-            throw new RuntimeException("corrupted handshaking info! length:"+splittedInput.length+" :"+ArrayPrinter.printStringArray(splittedInput));
+        if(splittedInput.length != 7 && !input[0].equals("HSI")) {
+            throw new IllegalArgumentException("corrupted handshaking info! length:"+splittedInput.length+" :"+ArrayPrinter.printStringArray(splittedInput));
         }
-        id = UUID.fromString(splittedInput[0]);
-        nickname = splittedInput[1];
-        IP = splittedInput[2];
-        port = Integer.parseInt(splittedInput[3]);
-        mementoNumber = Integer.parseInt(input[4]);
-        upperClientID = parentIDFromString(input[5]);
+        id = UUID.fromString(splittedInput[1]);
+        nickname = splittedInput[2];
+        IP = splittedInput[3];
+        port = Integer.parseInt(splittedInput[4]);
+        mementoNumber = Integer.parseInt(input[5]);
+        upperClientID = parentIDFromString(input[6]);
     }
 
     private String parentIDToString(UUID parentID) {
@@ -46,7 +46,7 @@ public class NetworkClientEntity {
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(id.toString()).append(";").append(nickname).append(";").append(IP).
+        sb.append("HSI").append(";").append(id.toString()).append(";").append(nickname).append(";").append(IP).
                 append(";").append(port).append(";").append(mementoNumber).append(";").
                 append(parentIDToString(upperClientID)).append(";");
         return sb.toString();
@@ -79,10 +79,15 @@ public class NetworkClientEntity {
     public UUID getUpperClientID() {return upperClientID;}
     public void setUpperClientEntity(NetworkClientEntity upperClientEntity)
     {
-        //this.upperClientEntity = upperClientEntity;
-        this.upperClientID = upperClientEntity.id;
+        if(upperClientEntity != null)
+            this.upperClientID = upperClientEntity.id;
+        else
+            this.upperClientID = null;
     }
-    //public NetworkClientEntity getUpperClientEntity() { return upperClientEntity; }
+
+    public void setMementoNumber(int mementoNumber) {
+        this.mementoNumber = mementoNumber;
+    }
 
     @Override
     public int hashCode() {
@@ -95,6 +100,9 @@ public class NetworkClientEntity {
     private String IP;
     private int port;
     private String nickname;
+
+
+
     private int mementoNumber;
 
     public void setPort(int i) {

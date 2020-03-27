@@ -21,7 +21,7 @@ public class CanvasController {
         StateMemento firstMemento = stateOriginator.createMemento();
         //Az első mementónak egyezményesen MINDÍG ez a címe, hogy vissza lehessen rá vonni
         //d38cc911-caf6-4541-b58f-1c5b7c817e05
-        firstMemento.setId(UUID.fromString("d38cc911-caf6-4541-b58f-1c5b7c817e05"));
+        firstMemento.setId(UUID.fromString("00000000-0000-0000-0000-000000000000"));
         actMementoID = firstMemento.getId();
         System.out.println("FIRST MEMENTO "+actMementoID);
         stateCaretaker.addMemento(firstMemento,true);

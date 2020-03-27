@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.geometry.Insets?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.sharedtable.controller.controllers.ClientPropertyWindowController"
+      style="-fx-padding: 20px; -fx-spacing: 10px">
+
+    <Label></Label>
+    <HBox spacing="5">
+        <Label style="-fx-font-weight: bold">ID: </Label>
+        <Label fx:id="idLabel"></Label>
+    </HBox>
+    <HBox spacing="5">
+        <Label style="-fx-font-weight: bold">nickname: </Label>
+        <Label fx:id="nicknameLabel"></Label>
+    </HBox>
+    <HBox spacing="5">
+        <Label style="-fx-font-weight: bold">IP: </Label>
+        <Label fx:id="IPLabel"></Label>
+    </HBox>
+    <HBox spacing="5">
+        <Label style="-fx-font-weight: bold">port: </Label>
+        <Label fx:id="portLabel"></Label>
+    </HBox>
+    <HBox spacing="5">
+        <Label style="-fx-font-weight: bold">parent ID: </Label>
+        <Label fx:id="parentIDLabel"></Label>
+    </HBox>
+    <HBox spacing="5">
+        <Label style="-fx-font-weight: bold">ping: </Label>
+        <Label fx:id="pingLabel"></Label>
+    </HBox>
+    <Button fx:id="pingButton" text="Kliens pingelése" onAction="#btnPingButtonClicked"></Button>
+</VBox>
+
+
+<!--
+
+-->

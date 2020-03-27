@@ -3,6 +3,7 @@ package com.sharedtable.view;
 import com.sharedtable.controller.KeyboardEventHandler;
 import com.sharedtable.controller.RemoteDrawLineCommandBufferHandler;
 import com.sharedtable.controller.controllers.CanvasController;
+import com.sharedtable.controller.controllers.ConnectWindowController;
 import com.sharedtable.model.NetworkService;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
@@ -45,6 +46,7 @@ public class MainView extends Application {
         if(IP == null)
             IP = "127.0.0.1";
         if(port == -1) {
+            if(startMode == 2)
             port = 2222;
             if(startMode == 0)
                 port = 2223;
@@ -53,18 +55,18 @@ public class MainView extends Application {
         }
 
         if (startMode == 2) {
-            new NetworkService(true, canvasController, port);
+            new NetworkService(true, canvasController, 2222);
         } else if (startMode == 1) {
             new NetworkService(true, canvasController, 2223);
-            //NetworkService.connect("127.0.0.1", 2223);
-            try {NetworkService.connect(IP, port);}
+            //NetworkService.connect("127.0.0.1", 2223);f
+            try {NetworkService.connect(IP, 2222);}
             catch (IOException e) {
                 System.out.println("failed to connect in startMode 1");
             }
         } else if (startMode == 0) {
-            new NetworkService(false, canvasController, -1);
+            new NetworkService(false, canvasController, 2224);
             //NetworkService.connect(IP, port);
-            try {NetworkService.connect(IP, port);}
+            try {NetworkService.connect(IP, 2224);}
             catch (IOException e) {
                 System.out.println("failed to connect in startMode 0");
             }
@@ -128,6 +130,16 @@ public class MainView extends Application {
         NetworkService.pingClient(id);
         NetworkService.pingClient(id);
         NetworkService.pingClient(id);
+    }
+
+    @FXML
+    public void onViewClientListPressed(ActionEvent actionEvent) {
+        new ClientsWindowView();
+    }
+
+    @FXML
+    public void onConnectPressed(ActionEvent actionEvent) {
+        new ConnectWindowView();
     }
 
     public static void main(String[] args) {

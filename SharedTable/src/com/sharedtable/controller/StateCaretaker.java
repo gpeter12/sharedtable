@@ -34,7 +34,7 @@ public class StateCaretaker {
     }
 
     private void cleanupAfterStateInsertion(UUID wantedMementoID) {
-        while (getMementoByIndex(mementos.size() - 1).getId() != wantedMementoID) {
+        while (getMementoByIndex(mementos.size() - 1).getId().equals(wantedMementoID)) {
             mementos.remove(getMementoByIndex(mementos.size() - 1));
             if(mementos.size()==0) {
                 throw new RuntimeException("target memento not found, all mementos were removed.");
