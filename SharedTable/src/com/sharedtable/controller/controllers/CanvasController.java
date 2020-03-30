@@ -3,20 +3,25 @@ package com.sharedtable.controller.controllers;
 import com.sharedtable.controller.*;
 import com.sharedtable.controller.commands.ChangeStateCommand;
 import com.sharedtable.controller.commands.ClearCommand;
+import com.sharedtable.controller.commands.Command;
 import com.sharedtable.controller.commands.DrawLineCommand;
 import com.sharedtable.model.NetworkService;
-import com.sharedtable.view.MainCanvas;
+import com.sharedtable.view.STCanvas;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;
 
 public class CanvasController {
 
-    public CanvasController(MainCanvas mainCanvas) {
-        this.mainCanvas = mainCanvas;
+    public CanvasController(STCanvas STCanvas, UUID canvasID) {
+        this.STCanvas = STCanvas;
+        this.canvasID = canvasID;
+        STCanvas.initEventHandlers(this);
         this.stateCaretaker = new StateCaretaker();
         this.stateOriginator = new StateOriginator();
+
 
         StateMemento firstMemento = stateOriginator.createMemento();
         //Az első mementónak egyezményesen MINDÍG ez a címe, hogy vissza lehessen rá vonni
@@ -25,31 +30,31 @@ public class CanvasController {
         actMementoID = firstMemento.getId();
         System.out.println("FIRST MEMENTO "+actMementoID);
         stateCaretaker.addMemento(firstMemento,true);
-        commandExecuterThread.start();
+        commandExecutorThread.start();
     }
 
     public void mouseDown(Point p) {
         lastPoint = p;
         isMouseDown = true;
-        NetworkService.sendMementoOpenerSignal(UserID.getUserID(),stateOriginator.getNextMementoID(),true);
+        NetworkService.sendMementoOpenerSignal(UserID.getUserID(),canvasID,stateOriginator.getNextMementoID(),true);
     }
 
     public void mouseUp(Point p) {
         isMouseDown = false;
         lastPoint = p;
-        NetworkService.sendMementoCloserSignal(UserID.getUserID(),insertNewMementoAfterActual(true).getId(),true);
+        NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
     }
 
     public void mouseMove(Point p) {
         if (isMouseDown) {
             Command command;
             if (currentMode == DrawingMode.ContinousLine) {
-                command = new DrawLineCommand(mainCanvas, lastPoint, p, UserID.getUserID());
+                command = new DrawLineCommand(this, lastPoint, p, UserID.getUserID());
             } else {
                 throw new RuntimeException("no drawing mode selected");
             }
             stateOriginator.addCommand(command);
-            commandExecuterThread.addCommandToCommandQueue(command);
+            commandExecutorThread.addCommandToCommandQueue(command);
             lastPoint = p;
             NetworkService.propagateCommandDownwards(command);
             NetworkService.propagateCommandUpwards(command);
@@ -58,7 +63,7 @@ public class CanvasController {
 
     public void clearCanvas() {
         Command command = new ClearCommand(this, UserID.getUserID(), stateOriginator.getNextMementoID());
-        commandExecuterThread.addCommandToCommandQueue(command);
+        commandExecutorThread.addCommandToCommandQueue(command);
         //nem láncoljuk az új mementót ilyenkor, mert a visszavonás visszahozná az előtte levő állapotokat
         insertNewMementoAfterActual(false);
         NetworkService.propagateCommandUpwards(command);
@@ -70,19 +75,21 @@ public class CanvasController {
     }
 
     public void processRemoteCommand(Command receivedCommand) {
-        commandExecuterThread.addCommandToCommandQueue(receivedCommand);
+        commandExecutorThread.addCommandToCommandQueue(receivedCommand);
     }
 
     public void stop() {
-        commandExecuterThread.timeToStop();
+        commandExecutorThread.timeToStop();
     }
 
     public void redo() {
-        restoreNextMemento();
+        if(TabController.getActualCanvasControler().equals(this))
+            restoreNextMemento();
     }
 
     public void undo() {
-        restorePreviosMemento();
+        if(TabController.getActualCanvasControler().equals(this))
+            restorePreviosMemento();
     }
 
 
@@ -94,14 +101,14 @@ public class CanvasController {
         return stateOriginator;
     }
 
-    public MainCanvas getMainCanvas() {
-        return mainCanvas;
+    public STCanvas getSTCanvas() {
+        return STCanvas;
     }
 
-    public StateMemento insertRemoteMementoAfterActual(UUID id,ArrayList<Command> commands, boolean link,UUID creatorID) {
+    public StateMemento insertRemoteMementoAfterActual(UUID id, ArrayList<Command> commands, boolean link, UUID creatorID) {
         //mi történik helyileg, ha valaki távol befejez egy rajzolást a rajzolásom alatt
         if(!stateOriginator.isCommandBufferEmpty()) {//ha nem üres akkor épp rajzolok...
-            NetworkService.sendMementoCloserSignal(UserID.getUserID(),insertNewMementoAfterActual(true).getId(),true);
+            NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
         }
         StateMemento memento = insertNewMementoAfterActual(link);
         memento.setId(id);
@@ -119,7 +126,29 @@ public class CanvasController {
 
     public UUID getCurrentMementoID() {return actMementoID;}
 
-    //////////////////////////////////////private section////////////////////////////////////////
+    public UUID getCanvasID() {return canvasID;}
+
+    public RemoteDrawLineCommandBufferHandler getRemoteDrawLineCommandBufferHandler()
+    {return remoteDrawLineCommandBufferHandler;}
+
+
+    public void drawLine(Point x, Point y) {
+        STCanvas.drawLine(x,y);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CanvasController that = (CanvasController) o;
+        return canvasID.equals(that.canvasID);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(canvasID);
+    }
+//////////////////////////////////////private section////////////////////////////////////////
 
     private StateMemento insertNewMementoAfterActual(boolean link) {//link: kell-e láncolni az új mementót a régivel
         try { semaphore.acquire(); } catch (Exception e) {System.out.println(e);}
@@ -161,23 +190,26 @@ public class CanvasController {
     }
 
     private void restoreMemento(StateMemento memento) {
-        commandExecuterThread.addCommandToCommandQueue(new ClearCommand(this, UserID.getUserID(),
+        commandExecutorThread.addCommandToCommandQueue(new ClearCommand(this, UserID.getUserID(),
                 stateOriginator.getNextMementoID()));
         actMementoID = memento.getId();
         for (Command act : memento.getAllCommandsWPrev()) {
-            commandExecuterThread.addCommandToCommandQueue(act);
+            commandExecutorThread.addCommandToCommandQueue(act);
         }
     }
 
-
+    private RemoteDrawLineCommandBufferHandler remoteDrawLineCommandBufferHandler =
+            new RemoteDrawLineCommandBufferHandler(this);
+    private UUID canvasID;
     private StateCaretaker stateCaretaker;
     private StateOriginator stateOriginator;
     private boolean isMouseDown = false;
     private Point lastPoint;
-    private MainCanvas mainCanvas;
+    private STCanvas STCanvas;
     private DrawingMode currentMode = DrawingMode.ContinousLine;
     private UUID actMementoID;
-    private CommandExecuterThread commandExecuterThread = new CommandExecuterThread();
+    private CommandExecutorThread commandExecutorThread = new CommandExecutorThread();
     private Semaphore semaphore = new Semaphore(1);
+
 
 }

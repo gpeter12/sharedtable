@@ -1,23 +1,26 @@
 package com.sharedtable.model;
 
-import com.sharedtable.controller.*;
 import com.sharedtable.controller.commands.ChangeStateCommand;
+import com.sharedtable.controller.commands.CommandFactory;
+import com.sharedtable.controller.StateMemento;
+import com.sharedtable.controller.UserID;
+import com.sharedtable.controller.commands.Command;
 import com.sharedtable.controller.commands.DrawLineCommand;
-import com.sharedtable.controller.controllers.CanvasController;
+import com.sharedtable.controller.controllers.TabController;
 import com.sharedtable.model.signals.*;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.ArrayList;
+import java.util.Objects;
+import java.util.Scanner;
+import java.util.UUID;
 
 public class ConnectedClientEntity extends Thread {
 
-    public ConnectedClientEntity(Socket socket, CanvasController canvasController, boolean isLowerClientEntity) {
+    public ConnectedClientEntity(Socket socket, boolean isLowerClientEntity) {
         this.socket = socket;
         this.isLowerClientEntity = isLowerClientEntity;
-        this.canvasController = canvasController;
         try {
             initializeStreams(socket);
         } catch (Exception e) {
@@ -52,7 +55,7 @@ public class ConnectedClientEntity extends Thread {
                 } else {
                     forwardMessage(receivedMessage);
                     Command recvdCmd = processCommand(splittedMessage);
-                    canvasController.processRemoteCommand(recvdCmd);
+                    TabController.getCanvasController(recvdCmd.getCanvasID()).processRemoteCommand(recvdCmd);
                 }
             } else {
                 System.out.println("ConnectedClientEntity: receivedMessage was empty!");
@@ -86,10 +89,10 @@ public class ConnectedClientEntity extends Thread {
         return id;
     }
 
-    private void sendAllMementos() {
-        ArrayList<StateMemento> mementos = canvasController.getMementos();
+    private void sendAllMementosOnCanvas(UUID canvasID) {
+        ArrayList<StateMemento> mementos = TabController.getCanvasController(canvasID).getMementos();
         for(int i=1; i<mementos.size(); i++) {
-            sendMenento(mementos.get(i));
+            sendMenento(mementos.get(i),canvasID);
         }
     }
 
@@ -131,14 +134,14 @@ public class ConnectedClientEntity extends Thread {
         unsafeSendPlainText(input);
     }
 
-    private void sendMenento(StateMemento stateMemento) {
+    private void sendMenento(StateMemento stateMemento, UUID canvasID) {
         ArrayList<Command> cmds = stateMemento.getCommands();
         boolean isLinked = stateMemento.getPreviousMemento() != null;
-        sendMementoOpenerSignalToClient(stateMemento.getCreatorID(),stateMemento.getId(),isLinked);
+        sendMementoOpenerSignalToClient(stateMemento.getCreatorID(),canvasID,stateMemento.getId(),isLinked);
         for(Command act : cmds) {
             sendCommand(act);
         }
-        sendMementoCloserSignalToClient(stateMemento.getCreatorID(),stateMemento.getId(),isLinked);
+        sendMementoCloserSignalToClient(stateMemento.getCreatorID(),canvasID,stateMemento.getId(),isLinked);
     }
 
     private void forwardMessage(String messsage) {
@@ -149,27 +152,30 @@ public class ConnectedClientEntity extends Thread {
             NetworkService.forwardMessageDownwards(messsage);
         }
     }
+
     //</editor-fold> desc="MESSAGING">
 
     //<editor-fold desc="SIGNAL HANDLING">
 
-    private void sendMementoOpenerSignalToClient(UUID creatorID,UUID mementoID,boolean isLinked) {
-        sendPlainText(new MementoOpenerSignal(creatorID, mementoID,isLinked).toString());
+    private void sendMementoOpenerSignalToClient(UUID creatorID,UUID canvasID,UUID mementoID,boolean isLinked) {
+        sendPlainText(new MementoOpenerSignal(creatorID, canvasID, mementoID,isLinked).toString());
     }
 
-    private void sendMementoCloserSignalToClient(UUID creatorID,UUID mementoID,boolean isLinked) {
-        sendPlainText(new MementoCloserSignal(creatorID, mementoID,isLinked).toString());
+    private void sendMementoCloserSignalToClient(UUID creatorID,UUID canvasID,UUID mementoID,boolean isLinked) {
+        sendPlainText(new MementoCloserSignal(creatorID, canvasID, mementoID,isLinked).toString());
     }
 
     private void handleSignal(Signal signal) {
-        System.out.println("signal received: "+signal.toString());
         if(signal instanceof MementoOpenerSignal) {
             MementoOpenerSignal mementoOpenerSignal = (MementoOpenerSignal) signal;
-            RemoteDrawLineCommandBufferHandler.openNewMemento(
+            TabController.getCanvasController(mementoOpenerSignal.getCanvasID()).
+                    getRemoteDrawLineCommandBufferHandler().
+                    openNewMemento(
                     (mementoOpenerSignal.getCreatorID()));
         } else if(signal instanceof MementoCloserSignal) {
             MementoCloserSignal mementoCloserSignal = (MementoCloserSignal)signal;
-            RemoteDrawLineCommandBufferHandler.closeMemento(
+            TabController.getCanvasController(mementoCloserSignal.getCanvasID()).
+                    getRemoteDrawLineCommandBufferHandler().closeMemento(
                     mementoCloserSignal.getCreatorID(),
                     mementoCloserSignal.getMementoID(),
                     mementoCloserSignal.isLinked());
@@ -188,51 +194,56 @@ public class ConnectedClientEntity extends Thread {
         } else if(signal instanceof PingSignal) {
             PingSignal pingSignal = (PingSignal)signal;
             handlePingSignal(pingSignal);
-
+        } else if(signal instanceof NewTabSignal) {
+            NewTabSignal newTabSignal = (NewTabSignal)signal;
+            TabController.handleNewTabSingal(newTabSignal);
+        } else if(signal instanceof CloseTabSignal) {
+            CloseTabSignal closeTabSignal = (CloseTabSignal)signal;
+            TabController.handleCloseTabSignal(closeTabSignal);
         }
     }
 
-    //<editor-fold desc="PINGING">
+        //<editor-fold desc="PINGING">
 
-    private void handlePingSignal(PingSignal pingSignal) {
-        if(pingSignal.getTargetClientID().equals(UserID.getUserID()) && !pingSignal.isRespond())
-            sendPingSignalResponse(pingSignal);
-        if(pingSignal.isRespond() &&
-                pingSignal.getPingID().equals(currentPingIDToWaitFor))
-        {
-            pingFinish = System.nanoTime();
-            System.out.println("ping finished");
-        }
-    }
-
-    private void sendPingSignalResponse(PingSignal signal) {
-        signal.setRespond(true);
-        System.out.println("sending ping response");
-        NetworkService.sendSignalDownwards(signal);
-        NetworkService.sendSignalUpwards(signal);
-    }
-
-    public void setPingIDtoWaitFor(UUID pingID) {
-        currentPingIDToWaitFor = pingID;
-    }
-
-    public long getPingResult(UUID pingID) {
-            if(pingID.equals(currentPingIDToWaitFor)){
-                return pingFinish;
-            } else {
-                return -1;
+        private void handlePingSignal(PingSignal pingSignal) {
+            if(pingSignal.getTargetClientID().equals(UserID.getUserID()) && !pingSignal.isRespond())
+                sendPingSignalResponse(pingSignal);
+            if(pingSignal.isRespond() &&
+                    pingSignal.getPingID().equals(currentPingIDToWaitFor))
+            {
+                pingFinish = System.nanoTime();
+                System.out.println("ping finished");
             }
-    }
+        }
 
-    //</editor-fold> desc="PINGING">
+        private void sendPingSignalResponse(PingSignal signal) {
+            signal.setRespond(true);
+            System.out.println("sending ping response");
+            NetworkService.sendSignalDownwards(signal);
+            NetworkService.sendSignalUpwards(signal);
+        }
+
+        public void setPingIDtoWaitFor(UUID pingID) {
+            currentPingIDToWaitFor = pingID;
+        }
+
+        public long getPingResult(UUID pingID) {
+                if(pingID.equals(currentPingIDToWaitFor)){
+                    return pingFinish;
+                } else {
+                    return -1;
+                }
+        }
+
+        //</editor-fold> desc="PINGING">
 
     //</editor-fold> desc="SIGNAL HANDLING">
 
     //<editor-fold desc="COMMAND HANDLING">
     private Command processCommand(String[] splittedCommand) {
-        Command rcvdcmd = CommandFactory.getCommand(splittedCommand, canvasController);
+        Command rcvdcmd = CommandFactory.getCommand(splittedCommand);
         if(rcvdcmd instanceof DrawLineCommand) {
-            RemoteDrawLineCommandBufferHandler.addCommand(rcvdcmd);
+            TabController.getCanvasController(rcvdcmd.getCanvasID()).getRemoteDrawLineCommandBufferHandler().addCommand(rcvdcmd);
         }
         return rcvdcmd;
     }
@@ -241,8 +252,10 @@ public class ConnectedClientEntity extends Thread {
 
     //<editor-fold desc="HANDSHAKING">
     private void sendSynchronizationCommands() {
-        sendAllMementos();
-        sendCommand(new ChangeStateCommand(canvasController,UserID.getUserID(),canvasController.getCurrentMementoID()));
+
+        /*for()
+        sendAllMementosOnCanvas();
+        sendCommand(new ChangeStateCommand(canvasController,UserID.getUserID(),canvasController.getCurrentMementoID()));*/
     }
 
     private NetworkClientEntity receiveNetworkClientEntityInfo() {
@@ -315,7 +328,7 @@ public class ConnectedClientEntity extends Thread {
         } else if(myHandshakingInfo.getMementoNumber() > 1 &&
                 remoteHandshakingInfo.getMementoNumber() > 1) //mindkét kliens rendelkezik már mementókkal
         {
-            //throw new UnsupportedOperationException("mindkét kliens rendelkezik már mementókkal");
+            throw new UnsupportedOperationException("mindkét kliens rendelkezik már mementókkal");
         }
     }
     //</editor-fold> desc="COMMAND HANDLING">
@@ -341,7 +354,6 @@ public class ConnectedClientEntity extends Thread {
     private InputStream inputStream;
     private BufferedWriter bufferedWriter;
     private Scanner scanner;
-    private CanvasController canvasController;
     private boolean isLowerClientEntity;
     private UUID id = null;
     private NetworkClientEntity networkClientEntity;

@@ -1,13 +1,11 @@
-<?import com.sharedtable.view.MainCanvas?>
+<?import com.sharedtable.view.STTabPane?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<VBox fx:controller="com.sharedtable.view.MainView" xmlns:fx="http://javafx.com/fxml" alignment="center">
+<VBox fx:controller="com.sharedtable.view.MainView" xmlns:fx="http://javafx.com/fxml">
     <children>
-        <Label></Label>
         <MenuBar>
             <Menu text="Commands">
-                <MenuItem text="DrawLine"></MenuItem>
+                <MenuItem text="Connect" onAction="#onConnectPressed"></MenuItem>
                 <MenuItem text="ClearCanvas" onAction="#onClearPressed"></MenuItem>
                 <MenuItem text="Undo" onAction="#onUndoPressed"></MenuItem>
                 <MenuItem text="Redo" onAction="#onRedoPressed"></MenuItem>
@@ -16,12 +14,10 @@
                 <MenuItem text="WriteAllKnownClients" onAction="#onWriteAllKnownClientsPressed"></MenuItem>
                 <MenuItem text="PingClient" onAction="#onPingClientPressed"></MenuItem>
                 <MenuItem text="ViewClientList" onAction="#onViewClientListPressed"></MenuItem>
-                <MenuItem text="Connect" onAction="#onConnectPressed"></MenuItem>
+                <MenuItem text="CreateNewTab" onAction="#onCreateNewTabPressed"></MenuItem>
             </Menu>
         </MenuBar>
-
-        <HBox>
-            <MainCanvas fx:id="canvas" width="640" height="480"></MainCanvas>
-        </HBox>
+        <STTabPane fx:id="tabPane">
+        </STTabPane>
     </children>
 </VBox>

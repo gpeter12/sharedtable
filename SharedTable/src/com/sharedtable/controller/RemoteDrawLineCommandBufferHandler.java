@@ -1,5 +1,6 @@
 package com.sharedtable.controller;
 
+import com.sharedtable.controller.commands.Command;
 import com.sharedtable.controller.controllers.CanvasController;
 
 import java.util.ArrayList;
@@ -14,18 +15,19 @@ import java.util.UUID;
 
 public class RemoteDrawLineCommandBufferHandler {
 
-    public static void setCanvasController(CanvasController cc) {
-        canvasController = cc;
+    public RemoteDrawLineCommandBufferHandler(CanvasController canvasController) {
+        this.canvasController = canvasController;
     }
 
-    public static void addCommand(Command command) {
+
+    public void addCommand(Command command) {
         if (!commandBuffers.containsKey(command.getCreatorID())) {
             throw new RuntimeException("user related command buffer does not exists!\nbuffer not exists for: "+command.getCreatorID());
         }
         commandBuffers.get(command.getCreatorID()).add(command);
     }
 
-    public static void closeMemento(UUID userID, UUID mementoID,boolean isLinked) {
+    public void closeMemento(UUID userID, UUID mementoID,boolean isLinked) {
         canvasController.insertRemoteMementoAfterActual(mementoID,commandBuffers.get(userID),isLinked,userID);
         //printAllCommands(commandBuffers.get(userID));
         commandBuffers.remove(userID);
@@ -33,14 +35,14 @@ public class RemoteDrawLineCommandBufferHandler {
             canvasController.processSateChangeCommand(mementoID); //a láncolási szakadásokat figyelembe véve újra rajzol
     }
 
-    public static void openNewMemento(UUID userID) {
+    public void openNewMemento(UUID userID) {
         if (commandBuffers.containsKey(userID)) {
             throw new RuntimeException("user related command buffer already exists!");
         }
         commandBuffers.put(userID, new ArrayList<Command>());
     }
 
-    private static void printAllCommands(ArrayList<Command> input) {
+    private void printAllCommands(ArrayList<Command> input) {
         System.out.println("BufferPrint-------------------");
         for(Command act : input) {
             System.out.println(act.toString());
@@ -48,6 +50,6 @@ public class RemoteDrawLineCommandBufferHandler {
         System.out.println("-------------------");
     }
 
-    private static HashMap<UUID, ArrayList<Command>> commandBuffers = new HashMap<>();
-    private static CanvasController canvasController;
+    private HashMap<UUID, ArrayList<Command>> commandBuffers = new HashMap<>();
+    private CanvasController canvasController;
 }

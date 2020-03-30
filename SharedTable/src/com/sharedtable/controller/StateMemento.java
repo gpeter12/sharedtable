@@ -1,5 +1,7 @@
 package com.sharedtable.controller;
 
+import com.sharedtable.controller.commands.Command;
+
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
@@ -94,7 +96,6 @@ public class StateMemento {
     public int getCommandNumber() {
         return commands.size();
     }
-
 
     public UUID getCreatorID() {
         return creatorID;

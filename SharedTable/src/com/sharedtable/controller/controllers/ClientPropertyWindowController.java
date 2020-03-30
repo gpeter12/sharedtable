@@ -3,7 +3,6 @@ package com.sharedtable.controller.controllers;
 import com.sharedtable.controller.UserID;
 import com.sharedtable.model.NetworkClientEntity;
 import com.sharedtable.model.NetworkService;
-import com.sharedtable.view.ClientPropertyWindowView;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;

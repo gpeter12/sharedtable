@@ -1,8 +1,8 @@
 package com.sharedtable.model;
 
-import com.sharedtable.controller.Command;
 import com.sharedtable.controller.UserID;
-import com.sharedtable.controller.controllers.CanvasController;
+import com.sharedtable.controller.commands.Command;
+import com.sharedtable.controller.controllers.TabController;
 import com.sharedtable.model.signals.*;
 
 import java.io.BufferedReader;
@@ -10,16 +10,19 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.URL;
-import java.util.*;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Semaphore;
 
 public class NetworkService {
 
-    public NetworkService(boolean isServer, CanvasController canvasController, int port) {
-        NetworkService.canvasController = canvasController;
-        NetworkClientEntity me = new NetworkClientEntity(UserID.getUserID(), "nickname", getPublicIP(), port,
-                canvasController.getMementos().size(), null);
+    public NetworkService(boolean isServer, int port) {
+        NetworkClientEntity me = new NetworkClientEntity(UserID.getUserID(), "nickname", getPublicIP(),
+                port,
+                TabController.getMementoCountOnAllCanvasController(),
+                 null);
+
+
         this.me = me;
         entityTree = new NetworkClientEntityTree(me);
         if (isServer) {
@@ -42,7 +45,7 @@ public class NetworkService {
 
     //make outgoing connection
     public static void connect(final String IP, int port) throws IOException {
-        upperConnectedClientEntity = new ConnectedClientEntity(new Socket(IP, port), canvasController,
+        upperConnectedClientEntity = new ConnectedClientEntity(new Socket(IP, port),
                 false);
 
         //entityTree.addNetworkClientEntity(upperConnectedClientEntity.getNetworkClientEntity());
@@ -59,7 +62,7 @@ public class NetworkService {
     }
 
     public static String getPublicIP() {
-        String systemipaddress = "";
+        /*String systemipaddress = "";
         try {
             URL url_name = new URL("http://bot.whatismyipaddress.com");
 
@@ -71,7 +74,7 @@ public class NetworkService {
         } catch (Exception e) {
             systemipaddress = "Cannot Execute Properly";
         }
-        //return systemipaddress;
+        //return systemipaddress;*/
         return "127.0.0.1";
     }
 
@@ -255,14 +258,26 @@ public class NetworkService {
         forwardMessageDownwards(discoverySignal.toString());
     }
 
-    public static void sendMementoOpenerSignal(UUID userID, UUID mementoID, boolean isLinked) {
-        sendSignalUpwards(new MementoOpenerSignal(userID, mementoID, isLinked));
-        sendSignalDownwards(new MementoOpenerSignal(userID, mementoID, isLinked));
+    public static void sendNewTabSignal(UUID creatorID, UUID canvasID, String tabName) {
+        Signal newTabSignal = new NewTabSignal(creatorID,canvasID,tabName);
+        sendSignalDownwards(newTabSignal);
+        sendSignalUpwards(newTabSignal);
     }
 
-    public static void sendMementoCloserSignal(UUID userID, UUID mementoID, boolean isLinked) {
-        sendSignalUpwards(new MementoCloserSignal(userID, mementoID, isLinked));
-        sendSignalDownwards(new MementoCloserSignal(userID, mementoID, isLinked));
+    public static void sendCloseTabSignal(UUID creatorID, UUID canvasID) {
+        Signal closeTabSignal = new CloseTabSignal(creatorID, canvasID);
+        sendSignalDownwards(closeTabSignal);
+        sendSignalUpwards(closeTabSignal);
+    }
+
+    public static void sendMementoOpenerSignal(UUID userID, UUID canvasID, UUID mementoID, boolean isLinked) {
+        sendSignalUpwards(new MementoOpenerSignal(userID, canvasID, mementoID, isLinked));
+        sendSignalDownwards(new MementoOpenerSignal(userID,canvasID, mementoID, isLinked));
+    }
+
+    public static void sendMementoCloserSignal(UUID userID, UUID canvasID, UUID mementoID, boolean isLinked) {
+        sendSignalUpwards(new MementoCloserSignal(userID, canvasID, mementoID, isLinked));
+        sendSignalDownwards(new MementoCloserSignal(userID, canvasID, mementoID, isLinked));
     }
 
     public static void sendSignalUpwards(Signal signal) {
@@ -297,6 +312,7 @@ public class NetworkService {
     }
 
     public static void handleNewClientSignal(NewClientSignal signal) {
+        forwardMessageUpwards(signal.toString());
         if(!amiRoot())
             return;
         NetworkClientEntity entity = new NetworkClientEntity(
@@ -308,7 +324,7 @@ public class NetworkService {
                 signal.getParentID());
         addNetworkClientEntity(entity);
         sendEntityTreeSignal();
-        forwardMessageUpwards(signal.toString());
+
     }
 
     public static void handleDisconnectSignal(DisconnectSignal signal) {
@@ -326,7 +342,7 @@ public class NetworkService {
     }
 
     public static NetworkClientEntity getMyNetworkClientEntity() {
-        me.setMementoNumber(canvasController.getMementos().size());
+        me.setMementoNumber(TabController.getMementoCountOnAllCanvasController());
         return me;
     }
 
@@ -369,7 +385,7 @@ public class NetworkService {
 
     public static void addReceivedConnection(Socket connection) {
         acquireSemaphore();
-        ConnectedClientEntity connectedClientEntity = new ConnectedClientEntity(connection, canvasController,
+        ConnectedClientEntity connectedClientEntity = new ConnectedClientEntity(connection,
                 true);
         connectedClientEntity.setLowerClientEntity(true);
         lowerConnectedClientEntities.add(connectedClientEntity);
@@ -427,7 +443,6 @@ public class NetworkService {
     private static CopyOnWriteArrayList<ConnectedClientEntity> lowerConnectedClientEntities = new CopyOnWriteArrayList<>();
     private static int openedPort = -1;
     private static ConnectionReceiverThread connectionReceiverThread;
-    private static CanvasController canvasController;
     private static Semaphore semaphore = new Semaphore(1);
     private static int reconnectTry = 0;
     /*

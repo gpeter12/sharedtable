@@ -1,30 +1,25 @@
 package com.sharedtable.controller.commands;
 
-import com.sharedtable.controller.Command;
 import com.sharedtable.controller.Point;
-import com.sharedtable.view.MainCanvas;
+import com.sharedtable.controller.controllers.CanvasController;
 
 import java.util.UUID;
 
-public class DrawLineCommand implements Command {
+public class DrawLineCommand extends Command {
 
-    public DrawLineCommand(MainCanvas canvas, Point x, Point y, UUID creatorID) {
+    public DrawLineCommand(CanvasController canvasController, Point x, Point y, UUID creatorID) {
+        super(canvasController,creatorID);
         this.x = x;
         this.y = y;
-        this.canvas = canvas;
-        this.creatorID = creatorID;
+
     }
 
-    public DrawLineCommand() {
-    }
-
-    public DrawLineCommand(MainCanvas canvas, String[] dataInput) {
-        this.canvas = canvas;
-        this.creatorID = UUID.fromString(dataInput[0]);
-        double p1x = Double.parseDouble(dataInput[2]);
-        double p1y = Double.parseDouble(dataInput[3]);
-        double p2x = Double.parseDouble(dataInput[4]);
-        double p2y = Double.parseDouble(dataInput[5]);
+    public DrawLineCommand(String[] dataInput) {
+        super(dataInput);
+        double p1x = Double.parseDouble(dataInput[3]);
+        double p1y = Double.parseDouble(dataInput[4]);
+        double p2x = Double.parseDouble(dataInput[5]);
+        double p2y = Double.parseDouble(dataInput[6]);
 
         x = new Point(p1x, p1y);
         y = new Point(p2x, p2y);
@@ -38,20 +33,21 @@ public class DrawLineCommand implements Command {
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(creatorID.toString()).append(";").append(CommandID.DrawLineCommand.ordinal()).append(";")
-                .append(x.toString()).append(";").append(y.toString());
-        //System.out.println(stringBuilder.toString());
+        stringBuilder.append(creatorID.toString()).append(";").
+                append(CommandTypeID.DrawLineCommand.ordinal()).append(";").
+                append(canvasID).append(";")
+                .append(x.toString()).append(";")
+                .append(y.toString());
         return stringBuilder.toString();
     }
 
     @Override
     public void execute() {
-        canvas.drawLine(x, y);
+        canvasController.drawLine(x, y);
     }
 
     private Point x;
     private Point y;
-    private MainCanvas canvas;
-    private UUID creatorID; //userID
+
 
 }

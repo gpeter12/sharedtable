@@ -1,31 +1,35 @@
 package com.sharedtable.view;
 
-import com.sharedtable.controller.KeyboardEventHandler;
-import com.sharedtable.controller.RemoteDrawLineCommandBufferHandler;
-import com.sharedtable.controller.controllers.CanvasController;
-import com.sharedtable.controller.controllers.ConnectWindowController;
+
+import com.sharedtable.controller.UserID;
+import com.sharedtable.controller.controllers.TabController;
 import com.sharedtable.model.NetworkService;
+import com.sharedtable.model.signals.NewTabSignal;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.control.TabPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.net.URL;
+import java.util.ResourceBundle;
 import java.util.Scanner;
 import java.util.UUID;
 
 
-public class MainView extends Application {
+public class MainView extends Application  {
 
     @Override
     public void start(Stage primaryStage) {
+
         Parent root;
         try {
-             root = FXMLLoader.load(getClass().getResource("MainView.fxml"));
+            root = FXMLLoader.load(getClass().getResource("MainView.fxml"));
         } catch (IOException e) {
             System.out.println("failed to get resource MainView.fxml");
             return;
@@ -35,81 +39,82 @@ public class MainView extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        MainCanvas mainCanvas = (MainCanvas) scene.lookup("#canvas");
-        CanvasController canvasController = new CanvasController(mainCanvas);
-        this.canvasController = canvasController;
-        mainCanvas.initEventHandlers(canvasController);
 
-        RemoteDrawLineCommandBufferHandler.setCanvasController(canvasController);
+        this.tabPane = (STTabPane)scene.lookup("#tabPane");
+        new TabController(tabPane, primaryStage);
 
         //FOR DEBUG PURPUSES
-        if(IP == null)
+        if (IP == null)
             IP = "127.0.0.1";
-        if(port == -1) {
-            if(startMode == 2)
-            port = 2222;
-            if(startMode == 0)
+        if (port == -1) {
+            if (startMode == 2)
+                port = 2222;
+            if (startMode == 0)
                 port = 2223;
-            if(startMode == 1)
+            if (startMode == 1)
                 port = 2222;
         }
 
         if (startMode == 2) {
-            new NetworkService(true, canvasController, 2222);
+            new NetworkService(true, 2222);
         } else if (startMode == 1) {
-            new NetworkService(true, canvasController, 2223);
+            new NetworkService(true, 2223);
             //NetworkService.connect("127.0.0.1", 2223);f
-            try {NetworkService.connect(IP, 2222);}
-            catch (IOException e) {
+            try {
+                NetworkService.connect(IP, 2222);
+            } catch (IOException e) {
                 System.out.println("failed to connect in startMode 1");
             }
         } else if (startMode == 0) {
-            new NetworkService(false, canvasController, 2224);
-            //NetworkService.connect(IP, port);
-            try {NetworkService.connect(IP, 2224);}
-            catch (IOException e) {
+            new NetworkService(true, 2224);
+            try {
+                NetworkService.connect(IP, 2223);
+            } catch (IOException e) {
                 System.out.println("failed to connect in startMode 0");
+            }
+        } else if (startMode == -1) {
+            new NetworkService(true, 2225);
+            try {
+                NetworkService.connect(IP, 2223);
+            } catch (IOException e) {
+                System.out.println("failed to connect in startMode 4");
             }
         }
 
-        KeyboardEventHandler keyboardEventHandler = new KeyboardEventHandler(canvasController);
-        primaryStage.addEventHandler(KeyEvent.KEY_PRESSED,
-                event -> {
-                    keyboardEventHandler.handleEvent(event);
-                });
         //initConnectWindow();
     }
 
     @Override
     public void stop() {
-        canvasController.stop();
+        TabController.stop();
         NetworkService.timeToStop();
     }
 
     @FXML
     public void onClearPressed(javafx.event.ActionEvent actionEvent) {
-        canvasController.clearCanvas();
+        TabController.getActualCanvasControler().clearCanvas();
     }
 
     @FXML
     public void onUndoPressed(ActionEvent actionEvent) {
-        canvasController.undo();
+        TabController.getActualCanvasControler().undo();
     }
 
     @FXML
     public void onRedoPressed(ActionEvent actionEvent) {
-        canvasController.redo();
+        TabController.getActualCanvasControler().redo();
     }
 
     @FXML
     public void onListMementosPressed(ActionEvent actionEvent) {
-        canvasController.printAllMementos();
+        TabController.getActualCanvasControler().printAllMementos();
     }
 
     @FXML
     public void onMakeCirclePressed(ActionEvent actionEvent) {
-        try {NetworkService.connect("127.0.0.1", 2223);}
-        catch (IOException e) {
+        try {
+            NetworkService.connect("127.0.0.1", 2223);
+        } catch (IOException e) {
             System.out.println("failed to conect in MakeCircle");
         }
     }
@@ -142,20 +147,27 @@ public class MainView extends Application {
         new ConnectWindowView();
     }
 
+    @FXML
+    public void onCreateNewTabPressed(ActionEvent actionEvent) {
+        UUID tabID = UUID.randomUUID();
+        TabController.createNewTab(tabID, "newTab");
+        NetworkService.sendNewTabSignal(UserID.getUserID(),tabID,"newTab");
+    }
+
     public static void main(String[] args) {
         startMode = Integer.parseInt(args[0]);
-        if(args.length > 1){
+        if (args.length > 1) {
             IP = args[1];
             port = Integer.parseInt(args[2]);
         }
         launch(args);
     }
 
+    @FXML
+    private static STTabPane tabPane;
     private static int startMode;
     private static String IP = null;
-    private static int port =-1;
-    private static CanvasController canvasController;
-
+    private static int port = -1;
 
 }
 
@@ -177,9 +189,16 @@ public class MainView extends Application {
     //TODO #5 befejezni a HandshakingInfo és NetworkClientEntity új fieldjeit (IP,nickname) DONE
     //TODO ## minden hálózatban levő kliens folyamatos nyilvántartása NetworkClientEntityTree-ban (kell az átcsatlakozáshoz)
     //TODO #6 ha egy csomópont kiszáll, megpróbál sorrendben csatlakozni bármely más klienshez
+    //TODO ## ha nem sikerül felső klienshez csatlakoznia kkor megptóbál a testvéréhez, 
+    //              de meg kell egyezniük ki csaltakozik kihez DONE
+    //TODO ## túl hosszú draw line darabolása
     //TODO #7 multi canvas
     //TODO #8 chat
-    //TODO #9 PINGING
+    //TODO #9 PINGING DONE
+    //TODO ## checkold le, hogy létrehozok e commandokat a canvas controlleren kívül
+    //TODO ## át kell írni a handhake szinkronizációt tab kompatibilisre
+    //TODO ## új signalok kellenek a tab vezérléshez
+    //TODO ##
 
     //TODO #7 ellipszis
     //TODO #8 téglalap

@@ -12,6 +12,7 @@ public class SignalFactory {
 
 
     public static Signal getSignal(String[] input) {
+        System.out.println("signal received: "+ArrayPrinter.printStringArray(input));
         if(!isSignal(input))
             throw new RuntimeException("input is not a signal! "+ ArrayPrinter.printStringArray(input));
         if(isMementoOpenerSignal(input))
@@ -28,8 +29,24 @@ public class SignalFactory {
             return new PingSignal(input);
         else if(isDiscoverySignal(input))
             return new DiscoverySignal(input);
+        else if(isCloseTabSignal(input))
+            return new CloseTabSignal(input);
+        else if(isNewTabSignal(input))
+            return new NewTabSignal(input);
         else
             throw new RuntimeException("Unrecognised signal! "+ArrayPrinter.printStringArray(input));
+    }
+
+    private static boolean isCloseTabSignal(String[] input) {
+        if(input[1].equals("CLOSETAB"))
+            return true;
+        return false;
+    }
+
+    private static boolean isNewTabSignal(String[] input) {
+        if(input[1].equals("NEWTAB"))
+            return true;
+        return false;
     }
 
     private static boolean isDiscoverySignal(String[] input) {

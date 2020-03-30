@@ -1,16 +1,18 @@
 package com.sharedtable.controller;
 
+import com.sharedtable.controller.commands.Command;
+
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 
 /*
- * Mivel a MainCanvas-t egyszerre csak egy thread kezeleheti, így szükséges egy command buffer, ami
+ * Mivel a STCanvas-t egyszerre csak egy thread kezeleheti, így szükséges egy command buffer, ami
  * sorban dolgozza fel a különböző threadekről akár egyszerre beérkező parancsokat. nagyon jól kihasználja a
  * command pattern sajátosságát.
  * */
 
-public class CommandExecuterThread extends Thread {
+public class CommandExecutorThread extends Thread {
 
     @Override
     public void run() {
@@ -20,14 +22,17 @@ public class CommandExecuterThread extends Thread {
             }
         } catch (InterruptedException e) {
             if (timeToStop == true) {
-                System.out.println("CommandExecuterThread shutting down");
+                System.out.println("CommandExecutorThread shutting down");
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error during CommandExecuterThread shutdown\n" + e);
+            throw new RuntimeException("Error during CommandExecutorThread shutdown\n" + e);
         }
     }
 
     public void addCommandToCommandQueue(Command command) {
+        if(command == null)
+            throw new RuntimeException("null command added to command queue");
+
         try {
             commandQueue.put(command);
         } catch (Exception e) {

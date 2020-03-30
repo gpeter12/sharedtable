@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TreeItem?>
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.layout.VBox?>
 <VBox xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.sharedtable.controller.controllers.ClientsWindowController"
-            style="-fx-spacing: 10px">
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.sharedtable.controller.controllers.ClientsWindowController"
+      style="-fx-spacing: 10px">
     <Label fx:id="label">Minden hálózathoz csatlakozott klienst tartalmazó fa:</Label>
     <Label>Dupla kattintással több opció érhető el velük kapcsolatban!</Label>
     <TreeView fx:id="treeView" prefHeight="600">

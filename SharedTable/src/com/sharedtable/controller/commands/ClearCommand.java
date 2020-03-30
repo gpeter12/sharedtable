@@ -1,28 +1,25 @@
 package com.sharedtable.controller.commands;
 
-import com.sharedtable.controller.Command;
 import com.sharedtable.controller.controllers.CanvasController;
 
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class ClearCommand implements Command {
+public class ClearCommand extends Command {
 
     public ClearCommand(CanvasController canvasController, UUID creatorID, UUID blankMementoID) {
+        super(canvasController,creatorID);
         this.blankMementoID = blankMementoID;
-        this.creatorID = creatorID;
-        this.canvasController = canvasController;
     }
 
-    public ClearCommand(CanvasController canvasController, String[] input) {
-        this.creatorID = UUID.fromString(input[0]);
-        this.canvasController = canvasController;
-        this.blankMementoID = UUID.fromString(input[2]);
+    public ClearCommand(String[] input) {
+        super(input);
+        this.blankMementoID = UUID.fromString(input[3]);
     }
 
     @Override
     public void execute() {
-        canvasController.getMainCanvas().clear();
+        canvasController.getSTCanvas().clear();
         if(isRemote) {
             canvasController.insertRemoteMementoAfterActual(
                     blankMementoID,new ArrayList<Command>(),false,creatorID);
@@ -37,8 +34,10 @@ public class ClearCommand implements Command {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(creatorID.toString()).append(";").append(CommandID.ClearCommand.ordinal())
-            .append(";").append(blankMementoID);
+        sb.append(creatorID.toString()).append(";")
+                .append(CommandTypeID.ClearCommand.ordinal()).append(";")
+                .append(canvasID).append(";")
+            .append(blankMementoID);
         return sb.toString();
     }
 
@@ -46,8 +45,6 @@ public class ClearCommand implements Command {
         isRemote = remote;
     }
 
-    private CanvasController canvasController;
-    private UUID creatorID;
     private UUID blankMementoID;
     private boolean isRemote = false;
 }

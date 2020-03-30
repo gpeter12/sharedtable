@@ -7,9 +7,11 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseEvent;
 
 
-public class MainCanvas extends Canvas {
+public class STCanvas extends Canvas {
 
-    public MainCanvas() {
+    public STCanvas() {
+        setWidth(640);
+        setHeight(480);
         graphicsContext = this.getGraphicsContext2D();
     }
 
@@ -27,6 +29,7 @@ public class MainCanvas extends Canvas {
         this.addEventHandler(MouseEvent.MOUSE_DRAGGED,
                 event -> {
                     Point p = new Point(event.getX(), event.getY());
+                    System.out.println("mouse move: "+p.toString());
                     canvasController.mouseMove(p);
                 });
     }

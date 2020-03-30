@@ -1,6 +1,5 @@
 package com.sharedtable.model.signals;
 
-import com.sharedtable.model.ArrayPrinter;
 import com.sharedtable.model.NetworkClientEntity;
 import com.sharedtable.model.NetworkClientEntityTree;
 

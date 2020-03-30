@@ -1,6 +1,6 @@
 package com.sharedtable.controller.commands;
 
-public enum CommandID {
+public enum CommandTypeID {
     DrawLineCommand,
     ClearCommand,
     ChangeStateCommand
