@@ -48,7 +48,7 @@ public class MainView extends Application  {
 
 
         this.lineWidthPicker = (ComboBox) scene.lookup("#lineWidthPicker");
-        String availableWidths[] =
+        Object availableWidths[] =
                 { "6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","22","24","26","28","32","36","40" };
         lineWidthPicker.getItems().addAll(availableWidths);
 

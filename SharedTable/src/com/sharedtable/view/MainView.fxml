@@ -16,7 +16,7 @@
             </Menu>
         </MenuBar>
         <HBox spacing="5" alignment="CENTER_LEFT">
-            <Label>Szín választása:</Label>
+            <Label>   Szín választása:</Label>
             <ColorPicker fx:id="colorPicker" minHeight="25" onAction="#onColorSelected" ></ColorPicker>
             <Label>  Vonal vastagság:</Label>
             <ComboBox fx:id="lineWidthPicker" minHeight="25" onAction="#onLineWidthSelected" ></ComboBox>

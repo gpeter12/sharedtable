@@ -22,10 +22,7 @@ public class CanvasController {
         this.stateCaretaker = new StateCaretaker();
         this.stateOriginator = new StateOriginator();
 
-
         StateMemento firstMemento = stateOriginator.createMemento();
-        //Az első mementónak egyezményesen MINDÍG ez a címe, hogy vissza lehessen rá vonni
-        //d38cc911-caf6-4541-b58f-1c5b7c817e05
         firstMemento.setId(UUID.fromString("00000000-0000-0000-0000-000000000000"));
         actMementoID = firstMemento.getId();
         System.out.println("FIRST MEMENTO "+actMementoID);
@@ -137,7 +134,9 @@ public class CanvasController {
     {return remoteDrawLineCommandBufferHandler;}
 
 
-    public void drawLine(Point x, Point y) {
+    public void drawLine(Point x, Point y, Color color, int lineWidth) {
+        STCanvas.setColor(color);
+        STCanvas.setLineWidth(lineWidth);
         STCanvas.drawLine(x,y);
     }
 
@@ -225,8 +224,8 @@ public class CanvasController {
     private UUID actMementoID;
     private CommandExecutorThread commandExecutorThread = new CommandExecutorThread();
     private Semaphore semaphore = new Semaphore(1);
-    private Color currentColor;
-    private int currentLineWidth;
+    private Color currentColor = Color.BLACK;
+    private int currentLineWidth = 1;
 
 
 

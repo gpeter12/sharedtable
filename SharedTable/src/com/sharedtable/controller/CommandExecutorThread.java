@@ -25,7 +25,7 @@ public class CommandExecutorThread extends Thread {
                 System.out.println("CommandExecutorThread shutting down");
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error during CommandExecutorThread shutdown\n" + e);
+            e.printStackTrace();
         }
     }
 

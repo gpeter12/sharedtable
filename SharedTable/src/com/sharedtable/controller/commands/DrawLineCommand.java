@@ -25,6 +25,10 @@ public class DrawLineCommand extends Command {
 
         x = new Point(p1x, p1y);
         y = new Point(p2x, p2y);
+
+        this.lineWidth = Integer.parseInt(dataInput[7]);
+        this.color = Color.valueOf(dataInput[8]);
+
     }
 
     @Override
@@ -49,7 +53,7 @@ public class DrawLineCommand extends Command {
 
     @Override
     public void execute() {
-        canvasController.drawLine(x, y);
+        canvasController.drawLine(x, y, color,lineWidth);
     }
 
     private int lineWidth;
