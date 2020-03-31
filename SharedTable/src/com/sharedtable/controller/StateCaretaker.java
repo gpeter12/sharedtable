@@ -28,6 +28,14 @@ public class StateCaretaker {
         System.out.println("-------------------");
     }
 
+    public boolean hasMememnto(UUID id) {
+        for(StateMemento act : mementos) {
+            if(act.getId().equals(id))
+                return true;
+        }
+        return false;
+    }
+
     public void addMemento(StateMemento stateMemento, UUID after, boolean link) {
         cleanupAfterStateInsertion(after);
         addMemento(stateMemento,link);

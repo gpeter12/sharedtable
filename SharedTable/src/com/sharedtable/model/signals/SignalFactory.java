@@ -33,8 +33,16 @@ public class SignalFactory {
             return new CloseTabSignal(input);
         else if(isNewTabSignal(input))
             return new NewTabSignal(input);
+        else if(isSyncSignal(input))
+            return new SyncedSignal(input);
         else
             throw new RuntimeException("Unrecognised signal! "+ArrayPrinter.printStringArray(input));
+    }
+
+    private static boolean isSyncSignal(String[] input) {
+        if(input[1].equals("SYNCED"))
+            return true;
+        return false;
     }
 
     private static boolean isCloseTabSignal(String[] input) {

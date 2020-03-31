@@ -1,8 +1,6 @@
 package com.sharedtable.view;
 
-import com.sharedtable.controller.controllers.TabController;
-import javafx.event.Event;
-import javafx.event.EventHandler;
+import com.sharedtable.controller.TabController;
 import javafx.scene.control.Tab;
 
 import java.util.UUID;

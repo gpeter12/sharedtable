@@ -1,17 +1,19 @@
 package com.sharedtable.controller.commands;
 
 import com.sharedtable.controller.Point;
-import com.sharedtable.controller.controllers.CanvasController;
+import com.sharedtable.controller.CanvasController;
+import javafx.scene.paint.Color;
 
 import java.util.UUID;
 
 public class DrawLineCommand extends Command {
 
-    public DrawLineCommand(CanvasController canvasController, Point x, Point y, UUID creatorID) {
+    public DrawLineCommand(CanvasController canvasController, Point x, Point y, UUID creatorID, Color color, int lineWidth) {
         super(canvasController,creatorID);
         this.x = x;
         this.y = y;
-
+        this.color = color;
+        this.lineWidth = lineWidth;
     }
 
     public DrawLineCommand(String[] dataInput) {
@@ -33,19 +35,25 @@ public class DrawLineCommand extends Command {
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(creatorID.toString()).append(";").
-                append(CommandTypeID.DrawLineCommand.ordinal()).append(";").
-                append(canvasID).append(";")
+        stringBuilder.append(creatorID.toString()).append(";")
+                .append(CommandTypeID.DrawLineCommand.ordinal()).append(";")
+                .append(canvasID).append(";")
                 .append(x.toString()).append(";")
-                .append(y.toString());
+                .append(y.toString()).append(";")
+                .append(lineWidth).append(";")
+                .append(color).append(";");
         return stringBuilder.toString();
     }
+
+
 
     @Override
     public void execute() {
         canvasController.drawLine(x, y);
     }
 
+    private int lineWidth;
+    private Color color;
     private Point x;
     private Point y;
 

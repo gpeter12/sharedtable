@@ -4,6 +4,7 @@ package com.sharedtable.view;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class STTabPane extends TabPane {
@@ -25,6 +26,14 @@ public class STTabPane extends TabPane {
 
     public void removeTab(UUID tabID) {
         getTabs().remove(getTab(tabID));
+    }
+
+    public ArrayList<STTab> getAllTabs() {
+        ArrayList<STTab> res = new ArrayList<>();
+        for(Tab act : getTabs()) {
+            res.add((STTab)act);
+        }
+        return res;
     }
 
     public Tab getTab(UUID tabID) {

@@ -1,6 +1,5 @@
-package com.sharedtable.controller.controllers;
+package com.sharedtable.controller;
 
-import com.sharedtable.controller.ConnectionLink;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;

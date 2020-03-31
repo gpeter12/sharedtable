@@ -1,10 +1,11 @@
 package com.sharedtable.view;
 
 import com.sharedtable.controller.Point;
-import com.sharedtable.controller.controllers.CanvasController;
+import com.sharedtable.controller.CanvasController;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Color;
 
 
 public class STCanvas extends Canvas {
@@ -29,13 +30,18 @@ public class STCanvas extends Canvas {
         this.addEventHandler(MouseEvent.MOUSE_DRAGGED,
                 event -> {
                     Point p = new Point(event.getX(), event.getY());
-                    System.out.println("mouse move: "+p.toString());
                     canvasController.mouseMove(p);
                 });
     }
 
-
+    public void setColor(Color color){
+        graphicsContext.setStroke(color);
+    }
+    public void setLineWidth(int lineWidth) {
+        graphicsContext.setLineWidth(lineWidth);
+    }
     public void drawLine(Point x, Point y) {
+
         graphicsContext.strokeLine(x.getX(), x.getY(), y.getX(), y.getY());
     }
 
@@ -44,4 +50,6 @@ public class STCanvas extends Canvas {
     }
 
     private GraphicsContext graphicsContext;
+
+
 }

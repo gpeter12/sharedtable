@@ -1,7 +1,6 @@
 package com.sharedtable.controller.commands;
 
-import com.sharedtable.controller.commands.*;
-import com.sharedtable.controller.controllers.TabController;
+import com.sharedtable.controller.TabController;
 
 public class CommandFactory {
 

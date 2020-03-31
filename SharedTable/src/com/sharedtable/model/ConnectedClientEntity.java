@@ -6,7 +6,8 @@ import com.sharedtable.controller.StateMemento;
 import com.sharedtable.controller.UserID;
 import com.sharedtable.controller.commands.Command;
 import com.sharedtable.controller.commands.DrawLineCommand;
-import com.sharedtable.controller.controllers.TabController;
+import com.sharedtable.controller.CanvasController;
+import com.sharedtable.controller.TabController;
 import com.sharedtable.model.signals.*;
 
 import java.io.*;
@@ -89,12 +90,7 @@ public class ConnectedClientEntity extends Thread {
         return id;
     }
 
-    private void sendAllMementosOnCanvas(UUID canvasID) {
-        ArrayList<StateMemento> mementos = TabController.getCanvasController(canvasID).getMementos();
-        for(int i=1; i<mementos.size(); i++) {
-            sendMenento(mementos.get(i),canvasID);
-        }
-    }
+
 
 
     public void timeToStop() {
@@ -129,19 +125,14 @@ public class ConnectedClientEntity extends Thread {
     }
 
     public void sendPlainText(String input) {
-        if(!isInitialized)
+        if(timeToStop)
             return;
-        unsafeSendPlainText(input);
-    }
-
-    private void sendMenento(StateMemento stateMemento, UUID canvasID) {
-        ArrayList<Command> cmds = stateMemento.getCommands();
-        boolean isLinked = stateMemento.getPreviousMemento() != null;
-        sendMementoOpenerSignalToClient(stateMemento.getCreatorID(),canvasID,stateMemento.getId(),isLinked);
-        for(Command act : cmds) {
-            sendCommand(act);
+        if(!isInitialized){
+            NetworkService.sleep(250);
+            sendPlainText(input);
         }
-        sendMementoCloserSignalToClient(stateMemento.getCreatorID(),canvasID,stateMemento.getId(),isLinked);
+
+        unsafeSendPlainText(input);
     }
 
     private void forwardMessage(String messsage) {
@@ -200,10 +191,39 @@ public class ConnectedClientEntity extends Thread {
         } else if(signal instanceof CloseTabSignal) {
             CloseTabSignal closeTabSignal = (CloseTabSignal)signal;
             TabController.handleCloseTabSignal(closeTabSignal);
+        } else if(signal instanceof SyncedSignal) {
+            SyncedSignal syncedSignal = (SyncedSignal)signal;
+            handleSyncedSignal(syncedSignal);
         }
     }
 
+
+    private void handleSyncedSignal(SyncedSignal signal) {
+        System.out.println("received Synced signal!!");
+        if(signal.getCreatorID().equals(networkClientEntity.getID())){
+            if(!amiServer()){
+                sendSynchronizationCommandsOnHandshaking();
+                System.out.println("client sent synced signal!");
+                unsafeSendPlainText(new SyncedSignal(UserID.getUserID()).toString());
+            }
+
+            isInitialized = true;
+
+
+            if(amiServer()) {
+                NetworkService.sendSignalUpwards(new NewClientSignal(networkClientEntity.getID(),
+                        networkClientEntity.getNickname(),
+                        networkClientEntity.getIP(),
+                        networkClientEntity.getPort(),
+                        networkClientEntity.getMementoNumber(),
+                        networkClientEntity.getUpperClientID()));
+            }
+            NetworkService.sendDiscoverySignal();
+        }
+    }
         //<editor-fold desc="PINGING">
+
+
 
         private void handlePingSignal(PingSignal pingSignal) {
             if(pingSignal.getTargetClientID().equals(UserID.getUserID()) && !pingSignal.isRespond())
@@ -251,12 +271,40 @@ public class ConnectedClientEntity extends Thread {
     //</editor-fold> desc="COMMAND HANDLING">
 
     //<editor-fold desc="HANDSHAKING">
-    private void sendSynchronizationCommands() {
 
-        /*for()
-        sendAllMementosOnCanvas();
-        sendCommand(new ChangeStateCommand(canvasController,UserID.getUserID(),canvasController.getCurrentMementoID()));*/
+    private void sendMenentoOnHandshaking(StateMemento stateMemento, UUID canvasID) {
+        ArrayList<Command> cmds = stateMemento.getCommands();
+        boolean isLinked = stateMemento.getPreviousMemento() != null;
+        unsafeSendPlainText(new MementoOpenerSignal(stateMemento.getCreatorID(),canvasID,stateMemento.getId(),isLinked).toString());
+        for(Command act : cmds) {
+            unsafeSendPlainText(act.toString());
+        }
+        unsafeSendPlainText(new MementoCloserSignal(stateMemento.getCreatorID(),canvasID,stateMemento.getId(),isLinked).toString());
     }
+
+    private void sendAllMementosOnCanvasOnHandshaking(CanvasController canvasController) {
+        ArrayList<StateMemento> mementos = canvasController.getMementos();
+        for(int i=1; i<mementos.size(); i++) {
+            sendMenentoOnHandshaking(mementos.get(i),canvasController.getCanvasID());
+        }
+    }
+    private void sendSynchronizationCommandsOnHandshaking() {
+
+        for(NewTabSignal act : TabController.generateNewTabSignalsFromAllTab()){
+            unsafeSendPlainText(act.toString());
+        }
+
+        for(CanvasController act : TabController.getAllCanvasControllers()) {
+            sendAllMementosOnCanvasOnHandshaking(act);
+            unsafeSendPlainText(new ChangeStateCommand(act,UserID.getUserID(),act.getCurrentMementoID()).toString());
+        }
+
+    }
+
+
+
+
+
 
     private NetworkClientEntity receiveNetworkClientEntityInfo() {
         NetworkClientEntity remoteHandshakingInfo;
@@ -273,21 +321,27 @@ public class ConnectedClientEntity extends Thread {
         return remoteHandshakingInfo;
     }
 
+
+
+    private boolean amiServer() {
+        return isLowerClientEntity;
+    }
+
     private void handshakingProcess() {
         NetworkClientEntity remoteHandshakingInfo = null;
         NetworkClientEntity myHandshakingInfo = NetworkService.getMyNetworkClientEntity();
 
-        boolean imServer = isLowerClientEntity;
-
-        if(imServer) {//I'm the server
+        if(amiServer()) {//I'm the server
             unsafeSendPlainText(myHandshakingInfo.toString());
             remoteHandshakingInfo = receiveNetworkClientEntityInfo();
+
         }
-        if(!imServer) {//I'm the client
+        if(!amiServer()) {//I'm the client
             remoteHandshakingInfo = receiveNetworkClientEntityInfo();
             myHandshakingInfo.setUpperClientID(remoteHandshakingInfo.getID());
             unsafeSendPlainText(myHandshakingInfo.toString());
             NetworkService.setUpperClientEntity(remoteHandshakingInfo);
+
         }
 
         id = remoteHandshakingInfo.getID();
@@ -295,19 +349,13 @@ public class ConnectedClientEntity extends Thread {
 
         networkClientEntity = remoteHandshakingInfo;
         NetworkService.addNetworkClientEntity(remoteHandshakingInfo);
-        isInitialized = true;
-        if(imServer) {
-            NetworkService.sendSignalUpwards(new NewClientSignal(remoteHandshakingInfo.getID(),
-                    remoteHandshakingInfo.getNickname(),
-                    remoteHandshakingInfo.getIP(),
-                    remoteHandshakingInfo.getPort(),
-                    remoteHandshakingInfo.getMementoNumber(),
-                    remoteHandshakingInfo.getUpperClientID()));
+
+        if(amiServer()){
+            sendSynchronizationCommandsOnHandshaking();
+            unsafeSendPlainText(new SyncedSignal(UserID.getUserID()).toString());
         }
 
 
-
-        NetworkService.sendDiscoverySignal();
 
         /*if(imServer && NetworkService.isClientInNetwork(id)){
             System.out.println("This new client is in the network! Closing connection.");
@@ -316,20 +364,22 @@ public class ConnectedClientEntity extends Thread {
         }*/
 
         //kinek üres a memento stackje?
-        if(myHandshakingInfo.getMementoNumber() == 1 &&
+        /*if(myHandshakingInfo.getMementoNumber() == 1 &&
                 remoteHandshakingInfo.getMementoNumber() == 1) //mindkettőnknek csak alapmementó van
         {
 
         } else if(myHandshakingInfo.getMementoNumber() > 1 &&
                 remoteHandshakingInfo.getMementoNumber() == 1) //nekünk vannak mementóink
         {
-            sendSynchronizationCommands();
+            sendSynchronizationCommandsOnHandshaking();
 
         } else if(myHandshakingInfo.getMementoNumber() > 1 &&
                 remoteHandshakingInfo.getMementoNumber() > 1) //mindkét kliens rendelkezik már mementókkal
         {
-            throw new UnsupportedOperationException("mindkét kliens rendelkezik már mementókkal");
-        }
+            sendSynchronizationCommandsOnHandshaking();
+        }*/
+
+
     }
     //</editor-fold> desc="COMMAND HANDLING">
 

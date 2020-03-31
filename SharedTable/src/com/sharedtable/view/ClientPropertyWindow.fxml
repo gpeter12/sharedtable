@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.sharedtable.controller.controllers.ClientPropertyWindowController"
+      fx:controller="com.sharedtable.controller.ClientPropertyWindowController"
       style="-fx-padding: 20px; -fx-spacing: 10px">
 
     <Label></Label>

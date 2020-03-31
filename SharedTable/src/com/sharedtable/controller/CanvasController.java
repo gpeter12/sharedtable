@@ -1,12 +1,12 @@
-package com.sharedtable.controller.controllers;
+package com.sharedtable.controller;
 
-import com.sharedtable.controller.*;
 import com.sharedtable.controller.commands.ChangeStateCommand;
 import com.sharedtable.controller.commands.ClearCommand;
 import com.sharedtable.controller.commands.Command;
 import com.sharedtable.controller.commands.DrawLineCommand;
 import com.sharedtable.model.NetworkService;
 import com.sharedtable.view.STCanvas;
+import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -49,7 +49,7 @@ public class CanvasController {
         if (isMouseDown) {
             Command command;
             if (currentMode == DrawingMode.ContinousLine) {
-                command = new DrawLineCommand(this, lastPoint, p, UserID.getUserID());
+                command = new DrawLineCommand(this, lastPoint, p, UserID.getUserID(),currentColor,currentLineWidth);
             } else {
                 throw new RuntimeException("no drawing mode selected");
             }
@@ -105,7 +105,13 @@ public class CanvasController {
         return STCanvas;
     }
 
-    public StateMemento insertRemoteMementoAfterActual(UUID id, ArrayList<Command> commands, boolean link, UUID creatorID) {
+    public void insertRemoteMementoAfterActual(UUID id, ArrayList<Command> commands, boolean link, UUID creatorID) {
+        if(stateCaretaker.hasMememnto(id)){
+            System.out.println("--remote memento dropped: "+id.toString());
+            return;
+        }
+
+
         //mi történik helyileg, ha valaki távol befejez egy rajzolást a rajzolásom alatt
         if(!stateOriginator.isCommandBufferEmpty()) {//ha nem üres akkor épp rajzolok...
             NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
@@ -115,7 +121,6 @@ public class CanvasController {
         memento.setCreatorID(creatorID);
         memento.addCommands(commands);
         actMementoID = memento.getId();
-        return memento;
     }
 
     public ArrayList<StateMemento> getMementos() {return stateCaretaker.getMementos();}
@@ -136,6 +141,16 @@ public class CanvasController {
         STCanvas.drawLine(x,y);
     }
 
+    public void setColor(Color color) {
+        currentColor = color;
+        STCanvas.setColor(color);
+    }
+
+    public void setLineWidth(int lineWidth) {
+        currentLineWidth = lineWidth;
+        STCanvas.setLineWidth(lineWidth);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -150,7 +165,7 @@ public class CanvasController {
     }
 //////////////////////////////////////private section////////////////////////////////////////
 
-    private StateMemento insertNewMementoAfterActual(boolean link) {//link: kell-e láncolni az új mementót a régivel
+    private StateMemento insertNewMementoAfterActual(boolean link) {//link: kell-e láncolni az új mementót a régivel (clear command után nem szabad)
         try { semaphore.acquire(); } catch (Exception e) {System.out.println(e);}
         StateMemento memento = stateOriginator.createMemento();
         //amin éppen vagy az az utolsó-e
@@ -210,6 +225,9 @@ public class CanvasController {
     private UUID actMementoID;
     private CommandExecutorThread commandExecutorThread = new CommandExecutorThread();
     private Semaphore semaphore = new Semaphore(1);
+    private Color currentColor;
+    private int currentLineWidth;
+
 
 
 }

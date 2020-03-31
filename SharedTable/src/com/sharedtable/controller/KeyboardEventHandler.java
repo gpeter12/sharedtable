@@ -1,6 +1,5 @@
 package com.sharedtable.controller;
 
-import com.sharedtable.controller.controllers.CanvasController;
 import javafx.scene.input.KeyEvent;
 
 public class KeyboardEventHandler {

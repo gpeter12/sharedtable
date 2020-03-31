@@ -1,7 +1,6 @@
 package com.sharedtable.controller;
 
 import com.sharedtable.controller.commands.Command;
-import com.sharedtable.controller.controllers.CanvasController;
 
 import java.util.ArrayList;
 import java.util.HashMap;

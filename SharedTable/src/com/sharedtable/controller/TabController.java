@@ -1,13 +1,11 @@
-package com.sharedtable.controller.controllers;
+package com.sharedtable.controller;
 
-import com.sharedtable.controller.KeyboardEventHandler;
-import com.sharedtable.controller.UserID;
 import com.sharedtable.model.NetworkService;
 import com.sharedtable.model.signals.CloseTabSignal;
 import com.sharedtable.model.signals.NewTabSignal;
+import com.sharedtable.view.STTab;
 import com.sharedtable.view.STTabPane;
 import javafx.application.Platform;
-import javafx.scene.control.Tab;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
@@ -19,17 +17,28 @@ public class TabController {
     public TabController(STTabPane stTabPane, Stage primaryStage) {
         this.primaryStage = primaryStage;
         this.stTabPane = stTabPane;
-        createNewTab(UUID.fromString("00000000-0000-0000-0000-000000000000"),"newTab");
+        createNewTab(UUID.randomUUID(),"newTab");
     }
 
     public static void createNewTab(UUID canvasID, String tabName) {
         UUID tabid = canvasID;
-
         stTabPane.createNewTab(tabid,tabName);
         CanvasController canvasController = new CanvasController(stTabPane.getCanvas(tabid),tabid);
         initKeyboardEventHandler(primaryStage,canvasController);
         canvasControllers.add(canvasController);
 
+    }
+
+    public static boolean hasCanvas(UUID id) {
+        for(CanvasController act : canvasControllers) {
+            if(act.getCanvasID().equals(id))
+                return true;
+        }
+        return false;
+    }
+
+    public static ArrayList<CanvasController> getAllCanvasControllers() {
+        return canvasControllers;
     }
 
     public static void initKeyboardEventHandler(Stage primaryStage, CanvasController canvasController){
@@ -46,6 +55,7 @@ public class TabController {
     }
 
     public static void removeTab(UUID tabId) {
+        getCanvasController(tabId).stop();
         removeCanvasController(tabId);
     }
 
@@ -67,8 +77,20 @@ public class TabController {
         return sum;
     }
 
+    public static ArrayList<NewTabSignal> generateNewTabSignalsFromAllTab() {
+        ArrayList<NewTabSignal> signals = new ArrayList<>();
+        for(STTab act : stTabPane.getAllTabs()) {
+            signals.add(new NewTabSignal(UserID.getUserID(),
+                    getCanvasController(UUID.fromString(act.getId())).getCanvasID(),
+                    act.getText()));
+        }
+        return signals;
+    }
+
     public static void handleNewTabSingal(NewTabSignal newTabSignal) {
         Platform.runLater(() -> {
+            if(hasCanvas(newTabSignal.getCanvasID()))
+                return;
             createNewTab(newTabSignal.getCanvasID(),newTabSignal.getTabName());
         });
     }
@@ -90,7 +112,9 @@ public class TabController {
             if(act.getCanvasID().equals(id))
                 return act;
         }
-        throw new RuntimeException("canvas controller not found!");
+        System.out.println("canvas controller not found (probably bacaouse of Plafrom.runLater call)! Retrying...");
+        try { Thread.sleep(100); } catch (Exception e) { System.out.println("Sleep fail!"); }
+        return getCanvasController(id);
     }
 
     private static Stage primaryStage;

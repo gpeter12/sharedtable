@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.VBox?>
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.sharedtable.controller.controllers.ClientsWindowController"
+      fx:controller="com.sharedtable.controller.ClientsWindowController"
       style="-fx-spacing: 10px">
     <Label fx:id="label">Minden hálózathoz csatlakozott klienst tartalmazó fa:</Label>
     <Label>Dupla kattintással több opció érhető el velük kapcsolatban!</Label>

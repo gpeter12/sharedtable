@@ -1,4 +1,4 @@
-package com.sharedtable.controller.controllers;
+package com.sharedtable.controller;
 
 import com.sharedtable.controller.UserID;
 import com.sharedtable.model.NetworkClientEntity;

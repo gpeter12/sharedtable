@@ -133,3 +133,154 @@ public class RootSignal implements Signal {
 
     private UUID newRootID;
 }
+
+
+
+
+
+
+
+
+
+
+
+package com.sharedtable.model.signals;
+
+import com.sharedtable.controller.commands.Command;
+import com.sharedtable.controller.commands.CommandFactory;
+import com.sharedtable.model.ArrayPrinter;
+
+import java.util.ArrayList;
+import java.util.UUID;
+
+public class SyncSignal implements Signal {
+
+    public SyncSignal(UUID creatorID) {
+        this.creatorID = creatorID;
+    }
+
+
+    public SyncSignal(String[] input) {
+        String[] sections = input;
+        String[] header = sections[0].split(";");
+        creatorID = UUID.fromString(header[1]);
+        processSignals(sections[1]);
+        processCommands(sections[2]);
+    }
+
+    public UUID getCreatorID() {
+        return creatorID;
+    }
+
+    public void addCommand(Command command) {
+        commands.add(command);
+    }
+
+    public void addSignal(Signal signal) {
+        signals.add(signal);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SIG;SYNC;").append(creatorID).append("||");
+
+        for(Signal act : signals) {
+            sb.append(act.toString()).append("|");
+        }
+        sb.append("||");
+        for(Command act : commands) {
+            sb.append(act.toString()).append("|");
+        }
+        return sb.toString();
+    }
+
+    private void processSignals(String input) {
+        String[] signalStrings = input.split("|");
+        for(String act : signalStrings) {
+            signals.add(SignalFactory.getSignal(act.split(";")));
+        }
+    }
+
+    private void processCommands(String input) {
+        String[] commandStrings = input.split("|");
+        for(String act : commandStrings) {
+            commands.add(CommandFactory.getCommand(act.split(";")));
+        }
+    }
+
+    private ArrayList<Command> commands = new ArrayList<>();
+    private ArrayList<Signal> signals = new ArrayList<>();
+    private UUID creatorID;
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////
+
+
+
+private SyncedSignal addMenentoToSyncSignal(StateMemento stateMemento, UUID canvasID, SyncedSignal inp) {
+        ArrayList<Command> cmds = stateMemento.getCommands();
+        boolean isLinked = stateMemento.getPreviousMemento() != null;
+        //inp.addSignal(new MementoOpenerSignal(stateMemento.getCreatorID(),canvasID,stateMemento.getId(),isLinked));
+        for(Command act : cmds) {
+            inp.addCommand(act);
+        }
+        //inp.addSignal(new MementoCloserSignal(stateMemento.getCreatorID(),canvasID,stateMemento.getId(),isLinked));
+        return inp;
+    }
+
+    private SyncedSignal addAllMementosOnCanvasToSyncSignal(CanvasController canvasController, SyncedSignal inp) {
+        ArrayList<StateMemento> mementos = canvasController.getMementos();
+        for(int i=1; i<mementos.size(); i++) {
+            addMenentoToSyncSignal(mementos.get(i),canvasController.getCanvasID(),inp);
+        }
+        return inp;
+    }
+
+    private SyncedSignal addSynchronizationCommands(SyncedSignal inp) {
+        for(CanvasController act : TabController.getAllCanvasControllers()) {
+            addAllMementosOnCanvasToSyncSignal(act,inp);
+            inp.addCommand(new ChangeStateCommand(act,UserID.getUserID(),act.getCurrentMementoID()));
+        }
+        return inp;
+    }
+
+    private SyncedSignal addTabSynchronizationCommands(SyncedSignal inp) {
+        for(NewTabSignal act : TabController.generateNewTabSignalsFromAllTab()) {
+            inp.addSignal(act);
+        }
+        return inp;
+    }
+
+    private SyncedSignal generateSyncSignal() {
+        SyncedSignal res = new SyncedSignal(UserID.getUserID());
+        res = addTabSynchronizationCommands(res);
+        res = addSynchronizationCommands(res);
+        return res;
+    }
+
+    private SyncedSignal receiveSyncSignal() {
+        SyncedSignal remoteSyncedSignal;
+        if(scanner.hasNext()) {
+            remoteSyncedSignal = new SyncedSignal(scanner.nextLine().split("||"));
+        } else {
+            throw new RuntimeException("connection dropped during handshakingProcess");
+        }
+        return remoteSyncedSignal;
+    }
+
+

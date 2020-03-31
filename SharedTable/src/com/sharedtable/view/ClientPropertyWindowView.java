@@ -1,6 +1,6 @@
 package com.sharedtable.view;
 
-import com.sharedtable.controller.controllers.ClientPropertyWindowController;
+import com.sharedtable.controller.ClientPropertyWindowController;
 import com.sharedtable.model.NetworkClientEntity;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

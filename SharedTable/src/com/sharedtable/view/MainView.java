@@ -1,23 +1,27 @@
 package com.sharedtable.view;
 
 
+import com.sharedtable.controller.CanvasController;
 import com.sharedtable.controller.UserID;
-import com.sharedtable.controller.controllers.TabController;
+import com.sharedtable.controller.TabController;
 import com.sharedtable.model.NetworkService;
-import com.sharedtable.model.signals.NewTabSignal;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.TilePane;
+import javafx.scene.paint.Color;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.net.URL;
-import java.util.ResourceBundle;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -42,6 +46,18 @@ public class MainView extends Application  {
 
         this.tabPane = (STTabPane)scene.lookup("#tabPane");
         new TabController(tabPane, primaryStage);
+
+
+        this.colorPicker = (ColorPicker)scene.lookup("#colorPicker");
+        colorPicker.setValue(Color.BLACK);
+        setColorOnAllCanvases(Color.BLACK);
+
+
+        this.lineWidthPicker = (ComboBox) scene.lookup("#lineWidthPicker");
+        String availableWidths[] =
+                { "6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","22","24","26","28","32","36","40" };
+        lineWidthPicker.getItems().addAll(availableWidths);
+
 
         //FOR DEBUG PURPUSES
         if (IP == null)
@@ -106,38 +122,6 @@ public class MainView extends Application  {
     }
 
     @FXML
-    public void onListMementosPressed(ActionEvent actionEvent) {
-        TabController.getActualCanvasControler().printAllMementos();
-    }
-
-    @FXML
-    public void onMakeCirclePressed(ActionEvent actionEvent) {
-        try {
-            NetworkService.connect("127.0.0.1", 2223);
-        } catch (IOException e) {
-            System.out.println("failed to conect in MakeCircle");
-        }
-    }
-
-    @FXML
-    public void onWriteAllKnownClientsPressed(ActionEvent actionEvent) {
-        NetworkService.printClientList();
-    }
-
-    @FXML
-    public void onPingClientPressed(ActionEvent actionEvent) {
-        Scanner keyboard = new Scanner(System.in);
-        UUID id = UUID.fromString(keyboard.nextLine());
-        NetworkService.pingClient(id);
-        NetworkService.pingClient(id);
-        NetworkService.pingClient(id);
-        NetworkService.pingClient(id);
-        NetworkService.pingClient(id);
-        NetworkService.pingClient(id);
-        NetworkService.pingClient(id);
-    }
-
-    @FXML
     public void onViewClientListPressed(ActionEvent actionEvent) {
         new ClientsWindowView();
     }
@@ -150,8 +134,29 @@ public class MainView extends Application  {
     @FXML
     public void onCreateNewTabPressed(ActionEvent actionEvent) {
         UUID tabID = UUID.randomUUID();
-        TabController.createNewTab(tabID, "newTab");
-        NetworkService.sendNewTabSignal(UserID.getUserID(),tabID,"newTab");
+        CreateTabView createTabView = new CreateTabView();
+        TabController.createNewTab(tabID, createTabView.getController().getTabName());
+        NetworkService.sendNewTabSignal(UserID.getUserID(),tabID,createTabView.getController().getTabName());
+    }
+
+    @FXML
+    public void onTestConnectPressed(ActionEvent actionEvent) {
+        try {
+            new NetworkService(false, -1);
+            NetworkService.connect(IP, 2223);
+        } catch (IOException e) {
+            System.out.println("failed to connect in startMode -2");
+        }
+    }
+
+    @FXML
+    public void onColorSelected(ActionEvent actionEvent) {
+        setColorOnAllCanvases(colorPicker.getValue());
+    }
+
+    @FXML
+    public void onLineWidthSelected(ActionEvent actionEvent) {
+        setLineWidthOnAllCanvases(Integer.parseInt((String)lineWidthPicker.getValue()));
     }
 
     public static void main(String[] args) {
@@ -163,11 +168,29 @@ public class MainView extends Application  {
         launch(args);
     }
 
+    private static void setColorOnAllCanvases(Color color) {
+        for(CanvasController act : TabController.getAllCanvasControllers()) {
+            act.setColor(color);
+        }
+    }
+
+    private static void setLineWidthOnAllCanvases(int lineWidth) {
+        for(CanvasController act : TabController.getAllCanvasControllers()) {
+            act.setLineWidth(lineWidth);
+        }
+    }
+
     @FXML
     private static STTabPane tabPane;
+    @FXML
+    private static ColorPicker colorPicker;
+    @FXML
+    private static ComboBox lineWidthPicker;
     private static int startMode;
     private static String IP = null;
     private static int port = -1;
+
+
 
 }
 
@@ -192,13 +215,15 @@ public class MainView extends Application  {
     //TODO ## ha nem sikerül felső klienshez csatlakoznia kkor megptóbál a testvéréhez, 
     //              de meg kell egyezniük ki csaltakozik kihez DONE
     //TODO ## túl hosszú draw line darabolása
-    //TODO #7 multi canvas
+    //TODO #7 multi canvas DONE
     //TODO #8 chat
     //TODO #9 PINGING DONE
-    //TODO ## checkold le, hogy létrehozok e commandokat a canvas controlleren kívül
-    //TODO ## át kell írni a handhake szinkronizációt tab kompatibilisre
-    //TODO ## új signalok kellenek a tab vezérléshez
-    //TODO ##
+    //TODO ## checkold le, hogy létrehozok e commandokat a canvas controlleren kívül DONE
+    //TODO ## át kell írni a handhake szinkronizációt tab kompatibilisre DONE
+    //TODO ## új signalok kellenek a tab vezérléshez DONE
+    //TODO ## sznkornizációkor csak azokat a mementókat tároljuk el, és azokat a tabokat nyitjuk meg amikkel még nem rendelkezünk
+    //TODO ## sinkronizációs signal létrehozása a körkörös szonkornizáció elkerülésére
+    //TODO ## megfelelően lockolni kell nofity al a még nem szikronizált ConnectedClientEntity-k kimenetét
 
     //TODO #7 ellipszis
     //TODO #8 téglalap

@@ -2,14 +2,11 @@ package com.sharedtable.model;
 
 import com.sharedtable.controller.UserID;
 import com.sharedtable.controller.commands.Command;
-import com.sharedtable.controller.controllers.TabController;
+import com.sharedtable.controller.TabController;
 import com.sharedtable.model.signals.*;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.Socket;
-import java.net.URL;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Semaphore;
@@ -239,7 +236,7 @@ public class NetworkService {
         }
     }
 
-    private static void sleep(int time) {
+    public static void sleep(int time) {
         try { Thread.sleep(1000); } catch (Exception e) { System.out.println("Sleep fail!"); }
     }
 
@@ -340,6 +337,7 @@ public class NetworkService {
     public static void setUpperClientEntity(NetworkClientEntity entity) {
         me.setUpperClientID(entity.getID());
     }
+
 
     public static NetworkClientEntity getMyNetworkClientEntity() {
         me.setMementoNumber(TabController.getMementoCountOnAllCanvasController());

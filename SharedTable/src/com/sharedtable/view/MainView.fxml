@@ -1,6 +1,7 @@
 <?import com.sharedtable.view.STTabPane?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
 <VBox fx:controller="com.sharedtable.view.MainView" xmlns:fx="http://javafx.com/fxml">
     <children>
         <MenuBar>
@@ -9,14 +10,18 @@
                 <MenuItem text="ClearCanvas" onAction="#onClearPressed"></MenuItem>
                 <MenuItem text="Undo" onAction="#onUndoPressed"></MenuItem>
                 <MenuItem text="Redo" onAction="#onRedoPressed"></MenuItem>
-                <MenuItem text="ListMementos" onAction="#onListMementosPressed"></MenuItem>
-                <MenuItem text="MakeCrircle" onAction="#onMakeCirclePressed"></MenuItem>
-                <MenuItem text="WriteAllKnownClients" onAction="#onWriteAllKnownClientsPressed"></MenuItem>
-                <MenuItem text="PingClient" onAction="#onPingClientPressed"></MenuItem>
                 <MenuItem text="ViewClientList" onAction="#onViewClientListPressed"></MenuItem>
                 <MenuItem text="CreateNewTab" onAction="#onCreateNewTabPressed"></MenuItem>
+                <MenuItem text="TestConnect" onAction="#onTestConnectPressed"></MenuItem>
             </Menu>
         </MenuBar>
+        <HBox spacing="5" alignment="CENTER_LEFT">
+            <Label>Szín választása:</Label>
+            <ColorPicker fx:id="colorPicker" minHeight="25" onAction="#onColorSelected" ></ColorPicker>
+            <Label>  Vonal vastagság:</Label>
+            <ComboBox fx:id="lineWidthPicker" minHeight="25" onAction="#onLineWidthSelected" ></ComboBox>
+        </HBox>
+
         <STTabPane fx:id="tabPane">
         </STTabPane>
     </children>
