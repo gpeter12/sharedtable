@@ -8,25 +8,18 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 public class CreateTabView {
 
 
     public CreateTabView() {
-        //System.out.println("URL: "+new URL("file:/home/gpeter/Dokumentumok/projects/SharedTable/SharedTable/out/production/SharedTable/com/sharedtable/view/CreateTabWindow.fxml"));
-        FXMLLoader fxmlLoader = null;
-        try {
-            fxmlLoader = new FXMLLoader(new URL("file:/home/gpeter/Dokumentumok/projects/SharedTable/SharedTable/out/production/SharedTable/com/sharedtable/view/CreateTabWindow.fxml"));
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+        FXMLLoader fxmlLoader = new FXMLLoader();
+        fxmlLoader.setLocation(getClass().getResource("CreateTabWindow.fxml"));
         this.fxmlLoader = fxmlLoader;
         Parent parent;
         try{parent = fxmlLoader.load();}
         catch (IOException e) {
-            System.out.println("failed to get resource CreateTabWindow.fxml");
+            e.printStackTrace();
             return;
         }
 

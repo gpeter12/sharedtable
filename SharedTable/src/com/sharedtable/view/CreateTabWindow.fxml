@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.sharedtable.controller.CreateTabController" prefHeight="400.0" prefWidth="600.0" alignment="center">
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" prefHeight="400.0" prefWidth="600.0" alignment="center" fx:controller="com.sharedtable.controller.CreateTabController">
     <HBox alignment="center" spacing="15" onKeyPressed="#onKeyPressed">
         <Label>Új lap neve: </Label>
         <TextField fx:id="tabNameTextField" minWidth="400" minHeight="20" promptText="lap név"></TextField>
