@@ -1,42 +1,32 @@
 package com.sharedtable.model;
 
-import com.sharedtable.controller.UserID;
+import com.sharedtable.controller.*;
 import com.sharedtable.controller.commands.Command;
-import com.sharedtable.controller.TabController;
 import com.sharedtable.model.signals.*;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Semaphore;
 
 public class NetworkService {
 
-    public NetworkService(boolean isServer, int port) {
-        NetworkClientEntity me = new NetworkClientEntity(UserID.getUserID(), "nickname", getPublicIP(),
-                port,
-                TabController.getMementoCountOnAllCanvasController(),
-                 null);
-
-
-        this.me = me;
-        entityTree = new NetworkClientEntityTree(me);
-        if (isServer) {
-            prepareReceievingConnections(port);
-        }
-    }
+    private NetworkService() { }
 
     public static NetworkClientEntityTree getEntityTree() {
         return entityTree;
     }
 
+
+
     //<editor-fold desc="CONNECTIVITY">
     //launch connection receiver thread
-    public void prepareReceievingConnections(int port) {
+    public static void prepareReceievingConnections(int port) {
         connectionReceiverThread = new ConnectionReceiverThread(port);
         connectionReceiverThread.start();
-        openedPort = port;
+        me.setPort(port);
         System.out.println("Prepared for receiving connections");
     }
 
@@ -51,28 +41,27 @@ public class NetworkService {
     }
 
     public static boolean isPortOpened() {
-        return openedPort != -1;
+        return me.getPort() != -1;
     }
 
     public static int getOpenedPort() {
-        return openedPort;
+        return me.getPort();
     }
 
-    public static String getPublicIP() {
-        /*String systemipaddress = "";
-        try {
-            URL url_name = new URL("http://bot.whatismyipaddress.com");
+    public static void subscribeForClientEntityTreeChange(NotifyableClientEntityTreeChange input) {
+        System.out.println("subscribed");
+        ClientEntityTreeChangeNotifyables.add(input);
+    }
 
-            BufferedReader sc =
-                    new BufferedReader(new InputStreamReader(url_name.openStream()));
+    public static void unSubscribeForClientEntityTreeChange(NotifyableClientEntityTreeChange input) {
+        ClientEntityTreeChangeNotifyables.remove(input);
+        System.out.println("unSubscribed");
+    }
 
-            // reads system IPAddress
-            systemipaddress = sc.readLine().trim();
-        } catch (Exception e) {
-            systemipaddress = "Cannot Execute Properly";
+    public static void notifyClientEntityTreeChange() {
+        for(var act : ClientEntityTreeChangeNotifyables) {
+            act.notifyClientEntityTreeChange();
         }
-        //return systemipaddress;*/
-        return "127.0.0.1";
     }
 
     //</editor-fold> desc="CONNECTIVITY">
@@ -88,6 +77,12 @@ public class NetworkService {
                 throw new RuntimeException("An error occured during sending commands downwards");
             }
         }
+    }
+
+    public static ChatMessageSignal sendNewChatMessage(String message) {
+        ChatMessageSignal chatMessageSignal = new ChatMessageSignal(UserID.getUserID(),UserID.getNickname(),message);
+        sendChatMessageSignal(chatMessageSignal);
+        return chatMessageSignal;
     }
 
     //sends data to the client that this client connected
@@ -151,7 +146,7 @@ public class NetworkService {
         sendSignalDownwards(pingSignal);
         long start = System.nanoTime();
         prepareConnectedClientsToReceivePingResponse(pingSignal.getPingID());
-        sleep(1500);
+        Sleep.sleep(1500);
         long finish = searchForResult(pingSignal.getPingID());
         if(finish != -1){
              res = finish-start;
@@ -195,7 +190,7 @@ public class NetworkService {
     }
 
     public static NetworkClientEntity findNewUpperClientEntityToConnect(UUID exUpperID) {
-        sleep(1000);
+        Sleep.sleep(1000);
         NetworkClientEntity exUpper = entityTree.getNetworkClientEntity(exUpperID);
         if(exUpper.getUpperClientID() != null) {
             NetworkClientEntity exUpperUpper = entityTree.getNetworkClientEntity(exUpper.getUpperClientID());
@@ -226,7 +221,7 @@ public class NetworkService {
     }
 
     public static NetworkClientEntity findNewSiblingClientEntityToConnect(UUID exUpperID) {
-        sleep(1000);
+        Sleep.sleep(1000);
         System.out.println("try to connect to sibling");
         NetworkClientEntity newUpper = checkClientChildrenForNewUpperToConnect(exUpperID,true);
         if (newUpper != null) {
@@ -236,13 +231,13 @@ public class NetworkService {
         }
     }
 
-    public static void sleep(int time) {
-        try { Thread.sleep(1000); } catch (Exception e) { System.out.println("Sleep fail!"); }
-    }
-
     //</editor-fold> desc="RECONNECT">
 
     //<editor-fold desc="SIGNAL HANDLING">
+
+    public static void handleChatMessageSignal(ChatMessageSignal signal) {
+        ChatService.handleIncomingChatMessageSignal(signal);
+    }
 
     public static void handleDiscoverySignal(DiscoverySignal discoverySignal) {
         NetworkClientEntity me = NetworkService.getMyNetworkClientEntity();
@@ -259,6 +254,11 @@ public class NetworkService {
         Signal newTabSignal = new NewTabSignal(creatorID,canvasID,tabName);
         sendSignalDownwards(newTabSignal);
         sendSignalUpwards(newTabSignal);
+    }
+
+    public static void sendChatMessageSignal(ChatMessageSignal signal) {
+        sendSignalUpwards(signal);
+        sendSignalDownwards(signal);
     }
 
     public static void sendCloseTabSignal(UUID creatorID, UUID canvasID) {
@@ -290,6 +290,7 @@ public class NetworkService {
         { return; }
         else {
             entityTree = signal.getEntityTree();
+            notifyClientEntityTreeChange();
         }
     }
 
@@ -345,15 +346,17 @@ public class NetworkService {
     }
 
     public static void addNetworkClientEntity(NetworkClientEntity networkClientEntity) {
-        if(amiRoot())
+        if(amiRoot()) {
             entityTree.addNetworkClientEntity(networkClientEntity);
+            notifyClientEntityTreeChange();
+        }
+
     }
 
-    public static void removeClientEntity(UUID id) {
+    public static synchronized void removeClientEntity(UUID id) {
         if(timeToStop)
             return;
         System.out.println("try to remove: "+id.toString());
-        acquireSemaphore();
         if(upperConnectedClientEntity != null && upperConnectedClientEntity.getUserId().equals(id)) {
             upperConnectedClientEntity = null;
             if(findNewUpperClientEntityToConnect(id) == null &&
@@ -362,9 +365,9 @@ public class NetworkService {
                 upperConnectedClientEntity = null;
                 System.out.println("Im the new root!");
                 entityTree.setMeRoot();
+                notifyClientEntityTreeChange();
                 sendDiscoverySignal();
             }
-            semaphore.release();
             return;
         }
         for(ConnectedClientEntity act : lowerConnectedClientEntities) {
@@ -374,21 +377,17 @@ public class NetworkService {
                     //entityTree.removeNetworkClientEntity(act.getNetworkClientEntity());
                     sendDiscoverySignal();
                 }
-                semaphore.release();
                 return;
             }
         }
-        semaphore.release();
     }
 
-    public static void addReceivedConnection(Socket connection) {
-        acquireSemaphore();
-        ConnectedClientEntity connectedClientEntity = new ConnectedClientEntity(connection,
-                true);
-        connectedClientEntity.setLowerClientEntity(true);
-        lowerConnectedClientEntities.add(connectedClientEntity);
-        //addNetworkClientEntity(connectedClientEntity.getNetworkClientEntity());
-        semaphore.release();
+    public static synchronized void addReceivedConnection(Socket connection) {
+            ConnectedClientEntity connectedClientEntity = new ConnectedClientEntity(connection,
+                    true);
+            connectedClientEntity.setLowerClientEntity(true);
+            lowerConnectedClientEntities.add(connectedClientEntity);
+            //addNetworkClientEntity(connectedClientEntity.getNetworkClientEntity());
     }
 
     public static boolean isClientInNetwork(UUID clientID) {
@@ -420,17 +419,6 @@ public class NetworkService {
         throw new RuntimeException("User not found by ID");
     }
 
-    public static void printClientList() {
-        System.out.println("---------CLIENT LIST----------");
-        for(NetworkClientEntity act : entityTree.getAllClients()) {
-            System.out.println(act);
-        }
-        System.out.println("---------CLIENT LIST END----------");
-    }
-
-    private static void acquireSemaphore() {
-        try { semaphore.acquire(); } catch (Exception e) {System.out.println(e);}
-    }
     public static boolean amiRoot() {return upperConnectedClientEntity == null;}
     //</editor-fold> desc="CLIENT OBJECT MANAGEMENT">
 
@@ -439,14 +427,17 @@ public class NetworkService {
     private static NetworkClientEntityTree entityTree;
     private static ConnectedClientEntity upperConnectedClientEntity = null;
     private static CopyOnWriteArrayList<ConnectedClientEntity> lowerConnectedClientEntities = new CopyOnWriteArrayList<>();
-    private static int openedPort = -1;
     private static ConnectionReceiverThread connectionReceiverThread;
-    private static Semaphore semaphore = new Semaphore(1);
     private static int reconnectTry = 0;
-    /*
-    -ha alulról kap infót, azt felfele, és lefel is továbbküldi (értelemszerűen a forrásnak nem)
-    -ha felülről jön akkor tovább küldi mindenkinek lefele
-     */
+    private static CopyOnWriteArrayList<NotifyableClientEntityTreeChange> ClientEntityTreeChangeNotifyables = new CopyOnWriteArrayList<>();
+
+    static {
+        me = new NetworkClientEntity(UserID.getUserID(), UserID.getNickname(), UserID.getPublicIP(),
+                -1,
+                TabController.getMementoCountOnAllCanvasController(),
+                null);
+        entityTree = new NetworkClientEntityTree(me);
+    }
 }
 
 

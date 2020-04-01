@@ -1,5 +1,7 @@
 package com.sharedtable.view;
 
+import com.sharedtable.controller.ClientPropertyWindowController;
+import com.sharedtable.controller.ClientsWindowController;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -10,7 +12,9 @@ import java.io.IOException;
 
 public class ClientsWindowView {
 
-    public ClientsWindowView() {
+    public ClientsWindowView(Stage owner) {
+        if(isOpened)
+            return;
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("ClientsWindow.fxml"));
         Parent parent;
         try{parent = fxmlLoader.load();}
@@ -22,10 +26,17 @@ public class ClientsWindowView {
 
         Scene scene = new Scene(parent, 450, 450);
         Stage stage = new Stage();
-        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initOwner(owner);
+        stage.initModality(Modality.NONE);
         stage.setScene(scene);
         stage.setTitle("Kliens fa");
+        stage.setOnCloseRequest(event -> {
+            isOpened = false;
+            ((ClientsWindowController)fxmlLoader.getController()).onClose();
+        });
+        isOpened = true;
         stage.showAndWait();
-
     }
+
+    private static boolean isOpened=false;
 }

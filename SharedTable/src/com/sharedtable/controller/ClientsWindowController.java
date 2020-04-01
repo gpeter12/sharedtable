@@ -5,6 +5,7 @@ import com.sharedtable.model.NetworkClientEntity;
 import com.sharedtable.model.NetworkClientEntityTree;
 import com.sharedtable.model.NetworkService;
 import com.sharedtable.view.ClientPropertyWindowView;
+import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -16,10 +17,11 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 
 import java.net.URL;
+import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.UUID;
 
-public class ClientsWindowController implements Initializable {
+public class ClientsWindowController implements Initializable, NotifyableClientEntityTreeChange {
 
     public ClientsWindowController() {
 
@@ -50,19 +52,35 @@ public class ClientsWindowController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        //init();
+    }
+
+    private void init() {
+        System.out.println("init()");
+        rootItem.getChildren().removeAll();
+
+
+        for(var act : rootItem.getChildren()) {
+            rootItem.getChildren().remove(act);
+        }
+
+
+
         NetworkClientEntity rootEntity = NetworkService.getEntityTree().getRoot();
 
         TreeItem rootChild = createTreeItem(rootEntity.getID().toString(),
                 UserID.getUserID().equals(rootEntity.getID()),
                 UserID.getUserID().equals(rootEntity.getID()),
-                        rootEntity.getID().toString());
+                rootEntity.getID().toString());
 
 
         rootItem.getChildren().add(rootChild);
         loadChildData(rootChild, NetworkService.getEntityTree(),NetworkService.getEntityTree().getRoot());
 
         setMouseDoubleClickEvent();
+        NetworkService.subscribeForClientEntityTreeChange(this);
     }
+
 
     private TreeItem<Text> createTreeItem(String text, boolean isUnderLine, boolean isBold, String ItemId) {
         Text resText = new Text(text);
@@ -91,9 +109,36 @@ public class ClientsWindowController implements Initializable {
         }
     }
 
+    @Override
+    public void notifyClientEntityTreeChange() {
+        Platform.runLater(() -> {
+            init();
+        });
+
+
+    }
+
+    public void onClose() {
+        NetworkService.unSubscribeForClientEntityTreeChange(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ClientsWindowController that = (ClientsWindowController) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
     @FXML
     private TreeItem<Text> rootItem;
     @FXML
     private TreeView treeView;
+    private UUID id = UUID.randomUUID();
 
 }

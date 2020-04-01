@@ -10,7 +10,6 @@ public class SignalFactory {
         return false;
     }
 
-
     public static Signal getSignal(String[] input) {
         System.out.println("signal received: "+ArrayPrinter.printStringArray(input));
         if(!isSignal(input))
@@ -35,8 +34,16 @@ public class SignalFactory {
             return new NewTabSignal(input);
         else if(isSyncSignal(input))
             return new SyncedSignal(input);
+        else if(isChatMessageSignal(input))
+            return new ChatMessageSignal(input);
         else
             throw new RuntimeException("Unrecognised signal! "+ArrayPrinter.printStringArray(input));
+    }
+
+    private static boolean isChatMessageSignal(String[] input) {
+        if(input[1].equals("CHAT"))
+            return true;
+        return false;
     }
 
     private static boolean isSyncSignal(String[] input) {

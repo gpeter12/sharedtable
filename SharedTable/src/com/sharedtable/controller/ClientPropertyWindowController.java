@@ -37,7 +37,8 @@ public class ClientPropertyWindowController implements Initializable {
             updatePingLabel(act);
             sum += act;
 
-            restorePingButton();writeFinalPingResult(sum);
+            restorePingButton();
+            writeFinalPingResult(sum);
         }
 
         private void disablePingButton() {
@@ -63,7 +64,6 @@ public class ClientPropertyWindowController implements Initializable {
 
         private void writeFinalPingResult(long val){
             Platform.runLater(() -> {
-                //pingButton.setDisable(false);
                 pingLabel.setText(((double)val/1000000)/4+" ms átlag");
             });
         }

@@ -13,6 +13,7 @@
                 <MenuItem text="ViewClientList" onAction="#onViewClientListPressed"></MenuItem>
                 <MenuItem text="CreateNewTab" onAction="#onCreateNewTabPressed"></MenuItem>
                 <MenuItem text="TestConnect" onAction="#onTestConnectPressed"></MenuItem>
+                <MenuItem text="OpenChat" onAction="#onOpenChatPressed"></MenuItem>
             </Menu>
         </MenuBar>
         <HBox spacing="5" alignment="CENTER_LEFT">

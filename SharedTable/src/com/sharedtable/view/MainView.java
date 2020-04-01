@@ -17,6 +17,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.UUID;
 
 
@@ -35,6 +36,7 @@ public class MainView extends Application  {
         primaryStage.setTitle("Shared Table (mode: "+startMode+")");
         Scene scene = new Scene(root, 640, 480);
         primaryStage.setScene(scene);
+        this.primaryStage = primaryStage;
         primaryStage.show();
 
 
@@ -66,9 +68,9 @@ public class MainView extends Application  {
         }
 
         if (startMode == 2) {
-            new NetworkService(true, 2222);
+            NetworkService.prepareReceievingConnections(2222);
         } else if (startMode == 1) {
-            new NetworkService(true, 2223);
+            NetworkService.prepareReceievingConnections(2223);
             //NetworkService.connect("127.0.0.1", 2223);f
             try {
                 NetworkService.connect(IP, 2222);
@@ -76,14 +78,14 @@ public class MainView extends Application  {
                 System.out.println("failed to connect in startMode 1");
             }
         } else if (startMode == 0) {
-            new NetworkService(true, 2224);
+            NetworkService.prepareReceievingConnections(2224);
             try {
                 NetworkService.connect(IP, 2223);
             } catch (IOException e) {
                 System.out.println("failed to connect in startMode 0");
             }
         } else if (startMode == -1) {
-            new NetworkService(true, 2225);
+            NetworkService.prepareReceievingConnections(2225);
             try {
                 NetworkService.connect(IP, 2223);
             } catch (IOException e) {
@@ -117,7 +119,7 @@ public class MainView extends Application  {
 
     @FXML
     public void onViewClientListPressed(ActionEvent actionEvent) {
-        new ClientsWindowView();
+        new ClientsWindowView(primaryStage);
     }
 
     @FXML
@@ -136,7 +138,6 @@ public class MainView extends Application  {
     @FXML
     public void onTestConnectPressed(ActionEvent actionEvent) {
         try {
-            new NetworkService(false, -1);
             NetworkService.connect(IP, 2223);
         } catch (IOException e) {
             System.out.println("failed to connect in startMode -2");
@@ -151,6 +152,11 @@ public class MainView extends Application  {
     @FXML
     public void onLineWidthSelected(ActionEvent actionEvent) {
         setLineWidthOnAllCanvases(Integer.parseInt((String)lineWidthPicker.getValue()));
+    }
+
+    @FXML
+    public void onOpenChatPressed(ActionEvent actionEvent) {
+        new ChatWindowView(primaryStage);
     }
 
     public static void main(String[] args) {
@@ -183,8 +189,8 @@ public class MainView extends Application  {
     private static int startMode;
     private static String IP = null;
     private static int port = -1;
-
-
+    private static Stage primaryStage;
+    private static ArrayList<Stage> showedStages = new ArrayList<>();
 
 }
 
@@ -204,20 +210,25 @@ public class MainView extends Application  {
     //TODO #4 login utáni szinkronbahozás DONE
     //TODO ## Exception happened during sending plain textjava.net.SocketException: Socket closed DONE
     //TODO #5 befejezni a HandshakingInfo és NetworkClientEntity új fieldjeit (IP,nickname) DONE
-    //TODO ## minden hálózatban levő kliens folyamatos nyilvántartása NetworkClientEntityTree-ban (kell az átcsatlakozáshoz)
-    //TODO #6 ha egy csomópont kiszáll, megpróbál sorrendben csatlakozni bármely más klienshez
+    //TODO ## minden hálózatban levő kliens folyamatos nyilvántartása NetworkClientEntityTree-ban (kell az átcsatlakozáshoz) DONE
+    //TODO #6 ha egy csomópont kiszáll, megpróbál sorrendben csatlakozni bármely más klienshez DONE
     //TODO ## ha nem sikerül felső klienshez csatlakoznia kkor megptóbál a testvéréhez, 
     //              de meg kell egyezniük ki csaltakozik kihez DONE
-    //TODO ## túl hosszú draw line darabolása
+
     //TODO #7 multi canvas DONE
-    //TODO #8 chat
     //TODO #9 PINGING DONE
     //TODO ## checkold le, hogy létrehozok e commandokat a canvas controlleren kívül DONE
     //TODO ## át kell írni a handhake szinkronizációt tab kompatibilisre DONE
     //TODO ## új signalok kellenek a tab vezérléshez DONE
-    //TODO ## sznkornizációkor csak azokat a mementókat tároljuk el, és azokat a tabokat nyitjuk meg amikkel még nem rendelkezünk
-    //TODO ## sinkronizációs signal létrehozása a körkörös szonkornizáció elkerülésére
+    //TODO ## sznkornizációkor csak azokat a mementókat tároljuk el, és azokat a tabokat nyitjuk meg amikkel még nem rendelkezünk DONE
+    //TODO ## sinkronizációs signal létrehozása a körkörös szonkornizáció elkerülésére DONE
     //TODO ## megfelelően lockolni kell nofity al a még nem szikronizált ConnectedClientEntity-k kimenetét
+    //TODO ## túl vastag vonalnál a vonalakat ellipszisekből építjük
+    //TODO ## visszavonásokhoz 350ms sleep
+    //TODO ## túl hosszú draw line darabolása
+    //TODO #8 chat DONE
+    //TODO ## ne lehessen több chat window-t megnyitni DONE
+
 
     //TODO #7 ellipszis
     //TODO #8 téglalap

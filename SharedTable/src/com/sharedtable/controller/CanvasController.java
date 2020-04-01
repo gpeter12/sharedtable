@@ -80,6 +80,7 @@ public class CanvasController {
     }
 
     public void redo() {
+        Sleep.sleep(350);
         if(TabController.getActualCanvasControler().equals(this))
             restoreNextMemento();
     }
@@ -88,7 +89,6 @@ public class CanvasController {
         if(TabController.getActualCanvasControler().equals(this))
             restorePreviosMemento();
     }
-
 
     public StateCaretaker getStateCaretaker() {
         return stateCaretaker;
@@ -226,7 +226,4 @@ public class CanvasController {
     private Semaphore semaphore = new Semaphore(1);
     private Color currentColor = Color.BLACK;
     private int currentLineWidth = 1;
-
-
-
 }

@@ -1,13 +1,10 @@
 package com.sharedtable.model;
 
+import com.sharedtable.controller.*;
 import com.sharedtable.controller.commands.ChangeStateCommand;
 import com.sharedtable.controller.commands.CommandFactory;
-import com.sharedtable.controller.StateMemento;
-import com.sharedtable.controller.UserID;
 import com.sharedtable.controller.commands.Command;
 import com.sharedtable.controller.commands.DrawLineCommand;
-import com.sharedtable.controller.CanvasController;
-import com.sharedtable.controller.TabController;
 import com.sharedtable.model.signals.*;
 
 import java.io.*;
@@ -124,14 +121,21 @@ public class ConnectedClientEntity extends Thread {
         }
     }
 
-    public void sendPlainText(String input) {
+    public synchronized void sendPlainText(String input) {
+
+        synchronized (isInitialized) {
+            if(!isInitialized){
+                try {
+                    isThreadInWait = true;
+                    isInitialized.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    return;
+                }
+            }
+        }
         if(timeToStop)
             return;
-        if(!isInitialized){
-            NetworkService.sleep(250);
-            sendPlainText(input);
-        }
-
         unsafeSendPlainText(input);
     }
 
@@ -148,28 +152,21 @@ public class ConnectedClientEntity extends Thread {
 
     //<editor-fold desc="SIGNAL HANDLING">
 
-    private void sendMementoOpenerSignalToClient(UUID creatorID,UUID canvasID,UUID mementoID,boolean isLinked) {
+    /*private void sendMementoOpenerSignalToClient(UUID creatorID,UUID canvasID,UUID mementoID,boolean isLinked) {
         sendPlainText(new MementoOpenerSignal(creatorID, canvasID, mementoID,isLinked).toString());
     }
 
     private void sendMementoCloserSignalToClient(UUID creatorID,UUID canvasID,UUID mementoID,boolean isLinked) {
         sendPlainText(new MementoCloserSignal(creatorID, canvasID, mementoID,isLinked).toString());
-    }
+    }*/
 
     private void handleSignal(Signal signal) {
         if(signal instanceof MementoOpenerSignal) {
             MementoOpenerSignal mementoOpenerSignal = (MementoOpenerSignal) signal;
-            TabController.getCanvasController(mementoOpenerSignal.getCanvasID()).
-                    getRemoteDrawLineCommandBufferHandler().
-                    openNewMemento(
-                    (mementoOpenerSignal.getCreatorID()));
+            handleMementoOpenerSingnal(mementoOpenerSignal);
         } else if(signal instanceof MementoCloserSignal) {
             MementoCloserSignal mementoCloserSignal = (MementoCloserSignal)signal;
-            TabController.getCanvasController(mementoCloserSignal.getCanvasID()).
-                    getRemoteDrawLineCommandBufferHandler().closeMemento(
-                    mementoCloserSignal.getCreatorID(),
-                    mementoCloserSignal.getMementoID(),
-                    mementoCloserSignal.isLinked());
+            handleMementoCloserSignal(mementoCloserSignal);
         } else if (signal instanceof NewClientSignal) {
             NewClientSignal newClientSignal = (NewClientSignal)signal;
             NetworkService.handleNewClientSignal(newClientSignal);
@@ -194,9 +191,27 @@ public class ConnectedClientEntity extends Thread {
         } else if(signal instanceof SyncedSignal) {
             SyncedSignal syncedSignal = (SyncedSignal)signal;
             handleSyncedSignal(syncedSignal);
+        } else if(signal instanceof ChatMessageSignal) {
+            ChatMessageSignal chatMessageSignal = (ChatMessageSignal)signal;
+            NetworkService.handleChatMessageSignal(chatMessageSignal);
         }
     }
 
+
+    private void handleMementoCloserSignal(MementoCloserSignal signal) {
+        TabController.getCanvasController(signal.getCanvasID()).
+                getRemoteDrawLineCommandBufferHandler().closeMemento(
+                signal.getCreatorID(),
+                signal.getMementoID(),
+                signal.isLinked());
+    }
+
+    private void handleMementoOpenerSingnal(MementoOpenerSignal signal) {
+        TabController.getCanvasController(signal.getCanvasID()).
+                getRemoteDrawLineCommandBufferHandler().
+                openNewMemento(
+                        (signal.getCreatorID()));
+    }
 
     private void handleSyncedSignal(SyncedSignal signal) {
         System.out.println("received Synced signal!!");
@@ -206,8 +221,13 @@ public class ConnectedClientEntity extends Thread {
                 System.out.println("client sent synced signal!");
                 unsafeSendPlainText(new SyncedSignal(UserID.getUserID()).toString());
             }
+            synchronized (isInitialized) {
+                isInitialized = true;
+                if(isThreadInWait)
+                    isInitialized.notifyAll();
+                isThreadInWait = false;
+            }
 
-            isInitialized = true;
 
 
             if(amiServer()) {
@@ -297,6 +317,10 @@ public class ConnectedClientEntity extends Thread {
         for(CanvasController act : TabController.getAllCanvasControllers()) {
             sendAllMementosOnCanvasOnHandshaking(act);
             unsafeSendPlainText(new ChangeStateCommand(act,UserID.getUserID(),act.getCurrentMementoID()).toString());
+        }
+
+        for(ChatMessageSignal act : ChatService.getAllChatMessageSignal()) {
+            unsafeSendPlainText(act.toString());
         }
 
     }
@@ -397,7 +421,8 @@ public class ConnectedClientEntity extends Thread {
     private UUID currentPingIDToWaitFor = UUID.randomUUID();
     private long pingFinish;
 
-    private boolean isInitialized = false;
+    private Boolean isInitialized = false;
+    private boolean isThreadInWait = false;
     private boolean timeToStop = false;
     private Socket socket;
     private OutputStream outputStream;
