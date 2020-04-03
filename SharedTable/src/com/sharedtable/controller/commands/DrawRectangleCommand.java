@@ -52,7 +52,7 @@ public class DrawRectangleCommand extends Command {
         canvasController.drawRectangle(rectangle,color,lineWidth);
     }
 
-    private Rectangle rectangle;
-    private Color color;
-    private int lineWidth;
+    Rectangle rectangle;
+    Color color;
+    int lineWidth;
 }

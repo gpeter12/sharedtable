@@ -13,6 +13,12 @@ public class CommandFactory {
                 return setCanvasController(new DrawLineCommand(splittedData));
             case DrawRectangleCommand:
                 return setCanvasController(new DrawRectangleCommand(splittedData));
+            case DrawTriangleCommand:
+                return setCanvasController(new DrawTriangleCommand(splittedData));
+            case DrawEllipseCommand:
+                return setCanvasController(new DrawEllipseCommand(splittedData));
+            case DrawImageCommand:
+                return setCanvasController(new DrawImageCommand(splittedData));
             case ClearCommand:
                 ClearCommand c = (ClearCommand)setCanvasController(new ClearCommand(splittedData));
                 c.setRemote(true);

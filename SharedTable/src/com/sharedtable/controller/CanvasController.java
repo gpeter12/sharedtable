@@ -3,6 +3,7 @@ package com.sharedtable.controller;
 import com.sharedtable.controller.commands.*;
 import com.sharedtable.model.NetworkService;
 import com.sharedtable.view.STCanvas;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
@@ -43,10 +44,33 @@ public class CanvasController {
             Command command = new DrawRectangleCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
             stateOriginator.addCommand(command);
             commandExecutorThread.addCommandToCommandQueue(command);
-            //lastPoint = p;
             NetworkService.propagateCommandDownwards(command);
             NetworkService.propagateCommandUpwards(command);
             NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
+        } else if(currentMode == DrawingMode.Ellipse) {
+            currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
+            Command command = new DrawEllipseCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
+            stateOriginator.addCommand(command);
+            commandExecutorThread.addCommandToCommandQueue(command);
+            NetworkService.propagateCommandDownwards(command);
+            NetworkService.propagateCommandUpwards(command);
+            NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
+        } else if(currentMode == DrawingMode.Triangle) {
+            currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
+            Command command = new DrawTriangleCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
+            stateOriginator.addCommand(command);
+            commandExecutorThread.addCommandToCommandQueue(command);
+            NetworkService.propagateCommandDownwards(command);
+            NetworkService.propagateCommandUpwards(command);
+            NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
+        } else if(currentMode == DrawingMode.Image) {
+            currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(), lastPoint.getY(), p.getX() - lastPoint.getX(), p.getY() - lastPoint.getY()));
+            Command command = new DrawImageCommand(this, UserID.getUserID(), currentRect,currentImage);
+            stateOriginator.addCommand(command);
+            commandExecutorThread.addCommandToCommandQueue(command);
+            NetworkService.propagateCommandDownwards(command);
+            NetworkService.propagateCommandUpwards(command);
+            NetworkService.sendMementoCloserSignal(UserID.getUserID(), canvasID, insertNewMementoAfterActual(true).getId(), true);
         }
     }
 
@@ -65,9 +89,19 @@ public class CanvasController {
                 command = new DrawRectangleCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
                 processSateChangeCommand(getCurrentMementoID());
                 commandExecutorThread.addCommandToCommandQueue(command);
-            } else if(currentMode == DrawingMode.Rectangle) {
+            } else if(currentMode == DrawingMode.Triangle) {
                 currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
-                command = new DrawRectangleCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
+                command = new DrawTriangleCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
+                processSateChangeCommand(getCurrentMementoID());
+                commandExecutorThread.addCommandToCommandQueue(command);
+            } else if(currentMode == DrawingMode.Ellipse) {
+                currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
+                command = new DrawEllipseCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
+                processSateChangeCommand(getCurrentMementoID());
+                commandExecutorThread.addCommandToCommandQueue(command);
+            } else if(currentMode == DrawingMode.Image) {
+                currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
+                command = new DrawImageCommand(this,UserID.getUserID(),currentRect,currentImage);
                 processSateChangeCommand(getCurrentMementoID());
                 commandExecutorThread.addCommandToCommandQueue(command);
             }
@@ -166,6 +200,25 @@ public class CanvasController {
         STCanvas.drawRectangle(rectangle);
     }
 
+    public void drawEllipse(Rectangle rectangle, Color color, int lineWidth) {
+        STCanvas.setColor(color);
+        STCanvas.setLineWidth(lineWidth);
+        STCanvas.drawEllipse(rectangle);
+    }
+
+    public void drawTriangle(Rectangle rectangle, Color color, int lineWidth) {
+        STCanvas.setColor(color);
+        STCanvas.setLineWidth(lineWidth);
+        Point upperMidPoint = calculateLineMindPoint(new Point(rectangle.getX(),rectangle.getY()),
+                new Point(rectangle.getX()+rectangle.getWidth(),rectangle.getY()));
+        STCanvas.drawTriangle(new Point(rectangle.getX(),rectangle.getY()+rectangle.getHeight()),upperMidPoint,
+                new Point(rectangle.getX()+rectangle.getWidth(),rectangle.getY()+rectangle.getHeight()));
+    }
+
+    public void drawImage(Image image, Rectangle rectangle) {
+        STCanvas.drawImage(image,rectangle);
+    }
+
     public void setColor(Color color) {
         currentColor = color;
         STCanvas.setColor(color);
@@ -178,6 +231,10 @@ public class CanvasController {
 
     public void setDrawingMode(DrawingMode mode) {
         currentMode = mode;
+    }
+
+    public void setCurrentImage(Image image) {
+        this.currentImage = image;
     }
 
     @Override
@@ -205,6 +262,10 @@ public class CanvasController {
         actMementoID = memento.getId();
         System.out.println("new memento added: "+actMementoID);
         return memento;
+    }
+
+    private Point calculateLineMindPoint(Point a, Point b) {
+        return new Point(0.5*(a.getX()+b.getX()),a.getY());
     }
 
     private void restorePreviosMemento() {
@@ -262,8 +323,9 @@ public class CanvasController {
     private boolean isMouseDown = false;
     private Point lastPoint;
     private Rectangle currentRect;
+    private Image currentImage;
     private STCanvas STCanvas;
-    private DrawingMode currentMode = DrawingMode.Rectangle;
+    private DrawingMode currentMode = DrawingMode.Ellipse;
     private UUID actMementoID;
     private CommandExecutorThread commandExecutorThread = new CommandExecutorThread();
     private Color currentColor = Color.BLACK;

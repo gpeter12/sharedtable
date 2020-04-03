@@ -7,6 +7,7 @@ import com.sharedtable.controller.UserID;
 import com.sharedtable.controller.TabController;
 import com.sharedtable.model.NetworkService;
 import javafx.application.Application;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -14,9 +15,16 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -165,6 +173,27 @@ public class MainView extends Application  {
         setDrawingModeOnAllCanvases(DrawingMode.Rectangle);
     }
 
+    @FXML
+    public void onDrawLineModePressed(ActionEvent actionEvent) {
+        setDrawingModeOnAllCanvases(DrawingMode.ContinousLine);
+    }
+
+    @FXML
+    public void onDrawTriangleModePressed(ActionEvent actionEvent) {
+        setDrawingModeOnAllCanvases(DrawingMode.Triangle);
+    }
+
+    @FXML
+    public void onDrawEllipseModePressed(ActionEvent actionEvent) {
+        setDrawingModeOnAllCanvases(DrawingMode.Ellipse);
+    }
+
+    @FXML
+    public void onDrawImageModePressed(ActionEvent actionEvent) {
+        setDrawingModeOnAllCanvases(DrawingMode.Image);
+        setImageOnAllCanvases(getImageFromClipboard());
+    }
+
     public static void main(String[] args) {
         startMode = Integer.parseInt(args[0]);
         if (args.length > 1) {
@@ -192,6 +221,30 @@ public class MainView extends Application  {
         }
     }
 
+    private static void setImageOnAllCanvases(Image image) {
+        for(CanvasController act : TabController.getAllCanvasControllers()) {
+            act.setCurrentImage(image);
+        }
+    }
+
+    public Image getImageFromClipboard()
+    {
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        try {
+            //Get data from clipboard and assign it to an image.
+            //clipboard.getData() returns an object, so we need to cast it to a BufferdImage.
+            BufferedImage image = (BufferedImage) clipboard.getData(DataFlavor.imageFlavor);
+            return SwingFXUtils.toFXImage(image, null);
+        } catch (UnsupportedFlavorException e) {
+            System.out.println(e);
+            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println(e);
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     @FXML
     private static STTabPane tabPane;
     @FXML
@@ -203,6 +256,7 @@ public class MainView extends Application  {
     private static int port = -1;
     private static Stage primaryStage;
     private static ArrayList<Stage> showedStages = new ArrayList<>();
+
 
 
 }
@@ -236,16 +290,20 @@ public class MainView extends Application  {
     //TODO ## sznkornizációkor csak azokat a mementókat tároljuk el, és azokat a tabokat nyitjuk meg amikkel még nem rendelkezünk DONE
     //TODO ## sinkronizációs signal létrehozása a körkörös szonkornizáció elkerülésére DONE
     //TODO ## megfelelően lockolni kell nofity al a még nem szikronizált ConnectedClientEntity-k kimenetét DONE
-    //TODO ## túl vastag vonalnál a vonalakat ellipszisekből építjük
-    //TODO ## visszavonásokhoz 350ms sleep
-    //TODO ## túl hosszú draw line darabolása
+
+    //TODO ## visszavonásokhoz 350ms sleep DONE
+
     //TODO #8 chat DONE
     //TODO ## ne lehessen több chat window-t megnyitni DONE
+    //TODO ## értelmesen átméretezhetővé tenni az STCanvas-t
 
-
-    //TODO #7 ellipszis
-    //TODO #8 téglalap
-    //TODO #9 háromszög
+    //TODO ## túl vastag vonalnál a vonalakat ellipszisekből építjük
+    //TODO ## túl hosszú draw line darabolása
+    //TODO #7 ellipszis DONE
+    //TODO #8 téglalap DONE
+    //TODO #9 háromszög DONE
+    //TODO ## scrollable chat flow
+    //TODO ## image paste
     //---------LOW PRIORITY-------------------------
     //TODO #X a ConnectWindow-ra kiírni a stconnect linket, és a link mezőt. súgógombok a linkek mellé.
     //TODO #X kiírni rögtön init után, ha nem lehet UPNP-n portot nyitni, és tájékoztatni a tűzfalról is

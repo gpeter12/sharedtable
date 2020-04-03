@@ -4,6 +4,7 @@ import com.sharedtable.controller.Point;
 import com.sharedtable.controller.CanvasController;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -43,6 +44,11 @@ public class STCanvas extends Canvas {
     }
     public void drawLine(Point x, Point y) {
         graphicsContext.strokeLine(x.getX(), x.getY(), y.getX(), y.getY());
+    }
+
+    public void drawImage(Image image, Rectangle rectangle) {
+        graphicsContext.drawImage(image,rectangle.getX(),rectangle.getY(),
+                rectangle.getWidth(),rectangle.getHeight());
     }
 
     public void drawTriangle(Point a, Point b, Point c) {
