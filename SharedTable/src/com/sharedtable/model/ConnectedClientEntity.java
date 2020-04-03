@@ -1,10 +1,7 @@
 package com.sharedtable.model;
 
 import com.sharedtable.controller.*;
-import com.sharedtable.controller.commands.ChangeStateCommand;
-import com.sharedtable.controller.commands.CommandFactory;
-import com.sharedtable.controller.commands.Command;
-import com.sharedtable.controller.commands.DrawLineCommand;
+import com.sharedtable.controller.commands.*;
 import com.sharedtable.model.signals.*;
 
 import java.io.*;
@@ -283,6 +280,8 @@ public class ConnectedClientEntity extends Thread {
     private Command processCommand(String[] splittedCommand) {
         Command rcvdcmd = CommandFactory.getCommand(splittedCommand);
         if(rcvdcmd instanceof DrawLineCommand) {
+            TabController.getCanvasController(rcvdcmd.getCanvasID()).getRemoteDrawLineCommandBufferHandler().addCommand(rcvdcmd);
+        } else if(rcvdcmd instanceof DrawRectangleCommand) {
             TabController.getCanvasController(rcvdcmd.getCanvasID()).getRemoteDrawLineCommandBufferHandler().addCommand(rcvdcmd);
         }
         return rcvdcmd;

@@ -284,3 +284,30 @@ private SyncedSignal addMenentoToSyncSignal(StateMemento stateMemento, UUID canv
     }
 
 
+    input.setWidth(Math.abs(input.getWidth()-input.getX()));
+    input.setHeight(Math.abs(input.getHeight()-input.getY()));
+    input.setX(input.getX() <= input.getWidth() ? input.getX() : input.getWidth());
+    input.setY(input.getY() <= input.getHeight() ? input.getY() : input.getHeight());
+
+
+private Rectangle fixNegativeWidthHeight(Rectangle input) {
+        double x1 = input.getX();
+        double y1 = input.getY();
+        double x2 = input.getX()+input.getWidth();
+        double y2 = input.getY()+input.getY();
+
+        double resx1=0;
+        double resy1=0;
+        double resx2=0;
+        double resy2=0;
+
+
+        if(input.getWidth() >=0 && input.getHeight() >=0)
+            return input;
+        if(input.getHeight()<0) {
+            System.out.println(new Rectangle(x1,y1 + input.getHeight(),input.getWidth(),(input.getHeight()*-1)));
+            return new Rectangle(x1,y1 + input.getHeight(),input.getWidth(),(y1 + input.getHeight())*-1);
+        }
+
+        return new Rectangle(resx1,resy1,resx1+resx2,resy1+resy2);
+    }

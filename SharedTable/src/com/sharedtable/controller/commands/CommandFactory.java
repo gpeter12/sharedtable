@@ -11,6 +11,8 @@ public class CommandFactory {
         switch (commandTypeID) {
             case DrawLineCommand:
                 return setCanvasController(new DrawLineCommand(splittedData));
+            case DrawRectangleCommand:
+                return setCanvasController(new DrawRectangleCommand(splittedData));
             case ClearCommand:
                 ClearCommand c = (ClearCommand)setCanvasController(new ClearCommand(splittedData));
                 c.setRemote(true);

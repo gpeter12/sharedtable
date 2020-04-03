@@ -1,17 +1,14 @@
 package com.sharedtable.controller;
 
-import com.sharedtable.controller.commands.ChangeStateCommand;
-import com.sharedtable.controller.commands.ClearCommand;
-import com.sharedtable.controller.commands.Command;
-import com.sharedtable.controller.commands.DrawLineCommand;
+import com.sharedtable.controller.commands.*;
 import com.sharedtable.model.NetworkService;
 import com.sharedtable.view.STCanvas;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.Semaphore;
 
 public class CanvasController {
 
@@ -38,8 +35,19 @@ public class CanvasController {
 
     public void mouseUp(Point p) {
         isMouseDown = false;
-        lastPoint = p;
-        NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
+        if(currentMode == DrawingMode.ContinousLine) {
+            lastPoint = p;
+            NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
+        } else if(currentMode == DrawingMode.Rectangle) {
+            currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
+            Command command = new DrawRectangleCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
+            stateOriginator.addCommand(command);
+            commandExecutorThread.addCommandToCommandQueue(command);
+            //lastPoint = p;
+            NetworkService.propagateCommandDownwards(command);
+            NetworkService.propagateCommandUpwards(command);
+            NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
+        }
     }
 
     public void mouseMove(Point p) {
@@ -47,14 +55,25 @@ public class CanvasController {
             Command command;
             if (currentMode == DrawingMode.ContinousLine) {
                 command = new DrawLineCommand(this, lastPoint, p, UserID.getUserID(),currentColor,currentLineWidth);
-            } else {
+                stateOriginator.addCommand(command);
+                commandExecutorThread.addCommandToCommandQueue(command);
+                lastPoint = p;
+                NetworkService.propagateCommandDownwards(command);
+                NetworkService.propagateCommandUpwards(command);
+            } else if(currentMode == DrawingMode.Rectangle) {
+                currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
+                command = new DrawRectangleCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
+                processSateChangeCommand(getCurrentMementoID());
+                commandExecutorThread.addCommandToCommandQueue(command);
+            } else if(currentMode == DrawingMode.Rectangle) {
+                currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
+                command = new DrawRectangleCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
+                processSateChangeCommand(getCurrentMementoID());
+                commandExecutorThread.addCommandToCommandQueue(command);
+            }
+            else {
                 throw new RuntimeException("no drawing mode selected");
             }
-            stateOriginator.addCommand(command);
-            commandExecutorThread.addCommandToCommandQueue(command);
-            lastPoint = p;
-            NetworkService.propagateCommandDownwards(command);
-            NetworkService.propagateCommandUpwards(command);
         }
     }
 
@@ -80,12 +99,13 @@ public class CanvasController {
     }
 
     public void redo() {
-        Sleep.sleep(350);
+        Sleep.sleep(100);
         if(TabController.getActualCanvasControler().equals(this))
             restoreNextMemento();
     }
 
     public void undo() {
+        Sleep.sleep(100);
         if(TabController.getActualCanvasControler().equals(this))
             restorePreviosMemento();
     }
@@ -140,6 +160,12 @@ public class CanvasController {
         STCanvas.drawLine(x,y);
     }
 
+    public void drawRectangle(Rectangle rectangle, Color color, int lineWidth) {
+        STCanvas.setColor(color);
+        STCanvas.setLineWidth(lineWidth);
+        STCanvas.drawRectangle(rectangle);
+    }
+
     public void setColor(Color color) {
         currentColor = color;
         STCanvas.setColor(color);
@@ -148,6 +174,10 @@ public class CanvasController {
     public void setLineWidth(int lineWidth) {
         currentLineWidth = lineWidth;
         STCanvas.setLineWidth(lineWidth);
+    }
+
+    public void setDrawingMode(DrawingMode mode) {
+        currentMode = mode;
     }
 
     @Override
@@ -164,8 +194,7 @@ public class CanvasController {
     }
 //////////////////////////////////////private section////////////////////////////////////////
 
-    private StateMemento insertNewMementoAfterActual(boolean link) {//link: kell-e láncolni az új mementót a régivel (clear command után nem szabad)
-        try { semaphore.acquire(); } catch (Exception e) {System.out.println(e);}
+    private synchronized StateMemento insertNewMementoAfterActual(boolean link) {//link: kell-e láncolni az új mementót a régivel (clear command után nem szabad)
         StateMemento memento = stateOriginator.createMemento();
         //amin éppen vagy az az utolsó-e
         if (actMementoID.equals(stateCaretaker.getLastMementoID())) {
@@ -174,7 +203,7 @@ public class CanvasController {
             stateCaretaker.addMemento(memento, actMementoID, link);
         }
         actMementoID = memento.getId();
-        semaphore.release();
+        System.out.println("new memento added: "+actMementoID);
         return memento;
     }
 
@@ -212,6 +241,19 @@ public class CanvasController {
         }
     }
 
+    private Rectangle fixRectangleNegativeWidthHeight(Rectangle input) {
+        if(input.getWidth() >= 0 && input.getHeight() >= 0)
+            return input;
+        if(input.getWidth() < 0 && input.getHeight() < 0) {
+            return new Rectangle(input.getX() - input.getWidth()*-1,input.getY() - input.getHeight()*-1,input.getWidth()*-1,(input.getHeight()*-1));
+        } if(input.getHeight() < 0) {
+            return new Rectangle(input.getX(),input.getY() + input.getHeight(),input.getWidth(),(input.getHeight()*-1));
+        } if(input.getWidth() < 0) {
+            return new Rectangle(input.getX() + input.getWidth(),input.getY(),input.getWidth()*-1,input.getHeight());
+        }
+        throw new UnsupportedOperationException();
+    }
+
     private RemoteDrawLineCommandBufferHandler remoteDrawLineCommandBufferHandler =
             new RemoteDrawLineCommandBufferHandler(this);
     private UUID canvasID;
@@ -219,11 +261,14 @@ public class CanvasController {
     private StateOriginator stateOriginator;
     private boolean isMouseDown = false;
     private Point lastPoint;
+    private Rectangle currentRect;
     private STCanvas STCanvas;
-    private DrawingMode currentMode = DrawingMode.ContinousLine;
+    private DrawingMode currentMode = DrawingMode.Rectangle;
     private UUID actMementoID;
     private CommandExecutorThread commandExecutorThread = new CommandExecutorThread();
-    private Semaphore semaphore = new Semaphore(1);
     private Color currentColor = Color.BLACK;
     private int currentLineWidth = 1;
+
+
+
 }

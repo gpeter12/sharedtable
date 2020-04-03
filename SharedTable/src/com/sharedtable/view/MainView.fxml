@@ -14,6 +14,7 @@
                 <MenuItem text="CreateNewTab" onAction="#onCreateNewTabPressed"></MenuItem>
                 <MenuItem text="TestConnect" onAction="#onTestConnectPressed"></MenuItem>
                 <MenuItem text="OpenChat" onAction="#onOpenChatPressed"></MenuItem>
+                <MenuItem text="DrawRectangleMode" onAction="#onDrawRectangleModePressed"></MenuItem>
             </Menu>
         </MenuBar>
         <HBox spacing="5" alignment="CENTER_LEFT">

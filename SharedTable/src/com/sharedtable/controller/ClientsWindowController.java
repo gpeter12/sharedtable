@@ -1,6 +1,5 @@
 package com.sharedtable.controller;
 
-import com.sharedtable.controller.UserID;
 import com.sharedtable.model.NetworkClientEntity;
 import com.sharedtable.model.NetworkClientEntityTree;
 import com.sharedtable.model.NetworkService;
@@ -52,19 +51,11 @@ public class ClientsWindowController implements Initializable, NotifyableClientE
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        //init();
+        init();
     }
 
-    private void init() {
+    private synchronized void init() {
         System.out.println("init()");
-        rootItem.getChildren().removeAll();
-
-
-        for(var act : rootItem.getChildren()) {
-            rootItem.getChildren().remove(act);
-        }
-
-
 
         NetworkClientEntity rootEntity = NetworkService.getEntityTree().getRoot();
 
@@ -112,10 +103,11 @@ public class ClientsWindowController implements Initializable, NotifyableClientE
     @Override
     public void notifyClientEntityTreeChange() {
         Platform.runLater(() -> {
+            rootItem = createTreeItem("Minden kliens a hálózatban",false,false,"root");
+            rootItem.setExpanded(true);
+            treeView.setRoot(rootItem);
             init();
         });
-
-
     }
 
     public void onClose() {

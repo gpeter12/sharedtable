@@ -31,10 +31,6 @@ public class DrawLineCommand extends Command {
 
     }
 
-    @Override
-    public UUID getCreatorID() {
-        return creatorID;
-    }
 
     @Override
     public String toString() {

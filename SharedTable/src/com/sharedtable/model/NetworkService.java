@@ -59,6 +59,7 @@ public class NetworkService {
     }
 
     public static void notifyClientEntityTreeChange() {
+        System.out.println("notifying...");
         for(var act : ClientEntityTreeChangeNotifyables) {
             act.notifyClientEntityTreeChange();
         }
@@ -322,6 +323,7 @@ public class NetworkService {
                 signal.getParentID());
         addNetworkClientEntity(entity);
         sendEntityTreeSignal();
+        notifyClientEntityTreeChange();
 
     }
 
@@ -348,9 +350,9 @@ public class NetworkService {
     public static void addNetworkClientEntity(NetworkClientEntity networkClientEntity) {
         if(amiRoot()) {
             entityTree.addNetworkClientEntity(networkClientEntity);
-            notifyClientEntityTreeChange();
-        }
 
+        }
+        notifyClientEntityTreeChange();
     }
 
     public static synchronized void removeClientEntity(UUID id) {
@@ -365,8 +367,8 @@ public class NetworkService {
                 upperConnectedClientEntity = null;
                 System.out.println("Im the new root!");
                 entityTree.setMeRoot();
-                notifyClientEntityTreeChange();
                 sendDiscoverySignal();
+                notifyClientEntityTreeChange();
             }
             return;
         }
@@ -376,6 +378,7 @@ public class NetworkService {
                 if(amiRoot()){
                     //entityTree.removeNetworkClientEntity(act.getNetworkClientEntity());
                     sendDiscoverySignal();
+                    notifyClientEntityTreeChange();
                 }
                 return;
             }

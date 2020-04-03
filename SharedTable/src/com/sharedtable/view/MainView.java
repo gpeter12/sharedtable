@@ -2,6 +2,7 @@ package com.sharedtable.view;
 
 
 import com.sharedtable.controller.CanvasController;
+import com.sharedtable.controller.DrawingMode;
 import com.sharedtable.controller.UserID;
 import com.sharedtable.controller.TabController;
 import com.sharedtable.model.NetworkService;
@@ -159,6 +160,11 @@ public class MainView extends Application  {
         new ChatWindowView(primaryStage);
     }
 
+    @FXML
+    public void onDrawRectangleModePressed(ActionEvent actionEvent) {
+        setDrawingModeOnAllCanvases(DrawingMode.Rectangle);
+    }
+
     public static void main(String[] args) {
         startMode = Integer.parseInt(args[0]);
         if (args.length > 1) {
@@ -166,6 +172,12 @@ public class MainView extends Application  {
             port = Integer.parseInt(args[2]);
         }
         launch(args);
+    }
+
+    private static void setDrawingModeOnAllCanvases(DrawingMode drawingMode) {
+        for(CanvasController act : TabController.getAllCanvasControllers()) {
+            act.setDrawingMode(drawingMode);
+        }
     }
 
     private static void setColorOnAllCanvases(Color color) {
@@ -191,6 +203,7 @@ public class MainView extends Application  {
     private static int port = -1;
     private static Stage primaryStage;
     private static ArrayList<Stage> showedStages = new ArrayList<>();
+
 
 }
 
@@ -222,7 +235,7 @@ public class MainView extends Application  {
     //TODO ## új signalok kellenek a tab vezérléshez DONE
     //TODO ## sznkornizációkor csak azokat a mementókat tároljuk el, és azokat a tabokat nyitjuk meg amikkel még nem rendelkezünk DONE
     //TODO ## sinkronizációs signal létrehozása a körkörös szonkornizáció elkerülésére DONE
-    //TODO ## megfelelően lockolni kell nofity al a még nem szikronizált ConnectedClientEntity-k kimenetét
+    //TODO ## megfelelően lockolni kell nofity al a még nem szikronizált ConnectedClientEntity-k kimenetét DONE
     //TODO ## túl vastag vonalnál a vonalakat ellipszisekből építjük
     //TODO ## visszavonásokhoz 350ms sleep
     //TODO ## túl hosszú draw line darabolása

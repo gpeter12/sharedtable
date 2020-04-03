@@ -6,6 +6,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 
 
 public class STCanvas extends Canvas {
@@ -41,8 +42,22 @@ public class STCanvas extends Canvas {
         graphicsContext.setLineWidth(lineWidth);
     }
     public void drawLine(Point x, Point y) {
-
         graphicsContext.strokeLine(x.getX(), x.getY(), y.getX(), y.getY());
+    }
+
+    public void drawTriangle(Point a, Point b, Point c) {
+        graphicsContext.strokePolygon(new double[]{a.getX(), b.getX(),c.getX()},
+                new double[]{a.getY(), b.getY(), c.getY()}, 3);
+    }
+
+    public void drawEllipse(Rectangle rectangle) {
+        graphicsContext.strokeOval(rectangle.getX(),rectangle.getY(),
+                rectangle.getWidth()/2,
+                rectangle.getHeight()/2);
+    }
+
+    public void drawRectangle(Rectangle rectangle) {
+        graphicsContext.strokeRect(rectangle.getX(),rectangle.getY(),rectangle.getWidth(),rectangle.getHeight());
     }
 
     public void clear() {
