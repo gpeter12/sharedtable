@@ -111,6 +111,24 @@ public class NetworkService {
         }
     }
 
+    public static void forwardBytesUpwards(byte[] bytes) {
+        if (upperConnectedClientEntity != null)
+            upperConnectedClientEntity.sendByteArray(bytes);
+    }
+
+    public static void forwardBytesDownwardsWithException(byte[] bytes, UUID except) {
+        for (ConnectedClientEntity act : lowerConnectedClientEntities) {
+            if (!act.getUserId().equals(except))
+                act.sendByteArray(bytes);
+        }
+    }
+
+    public static void forwardBytesDownwards(byte[] bytes) {
+        for (ConnectedClientEntity act : lowerConnectedClientEntities) {
+            act.sendByteArray(bytes);
+        }
+    }
+
     public static void sendMessageToClient(UUID uuid, String message) {
         ConnectedClientEntity connectedClientEntity = getConnectedClientEntityByUUID(uuid);
         connectedClientEntity.sendPlainText(message);
@@ -306,12 +324,12 @@ public class NetworkService {
         entityTree = new NetworkClientEntityTree(getMyNetworkClientEntity());
 
         DiscoverySignal signal = new DiscoverySignal(UserID.getUserID());
-        sendSignalDownwards(signal);
+        //sendSignalDownwards(signal);
 
     }
 
     public static void handleNewClientSignal(NewClientSignal signal) {
-        forwardMessageUpwards(signal.toString());
+        //forwardMessageUpwards(signal.toString());
         if(!amiRoot())
             return;
         NetworkClientEntity entity = new NetworkClientEntity(
@@ -441,6 +459,8 @@ public class NetworkService {
                 null);
         entityTree = new NetworkClientEntityTree(me);
     }
+
+
 }
 
 

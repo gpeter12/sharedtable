@@ -28,7 +28,6 @@ public class DrawRectangleCommand extends Command {
         this.lineWidth = Integer.parseInt(input[7]);
         this.color = Color.valueOf(input[8]);
         this.rectangle = new Rectangle(rectX,rectY,rectW,rectH);
-
     }
 
 

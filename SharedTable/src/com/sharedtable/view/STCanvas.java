@@ -58,8 +58,8 @@ public class STCanvas extends Canvas {
 
     public void drawEllipse(Rectangle rectangle) {
         graphicsContext.strokeOval(rectangle.getX(),rectangle.getY(),
-                rectangle.getWidth()/2,
-                rectangle.getHeight()/2);
+                rectangle.getWidth(),
+                rectangle.getHeight());
     }
 
     public void drawRectangle(Rectangle rectangle) {

@@ -39,23 +39,26 @@ public class ConnectedClientEntity extends Thread {
             String receivedMessage = scanner.nextLine();
             String[] splittedMessage = receivedMessage.split(";");
             if (!receivedMessage.isEmpty()) {
+                forwardMessage(receivedMessage);
                 if (SignalFactory.isSignal(splittedMessage)) {
-                    Signal signal = SignalFactory.getSignal(splittedMessage);
-                    if(!(signal instanceof DiscoverySignal) &&
-                            !(signal instanceof NewClientSignal))
-                    {
-                        forwardMessage(receivedMessage);
-                    }
-                    handleSignal(signal);
-                } else {
-                    forwardMessage(receivedMessage);
+                    handleSignal(SignalFactory.getSignal(splittedMessage));
+                } else { //akkor command
                     Command recvdCmd = processCommand(splittedMessage);
+                    if(recvdCmd instanceof DrawImageCommand){
+                        forwardByteArray(((DrawImageCommand)recvdCmd).getImageBytes());
+                    }
                     TabController.getCanvasController(recvdCmd.getCanvasID()).processRemoteCommand(recvdCmd);
                 }
             } else {
                 System.out.println("ConnectedClientEntity: receivedMessage was empty!");
             }
         }
+        handleScannerClose();
+    }
+
+
+
+    private void handleScannerClose() {
         if(!timeToStop){
             System.out.println("Connection closed by remote client!");
             NetworkService.forwardMessageUpwards(new DisconnectSignal(networkClientEntity.getID(),
@@ -107,6 +110,56 @@ public class ConnectedClientEntity extends Thread {
         sendPlainText(command.toString());
     }
 
+    public void sendByteArray(byte[] input) {
+        isReady = false;
+        waitUntilNotify();
+        if(timeToStop)
+            return;
+        try {
+            sendByteArrayUnsafe(input);
+        } catch (IOException e) {
+            System.out.println("send image byte array failure!");
+            handleScannerClose();
+        }
+    }
+
+    private void sendByteArrayUnsafe(byte[] input) throws IOException {
+        //Sleep.sleep(100);
+        System.out.println("usafe byte sending....");
+        dataOutputStream.write(input,0,input.length);
+        dataOutputStream.flush();
+        System.out.println("usafe bytearray sent! ");
+    }
+
+    private void sendByteReceiveReadySignal(){
+        ByteReceiveReadySignal signal = new ByteReceiveReadySignal(UserID.getUserID(),networkClientEntity.getID());
+        if(!isReady) {
+            unsafeSendPlainText(signal.toString());
+        } else {
+            sendPlainText(signal.toString());
+        }
+    }
+
+    private byte[] receiveByteArray(int length) {
+        System.out.println("receiving array length: "+length);
+
+        byte[] res = new byte[length];
+
+        sendByteReceiveReadySignal();
+        try {
+            /*for(int i=0; i<length; i++) {
+                System.out.println("reading "+i+". byte");
+                res[i] = dataInputStream.readByte();
+            }*/
+            dataInputStream.readFully(res);
+        } catch (IOException e) {
+            System.out.println("read image byte array failure!");
+            handleScannerClose();
+        }
+        System.out.println("received array length "+length);
+        return res;
+    }
+
     private void unsafeSendPlainText(String input) {
         try {
             System.out.println("sending: "+input+" TO: "+id);
@@ -118,21 +171,26 @@ public class ConnectedClientEntity extends Thread {
         }
     }
 
-    public synchronized void sendPlainText(String input) {
-
-        synchronized (isInitialized) {
-            if(!isInitialized){
+    private void waitUntilNotify() {
+        isThreadInWait = true;
+        System.out.println("thread in wait()");
+        synchronized (monitor) {
+            while(!isReady){
                 try {
-                    isThreadInWait = true;
-                    isInitialized.wait();
+                    monitor.wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                     return;
                 }
             }
         }
+        System.out.println("thread AFTER wait()");
+    }
+
+    public void sendPlainText(String input) {
         if(timeToStop)
             return;
+        waitUntilNotify();
         unsafeSendPlainText(input);
     }
 
@@ -142,6 +200,15 @@ public class ConnectedClientEntity extends Thread {
             NetworkService.forwardMessageDownwardsWithException(messsage,id);
         } else {
             NetworkService.forwardMessageDownwards(messsage);
+        }
+    }
+
+    private void forwardByteArray(byte[] bytes) {
+        if(isLowerClientEntity){
+            NetworkService.forwardBytesUpwards(bytes);
+            NetworkService.forwardBytesDownwardsWithException(bytes,id);
+        } else {
+            NetworkService.forwardBytesDownwards(bytes);
         }
     }
 
@@ -191,9 +258,18 @@ public class ConnectedClientEntity extends Thread {
         } else if(signal instanceof ChatMessageSignal) {
             ChatMessageSignal chatMessageSignal = (ChatMessageSignal)signal;
             NetworkService.handleChatMessageSignal(chatMessageSignal);
+        } else if(signal instanceof ByteReceiveReadySignal) {
+            ByteReceiveReadySignal byteReceiveReadySignal = (ByteReceiveReadySignal)signal;
+            handleByteReceiveReadySignal(byteReceiveReadySignal);
         }
     }
 
+    private void handleByteReceiveReadySignal(ByteReceiveReadySignal signal) {
+        if(UserID.getUserID().equals(signal.getReceiverID())) {
+            setClientEntityReady();
+            byteReceiveReadySignalBuffer.add(signal);
+        }
+    }
 
     private void handleMementoCloserSignal(MementoCloserSignal signal) {
         TabController.getCanvasController(signal.getCanvasID()).
@@ -210,6 +286,19 @@ public class ConnectedClientEntity extends Thread {
                         (signal.getCreatorID()));
     }
 
+    private void setClientEntityReady() {
+        isReady = true;
+        System.out.println("notifying threads...");
+        if(isThreadInWait) {
+            synchronized (monitor) {
+                monitor.notifyAll();
+            }
+        }
+        System.out.println("threads notifyed ...");
+
+        isThreadInWait = false;
+    }
+
     private void handleSyncedSignal(SyncedSignal signal) {
         System.out.println("received Synced signal!!");
         if(signal.getCreatorID().equals(networkClientEntity.getID())){
@@ -218,13 +307,8 @@ public class ConnectedClientEntity extends Thread {
                 System.out.println("client sent synced signal!");
                 unsafeSendPlainText(new SyncedSignal(UserID.getUserID()).toString());
             }
-            synchronized (isInitialized) {
-                isInitialized = true;
-                if(isThreadInWait)
-                    isInitialized.notifyAll();
-                isThreadInWait = false;
-            }
 
+            setClientEntityReady();
 
 
             if(amiServer()) {
@@ -278,18 +362,34 @@ public class ConnectedClientEntity extends Thread {
 
     //<editor-fold desc="COMMAND HANDLING">
     private Command processCommand(String[] splittedCommand) {
-        Command rcvdcmd = CommandFactory.getCommand(splittedCommand);
-        if(rcvdcmd instanceof DrawLineCommand) {
-            TabController.getCanvasController(rcvdcmd.getCanvasID()).getRemoteDrawLineCommandBufferHandler().addCommand(rcvdcmd);
-        } else if(rcvdcmd instanceof DrawRectangleCommand) {
-            TabController.getCanvasController(rcvdcmd.getCanvasID()).getRemoteDrawLineCommandBufferHandler().addCommand(rcvdcmd);
+        Command receivedCommand = CommandFactory.getCommand(splittedCommand);
+        System.out.println("received command: "+receivedCommand.toString());
+        if(receivedCommand instanceof DrawLineCommand) {
+            TabController.getCanvasController(receivedCommand.getCanvasID()).getRemoteDrawLineCommandBufferHandler().addCommand(receivedCommand);
+        } else if(receivedCommand instanceof DrawImageCommand) {
+            DrawImageCommand drawImageCommand = (DrawImageCommand)receivedCommand;
+            drawImageCommand.setImage(receiveByteArray(drawImageCommand.getImageSize()));
+            TabController.getCanvasController(receivedCommand.getCanvasID()).getRemoteDrawLineCommandBufferHandler().addCommand(receivedCommand);
+            /*ArrayList<Command> commandArrayList = new ArrayList<Command>();
+            commandArrayList.add(drawImageCommand);
+            TabController.getCanvasController(receivedCommand.getCanvasID()).
+                    insertRemoteMementoAfterActual(drawImageCommand.getMementoID(),
+                            commandArrayList,true,drawImageCommand.getCreatorID());*/
+
         }
-        return rcvdcmd;
+        else if(receivedCommand instanceof DrawRectangleCommand) {
+            TabController.getCanvasController(receivedCommand.getCanvasID()).getRemoteDrawLineCommandBufferHandler().addCommand(receivedCommand);
+        }
+        return receivedCommand;
     }
 
     //</editor-fold> desc="COMMAND HANDLING">
 
     //<editor-fold desc="HANDSHAKING">
+
+    private void sendImageOnHandshaking(DrawImageCommand command) {
+        sendByteArray(command.getImageBytes());
+    }
 
     private void sendMenentoOnHandshaking(StateMemento stateMemento, UUID canvasID) {
         ArrayList<Command> cmds = stateMemento.getCommands();
@@ -297,6 +397,9 @@ public class ConnectedClientEntity extends Thread {
         unsafeSendPlainText(new MementoOpenerSignal(stateMemento.getCreatorID(),canvasID,stateMemento.getId(),isLinked).toString());
         for(Command act : cmds) {
             unsafeSendPlainText(act.toString());
+            if(act instanceof DrawImageCommand) {
+                sendImageOnHandshaking((DrawImageCommand) act);
+            }
         }
         unsafeSendPlainText(new MementoCloserSignal(stateMemento.getCreatorID(),canvasID,stateMemento.getId(),isLinked).toString());
     }
@@ -409,8 +512,11 @@ public class ConnectedClientEntity extends Thread {
     private void initializeStreams(Socket socket) throws IOException {
         outputStream = socket.getOutputStream();
         inputStream = socket.getInputStream();
-        scanner = new Scanner(new InputStreamReader(inputStream));
+        scanner = new Scanner(new InputStreamReader(new BufferedInputStream(inputStream)));
         bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
+        dataInputStream = new DataInputStream(new BufferedInputStream(inputStream));
+        dataOutputStream = new DataOutputStream(new BufferedOutputStream(outputStream));
+        //dataInputStream.
         System.out.println("connections's I/O streams are initialized!");
     }
 
@@ -420,13 +526,17 @@ public class ConnectedClientEntity extends Thread {
     private UUID currentPingIDToWaitFor = UUID.randomUUID();
     private long pingFinish;
 
-    private Boolean isInitialized = false;
+    private ArrayList<ByteReceiveReadySignal> byteReceiveReadySignalBuffer = new ArrayList<>();
+    private Boolean isReady = false;
+    private Object monitor = new Object();
     private boolean isThreadInWait = false;
     private boolean timeToStop = false;
     private Socket socket;
     private OutputStream outputStream;
     private InputStream inputStream;
     private BufferedWriter bufferedWriter;
+    private DataInputStream dataInputStream;
+    private DataOutputStream dataOutputStream;
     private Scanner scanner;
     private boolean isLowerClientEntity;
     private UUID id = null;

@@ -65,12 +65,18 @@ public class CanvasController {
             NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
         } else if(currentMode == DrawingMode.Image) {
             currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(), lastPoint.getY(), p.getX() - lastPoint.getX(), p.getY() - lastPoint.getY()));
-            Command command = new DrawImageCommand(this, UserID.getUserID(), currentRect,currentImage);
+            DrawImageCommand drawImageCommand = new DrawImageCommand(this, UserID.getUserID(), currentRect,currentImage,stateOriginator.getNextMementoID());
+
+            //drawImageCommand.printByteArray(drawImageCommand.getImageBytes());
+
+            Command command = drawImageCommand;
             stateOriginator.addCommand(command);
             commandExecutorThread.addCommandToCommandQueue(command);
             NetworkService.propagateCommandDownwards(command);
             NetworkService.propagateCommandUpwards(command);
-            NetworkService.sendMementoCloserSignal(UserID.getUserID(), canvasID, insertNewMementoAfterActual(true).getId(), true);
+            NetworkService.forwardBytesDownwards(drawImageCommand.getImageBytes());
+            NetworkService.forwardBytesUpwards(drawImageCommand.getImageBytes());
+            NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
         }
     }
 
@@ -101,7 +107,7 @@ public class CanvasController {
                 commandExecutorThread.addCommandToCommandQueue(command);
             } else if(currentMode == DrawingMode.Image) {
                 currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
-                command = new DrawImageCommand(this,UserID.getUserID(),currentRect,currentImage);
+                command = new DrawImageCommand(this,UserID.getUserID(),currentRect,currentImage,stateOriginator.getNextMementoID());
                 processSateChangeCommand(getCurrentMementoID());
                 commandExecutorThread.addCommandToCommandQueue(command);
             }

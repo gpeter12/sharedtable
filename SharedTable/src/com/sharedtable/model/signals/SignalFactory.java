@@ -36,8 +36,16 @@ public class SignalFactory {
             return new SyncedSignal(input);
         else if(isChatMessageSignal(input))
             return new ChatMessageSignal(input);
+        else if(isByteReceiveReadySignal(input))
+            return new ByteReceiveReadySignal(input);
         else
             throw new RuntimeException("Unrecognised signal! "+ArrayPrinter.printStringArray(input));
+    }
+
+    private static boolean isByteReceiveReadySignal(String[] input) {
+        if(input[1].equals("BRECREADY"))
+            return true;
+        return false;
     }
 
     private static boolean isChatMessageSignal(String[] input) {

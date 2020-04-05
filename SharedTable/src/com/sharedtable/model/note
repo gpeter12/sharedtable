@@ -311,3 +311,24 @@ private Rectangle fixNegativeWidthHeight(Rectangle input) {
 
         return new Rectangle(resx1,resy1,resx1+resx2,resy1+resy2);
     }
+
+
+    //TODO #7 ellipszis DONE; téglalap DONE; háromszög DONE; image pastealmost done
+        //TODO #8
+        //TODO #9 háromszög DONE
+        //TODO ## scrollable chat flow
+        //TODO ## image paste
+
+        private String byteArrayToString(byte[] input) {
+                return new String(input, StandardCharsets.UTF_8);
+            }
+
+            private byte[] stringToByteArray(String input) {
+                return input.getBytes(StandardCharsets.UTF_8);
+            }
+
+
+if(!(signal instanceof DiscoverySignal) &&
+                            !(signal instanceof NewClientSignal) &&
+                            !(signal instanceof ByteReceiveReadySignal))
+                    {
