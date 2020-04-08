@@ -1,7 +1,10 @@
 package com.sharedtable.view;
 
-import com.sharedtable.controller.Point;
 import com.sharedtable.controller.CanvasController;
+import com.sharedtable.controller.Point;
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -34,6 +37,24 @@ public class STCanvas extends Canvas {
                     Point p = new Point(event.getX(), event.getY());
                     canvasController.mouseMove(p);
                 });
+        this.heightProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
+                Platform.runLater(() -> {
+                    canvasController.onWidthChanged();
+                });
+
+            }
+        });
+        this.widthProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
+                Platform.runLater(() -> {
+                    canvasController.onHeightChanged();
+                        });
+
+            }
+        });
     }
 
     public void setColor(Color color){

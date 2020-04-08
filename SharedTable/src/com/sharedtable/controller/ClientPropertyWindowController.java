@@ -1,6 +1,5 @@
 package com.sharedtable.controller;
 
-import com.sharedtable.controller.UserID;
 import com.sharedtable.model.NetworkClientEntity;
 import com.sharedtable.model.NetworkService;
 import javafx.application.Platform;

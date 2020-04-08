@@ -1,7 +1,7 @@
 package com.sharedtable.controller.commands;
 
-import com.sharedtable.controller.Point;
 import com.sharedtable.controller.CanvasController;
+import com.sharedtable.controller.Point;
 import javafx.scene.paint.Color;
 
 import java.util.UUID;

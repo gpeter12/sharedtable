@@ -1,7 +1,6 @@
 package com.sharedtable.view;
 
 import com.sharedtable.controller.ChatService;
-import com.sharedtable.controller.ChatWindowController;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;

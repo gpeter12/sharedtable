@@ -1,8 +1,6 @@
 package com.sharedtable.controller.commands;
 
 import com.sharedtable.controller.CanvasController;
-import com.sharedtable.controller.Sleep;
-import com.sharedtable.model.ArrayPrinter;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -13,9 +11,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.UUID;
 
 public class DrawImageCommand extends DrawRectangleCommand {

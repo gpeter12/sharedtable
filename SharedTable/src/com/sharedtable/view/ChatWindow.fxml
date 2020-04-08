@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.TextFlow?>
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.sharedtable.controller.ChatWindowController"
-       spacing="15">
+      spacing="15">
     <Label>  Üzenetek:</Label>
     <TextFlow fx:id="chatFlow" minHeight="400.0" minWidth="300.0"></TextFlow>
     <TextArea fx:id="chatInput" minHeight="5" minWidth="300.0" onKeyPressed="#onKeyPressed"></TextArea>

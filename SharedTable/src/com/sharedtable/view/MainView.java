@@ -3,8 +3,8 @@ package com.sharedtable.view;
 
 import com.sharedtable.controller.CanvasController;
 import com.sharedtable.controller.DrawingMode;
-import com.sharedtable.controller.UserID;
 import com.sharedtable.controller.TabController;
+import com.sharedtable.controller.UserID;
 import com.sharedtable.model.NetworkService;
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
@@ -22,7 +22,6 @@ import javafx.stage.Stage;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -60,9 +59,11 @@ public class MainView extends Application  {
 
         this.lineWidthPicker = (ComboBox) scene.lookup("#lineWidthPicker");
         Object availableWidths[] =
-                { "6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","22","24","26","28","32","36","40" };
+                { "1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","22","24","26","28","32","36","40" };
         lineWidthPicker.getItems().addAll(availableWidths);
 
+        tabPane.minHeightProperty().bind(primaryStage.heightProperty());
+        tabPane.minWidthProperty().bind(primaryStage.widthProperty());
 
         //FOR DEBUG PURPUSES
         if (IP == null)
@@ -142,8 +143,11 @@ public class MainView extends Application  {
     public void onCreateNewTabPressed(ActionEvent actionEvent) {
         UUID tabID = UUID.randomUUID();
         CreateTabView createTabView = new CreateTabView();
-        TabController.createNewTab(tabID, createTabView.getController().getTabName());
-        NetworkService.sendNewTabSignal(UserID.getUserID(),tabID,createTabView.getController().getTabName());
+        if(!createTabView.getController().isCanceled()) {
+            TabController.createNewTab(tabID, createTabView.getController().getTabName());
+            NetworkService.sendNewTabSignal(UserID.getUserID(),tabID,createTabView.getController().getTabName());
+        }
+
     }
 
     @FXML
@@ -192,19 +196,16 @@ public class MainView extends Application  {
 
     @FXML
     public void onDrawImageModePressed(ActionEvent actionEvent) {
-        setDrawingModeOnAllCanvases(DrawingMode.Image);
         Image image = getImageFromClipboard();
-        if(image != null)
+        if(image != null){
+            MessageBox.showInformation("Kép beolvasva! ","A bal egérgomb lenyomvatartásával, \nközben az egér mozgatásával jelölje \nki a kép helyét, és méreteit!");
+            setDrawingModeOnAllCanvases(DrawingMode.Image);
             setImageOnAllCanvases(image);
-    }
-
-    public static void main(String[] args) {
-        startMode = Integer.parseInt(args[0]);
-        if (args.length > 1) {
-            IP = args[1];
-            port = Integer.parseInt(args[2]);
         }
-        launch(args);
+        else {
+            MessageBox.showError("Hiba a kép beillesztésekor",
+                    "nem megfelelő formátumú bellesztési tartalom");
+        }
     }
 
     private static void setDrawingModeOnAllCanvases(DrawingMode drawingMode) {
@@ -235,18 +236,27 @@ public class MainView extends Application  {
     {
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         try {
-            //Get data from clipboard and assign it to an image.
-            //clipboard.getData() returns an object, so we need to cast it to a BufferdImage.
             BufferedImage image = (BufferedImage) clipboard.getData(DataFlavor.imageFlavor);
             return SwingFXUtils.toFXImage(image, null);
         } catch (UnsupportedFlavorException e) {
-            System.out.println(e);
-            e.printStackTrace();
+            /*System.out.println(e);
+            e.printStackTrace();*/
+            return null;
         } catch (IOException e) {
-            System.out.println(e);
-            e.printStackTrace();
+            /*System.out.println(e);
+            e.printStackTrace();*/
+            return null;
         }
-        return null;
+    }
+
+
+    public static void main(String[] args) {
+        startMode = Integer.parseInt(args[0]);
+        if (args.length > 1) {
+            IP = args[1];
+            port = Integer.parseInt(args[2]);
+        }
+        launch(args);
     }
 
     @FXML
@@ -262,7 +272,8 @@ public class MainView extends Application  {
     private static ArrayList<Stage> showedStages = new ArrayList<>();
 
 
-
+    public void onRenameCurrentTabPressed(ActionEvent actionEvent) {
+    }
 }
 
 

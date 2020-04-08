@@ -3,9 +3,11 @@ package com.sharedtable.controller;
 import com.sharedtable.controller.commands.*;
 import com.sharedtable.model.NetworkService;
 import com.sharedtable.view.STCanvas;
+import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -35,7 +37,6 @@ public class CanvasController {
     }
 
     public synchronized void mouseUp(Point p) {
-        System.out.println("mouse up entered");
         isMouseDown = false;
         if(currentMode == DrawingMode.ContinousLine) {
             lastPoint = p;
@@ -221,6 +222,15 @@ public class CanvasController {
 
     public void drawImage(Image image, Rectangle rectangle) {
         STCanvas.drawImage(image,rectangle);
+    }
+
+    public void onWidthChanged() {
+        processSateChangeCommand(actMementoID);
+    }
+
+    public void onHeightChanged() {
+        processSateChangeCommand(actMementoID);
+
     }
 
     public void setColor(Color color) {

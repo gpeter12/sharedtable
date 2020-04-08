@@ -7,10 +7,8 @@ import com.sharedtable.model.signals.*;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Semaphore;
 
 public class NetworkService {
 

@@ -1,6 +1,6 @@
 package com.sharedtable.view;
 
-import com.sharedtable.controller.CreateTabController;
+import com.sharedtable.controller.RenameTabController;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -30,7 +30,7 @@ public class CreateTabView {
         stage.showAndWait();
     }
 
-    public CreateTabController getController() {
+    public RenameTabController getController() {
         return fxmlLoader.getController();
     }
 
