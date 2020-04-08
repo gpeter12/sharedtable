@@ -25,9 +25,8 @@ public class DrawImageCommand extends DrawRectangleCommand {
     {
         super(canvasController, creatorID, rectangle, Color.BLACK, 0);
         this.image = image;
-        this.imageBytes = imageToByteArray(image);
+        //this.imageBytes = imageToByteArray(image);
         //printByteArray(imageBytes);
-        this.imageSize = imageBytes.length;
         this.mementoID = mementoID;
     }
 
@@ -73,15 +72,11 @@ public class DrawImageCommand extends DrawRectangleCommand {
     }
 
     public int getImageSize() {
-        if(imageSize == -1)
-            throw new RuntimeException("object has no imageSize");
         return imageSize;
     }
 
     public byte[] getImageBytes() {
-        if(imageBytes == null)
-            throw new RuntimeException("object has no imageBytes");
-        return imageBytes;
+        return imageToByteArray(getImage());
     }
 
     public void setImage(Image image) {

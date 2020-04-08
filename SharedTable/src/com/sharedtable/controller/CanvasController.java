@@ -34,11 +34,12 @@ public class CanvasController {
         NetworkService.sendMementoOpenerSignal(UserID.getUserID(),canvasID,stateOriginator.getNextMementoID(),true);
     }
 
-    public void mouseUp(Point p) {
+    public synchronized void mouseUp(Point p) {
+        System.out.println("mouse up entered");
         isMouseDown = false;
         if(currentMode == DrawingMode.ContinousLine) {
             lastPoint = p;
-            NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
+
         } else if(currentMode == DrawingMode.Rectangle) {
             currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
             Command command = new DrawRectangleCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
@@ -46,7 +47,6 @@ public class CanvasController {
             commandExecutorThread.addCommandToCommandQueue(command);
             NetworkService.propagateCommandDownwards(command);
             NetworkService.propagateCommandUpwards(command);
-            NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
         } else if(currentMode == DrawingMode.Ellipse) {
             currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
             Command command = new DrawEllipseCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
@@ -54,7 +54,6 @@ public class CanvasController {
             commandExecutorThread.addCommandToCommandQueue(command);
             NetworkService.propagateCommandDownwards(command);
             NetworkService.propagateCommandUpwards(command);
-            NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
         } else if(currentMode == DrawingMode.Triangle) {
             currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
             Command command = new DrawTriangleCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
@@ -62,22 +61,19 @@ public class CanvasController {
             commandExecutorThread.addCommandToCommandQueue(command);
             NetworkService.propagateCommandDownwards(command);
             NetworkService.propagateCommandUpwards(command);
-            NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
         } else if(currentMode == DrawingMode.Image) {
             currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(), lastPoint.getY(), p.getX() - lastPoint.getX(), p.getY() - lastPoint.getY()));
             DrawImageCommand drawImageCommand = new DrawImageCommand(this, UserID.getUserID(), currentRect,currentImage,stateOriginator.getNextMementoID());
-
+            drawImageCommand.setImageSize(drawImageCommand.getImageBytes().length);
             //drawImageCommand.printByteArray(drawImageCommand.getImageBytes());
 
             Command command = drawImageCommand;
             stateOriginator.addCommand(command);
             commandExecutorThread.addCommandToCommandQueue(command);
-            NetworkService.propagateCommandDownwards(command);
-            NetworkService.propagateCommandUpwards(command);
-            NetworkService.forwardBytesDownwards(drawImageCommand.getImageBytes());
-            NetworkService.forwardBytesUpwards(drawImageCommand.getImageBytes());
-            NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
+            NetworkService.forwardDrawImageCommandDownwards(drawImageCommand);
+            NetworkService.forwardDrawImageCommandUpwards(drawImageCommand);
         }
+        NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
     }
 
     public void mouseMove(Point p) {
@@ -139,15 +135,19 @@ public class CanvasController {
     }
 
     public void redo() {
-        Sleep.sleep(100);
-        if(TabController.getActualCanvasControler().equals(this))
+        if(TabController.getActualCanvasControler().equals(this)){
             restoreNextMemento();
+            Sleep.sleep(100);
+        }
+
     }
 
     public void undo() {
-        Sleep.sleep(100);
-        if(TabController.getActualCanvasControler().equals(this))
+        if(TabController.getActualCanvasControler().equals(this)){
             restorePreviosMemento();
+            Sleep.sleep(100);
+        }
+
     }
 
     public StateCaretaker getStateCaretaker() {
@@ -167,8 +167,6 @@ public class CanvasController {
             System.out.println("--remote memento dropped: "+id.toString());
             return;
         }
-
-
         //mi történik helyileg, ha valaki távol befejez egy rajzolást a rajzolásom alatt
         if(!stateOriginator.isCommandBufferEmpty()) {//ha nem üres akkor épp rajzolok...
             NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
@@ -331,7 +329,7 @@ public class CanvasController {
     private Rectangle currentRect;
     private Image currentImage;
     private STCanvas STCanvas;
-    private DrawingMode currentMode = DrawingMode.Ellipse;
+    private DrawingMode currentMode = DrawingMode.Rectangle;
     private UUID actMementoID;
     private CommandExecutorThread commandExecutorThread = new CommandExecutorThread();
     private Color currentColor = Color.BLACK;

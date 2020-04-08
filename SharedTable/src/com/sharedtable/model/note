@@ -332,3 +332,69 @@ if(!(signal instanceof DiscoverySignal) &&
                             !(signal instanceof NewClientSignal) &&
                             !(signal instanceof ByteReceiveReadySignal))
                     {
+
+/*
+    private void setImageSendLockReady() {
+        isReadyImageSend = true;
+        System.out.println("notifying threads image send...");
+        if(isThreadInWaitImageSend) {
+            synchronized (imageSendLock) {
+                imageSendLock.notifyAll();
+            }
+        }
+        System.out.println("threads notifyed image send...");
+
+        isThreadInWaitImageSend = false;
+    }
+
+    private void waitUntilImageSendLockNotify() {
+        isThreadInWaitImageSend = true;
+        System.out.println("thread in wait() image send");
+        synchronized (imageSendLock) {
+            while(!isReadyImageSend){
+                try {
+                    imageSendLock.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    return;
+                }
+            }
+        }
+        System.out.println("thread AFTER wait()");
+    }*/
+
+    /*private void notifyImageSenderThread() {
+        synchronized (imageSendLock) {
+            imageSendLock.notify();
+        }
+    }
+
+    private void lockImageSenderThread() {
+        synchronized (imageSendLock) {
+            try {
+                imageSendLock.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }*/
+    /*private void sendByteReceiveReadySignal(){
+        ByteReceiveReadySignal signal = new ByteReceiveReadySignal(UserID.getUserID(),networkClientEntity.getID());
+        if(!isReady) {
+            unsafeSendPlainText(signal.toString());
+        } else {
+            sendPlainText(signal.toString());
+        }
+    }*/
+
+    /*private void sendDrawImageCommandUnsafe(DrawImageCommand command) {
+            command.setImageSize(command.getImageBytes().length);
+            unsafeSendPlainText(command.toString());
+            try {
+                Sleep.sleep(400);
+                sendByteArrayUnsafe(command.getImageBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+                handleScannerClose();
+            }
+    }*/

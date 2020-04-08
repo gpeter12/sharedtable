@@ -32,31 +32,40 @@ public class ConnectedClientEntity extends Thread {
         isLowerClientEntity = lowerClientEntity;
     }
 
+    public NetworkClientEntity getNetworkClientEntity() {return networkClientEntity;}
+
     @Override
     public void run() {
         handshakingProcess();
         while (scanner.hasNext() && !timeToStop) {
             String receivedMessage = scanner.nextLine();
-            String[] splittedMessage = receivedMessage.split(";");
-            if (!receivedMessage.isEmpty()) {
-                forwardMessage(receivedMessage);
-                if (SignalFactory.isSignal(splittedMessage)) {
-                    handleSignal(SignalFactory.getSignal(splittedMessage));
-                } else { //akkor command
-                    Command recvdCmd = processCommand(splittedMessage);
-                    if(recvdCmd instanceof DrawImageCommand){
-                        forwardByteArray(((DrawImageCommand)recvdCmd).getImageBytes());
-                    }
-                    TabController.getCanvasController(recvdCmd.getCanvasID()).processRemoteCommand(recvdCmd);
-                }
-            } else {
-                System.out.println("ConnectedClientEntity: receivedMessage was empty!");
-            }
+            processMessage(receivedMessage);
         }
         handleScannerClose();
     }
 
-
+    private void processMessage(String message) {
+        String[] splittedMessage = message.split(";");
+        if (!message.isEmpty()) {
+            if (SignalFactory.isSignal(splittedMessage)) {
+                Signal signal = SignalFactory.getSignal(splittedMessage);
+                forwardMessage(signal.toString());
+                handleSignal(signal);
+            } else { //akkor command
+                Command receivedCommand = processCommand(splittedMessage);
+                if(receivedCommand == null)
+                    return;
+                if(receivedCommand instanceof DrawImageCommand) {
+                    forwardDrawImageCommand((DrawImageCommand)receivedCommand);
+                } else {
+                    forwardMessage(message);
+                }
+                TabController.getCanvasController(receivedCommand.getCanvasID()).processRemoteCommand(receivedCommand);
+            }
+        } else {
+            System.out.println("ConnectedClientEntity: receivedMessage was empty!");
+        }
+    }
 
     private void handleScannerClose() {
         if(!timeToStop){
@@ -111,8 +120,6 @@ public class ConnectedClientEntity extends Thread {
     }
 
     public void sendByteArray(byte[] input) {
-        isReady = false;
-        waitUntilNotify();
         if(timeToStop)
             return;
         try {
@@ -124,67 +131,33 @@ public class ConnectedClientEntity extends Thread {
     }
 
     private void sendByteArrayUnsafe(byte[] input) throws IOException {
-        //Sleep.sleep(100);
-        System.out.println("usafe byte sending....");
-        dataOutputStream.write(input,0,input.length);
+        dataOutputStream.write(input);
         dataOutputStream.flush();
-        System.out.println("usafe bytearray sent! ");
     }
 
-    private void sendByteReceiveReadySignal(){
-        ByteReceiveReadySignal signal = new ByteReceiveReadySignal(UserID.getUserID(),networkClientEntity.getID());
-        if(!isReady) {
-            unsafeSendPlainText(signal.toString());
-        } else {
-            sendPlainText(signal.toString());
-        }
-    }
+
 
     private byte[] receiveByteArray(int length) {
-        System.out.println("receiving array length: "+length);
-
         byte[] res = new byte[length];
-
-        sendByteReceiveReadySignal();
         try {
-            /*for(int i=0; i<length; i++) {
-                System.out.println("reading "+i+". byte");
-                res[i] = dataInputStream.readByte();
-            }*/
+            //while(dataInputStream.readByte() == 0) {}
             dataInputStream.readFully(res);
         } catch (IOException e) {
-            System.out.println("read image byte array failure!");
+            e.printStackTrace();
             handleScannerClose();
         }
-        System.out.println("received array length "+length);
         return res;
     }
 
     private void unsafeSendPlainText(String input) {
         try {
-            System.out.println("sending: "+input+" TO: "+id);
+            System.out.println("sending: "+input+" to: "+id);
             bufferedWriter.write(input+"\n");
             bufferedWriter.flush();
         } catch (Exception e) {
             System.out.println("Exception happened during sending plain text! closing connection... " + e);
-            timeToStop();
+            handleScannerClose();
         }
-    }
-
-    private void waitUntilNotify() {
-        isThreadInWait = true;
-        System.out.println("thread in wait()");
-        synchronized (monitor) {
-            while(!isReady){
-                try {
-                    monitor.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    return;
-                }
-            }
-        }
-        System.out.println("thread AFTER wait()");
     }
 
     public void sendPlainText(String input) {
@@ -203,26 +176,19 @@ public class ConnectedClientEntity extends Thread {
         }
     }
 
-    private void forwardByteArray(byte[] bytes) {
+    private void forwardDrawImageCommand(DrawImageCommand command) {
         if(isLowerClientEntity){
-            NetworkService.forwardBytesUpwards(bytes);
-            NetworkService.forwardBytesDownwardsWithException(bytes,id);
+            NetworkService.forwardDrawImageCommandUpwards(command);
+            NetworkService.forwardDrawImageCommandDownwardsWithException(command,id);
         } else {
-            NetworkService.forwardBytesDownwards(bytes);
+            NetworkService.forwardDrawImageCommandDownwards(command);
         }
     }
+
 
     //</editor-fold> desc="MESSAGING">
 
     //<editor-fold desc="SIGNAL HANDLING">
-
-    /*private void sendMementoOpenerSignalToClient(UUID creatorID,UUID canvasID,UUID mementoID,boolean isLinked) {
-        sendPlainText(new MementoOpenerSignal(creatorID, canvasID, mementoID,isLinked).toString());
-    }
-
-    private void sendMementoCloserSignalToClient(UUID creatorID,UUID canvasID,UUID mementoID,boolean isLinked) {
-        sendPlainText(new MementoCloserSignal(creatorID, canvasID, mementoID,isLinked).toString());
-    }*/
 
     private void handleSignal(Signal signal) {
         if(signal instanceof MementoOpenerSignal) {
@@ -252,22 +218,18 @@ public class ConnectedClientEntity extends Thread {
         } else if(signal instanceof CloseTabSignal) {
             CloseTabSignal closeTabSignal = (CloseTabSignal)signal;
             TabController.handleCloseTabSignal(closeTabSignal);
-        } else if(signal instanceof SyncedSignal) {
-            SyncedSignal syncedSignal = (SyncedSignal)signal;
-            handleSyncedSignal(syncedSignal);
         } else if(signal instanceof ChatMessageSignal) {
             ChatMessageSignal chatMessageSignal = (ChatMessageSignal)signal;
             NetworkService.handleChatMessageSignal(chatMessageSignal);
         } else if(signal instanceof ByteReceiveReadySignal) {
             ByteReceiveReadySignal byteReceiveReadySignal = (ByteReceiveReadySignal)signal;
-            handleByteReceiveReadySignal(byteReceiveReadySignal);
+            //handleByteReceiveReadySignal(byteReceiveReadySignal);
         }
     }
 
     private void handleByteReceiveReadySignal(ByteReceiveReadySignal signal) {
         if(UserID.getUserID().equals(signal.getReceiverID())) {
-            setClientEntityReady();
-            byteReceiveReadySignalBuffer.add(signal);
+            //setImageSendLockReady();
         }
     }
 
@@ -286,20 +248,7 @@ public class ConnectedClientEntity extends Thread {
                         (signal.getCreatorID()));
     }
 
-    private void setClientEntityReady() {
-        isReady = true;
-        System.out.println("notifying threads...");
-        if(isThreadInWait) {
-            synchronized (monitor) {
-                monitor.notifyAll();
-            }
-        }
-        System.out.println("threads notifyed ...");
-
-        isThreadInWait = false;
-    }
-
-    private void handleSyncedSignal(SyncedSignal signal) {
+    /*private void handleSyncedSignal(SyncedSignal signal) {
         System.out.println("received Synced signal!!");
         if(signal.getCreatorID().equals(networkClientEntity.getID())){
             if(!amiServer()){
@@ -309,8 +258,7 @@ public class ConnectedClientEntity extends Thread {
             }
 
             setClientEntityReady();
-
-
+            isSyncFinished = true;
             if(amiServer()) {
                 NetworkService.sendSignalUpwards(new NewClientSignal(networkClientEntity.getID(),
                         networkClientEntity.getNickname(),
@@ -321,10 +269,8 @@ public class ConnectedClientEntity extends Thread {
             }
             NetworkService.sendDiscoverySignal();
         }
-    }
+    }*/
         //<editor-fold desc="PINGING">
-
-
 
         private void handlePingSignal(PingSignal pingSignal) {
             if(pingSignal.getTargetClientID().equals(UserID.getUserID()) && !pingSignal.isRespond())
@@ -333,13 +279,11 @@ public class ConnectedClientEntity extends Thread {
                     pingSignal.getPingID().equals(currentPingIDToWaitFor))
             {
                 pingFinish = System.nanoTime();
-                System.out.println("ping finished");
             }
         }
 
         private void sendPingSignalResponse(PingSignal signal) {
             signal.setRespond(true);
-            System.out.println("sending ping response");
             NetworkService.sendSignalDownwards(signal);
             NetworkService.sendSignalUpwards(signal);
         }
@@ -363,33 +307,37 @@ public class ConnectedClientEntity extends Thread {
     //<editor-fold desc="COMMAND HANDLING">
     private Command processCommand(String[] splittedCommand) {
         Command receivedCommand = CommandFactory.getCommand(splittedCommand);
-        System.out.println("received command: "+receivedCommand.toString());
+        if(receivedCommand == null)
+            return null;
+        System.out.println("received command: "+receivedCommand.toString()+ "from: "+id);
         if(receivedCommand instanceof DrawLineCommand) {
             TabController.getCanvasController(receivedCommand.getCanvasID()).getRemoteDrawLineCommandBufferHandler().addCommand(receivedCommand);
         } else if(receivedCommand instanceof DrawImageCommand) {
             DrawImageCommand drawImageCommand = (DrawImageCommand)receivedCommand;
-            drawImageCommand.setImage(receiveByteArray(drawImageCommand.getImageSize()));
+            if(isSyncFinished) {
+                drawImageCommand.setImage(receiveByteArray(drawImageCommand.getImageSize()));
+            } else {
+                drawImageCommand.setImage(syncImageByteHandler.getNextNBytes(drawImageCommand.getImageSize()));
+            }
             TabController.getCanvasController(receivedCommand.getCanvasID()).getRemoteDrawLineCommandBufferHandler().addCommand(receivedCommand);
-            /*ArrayList<Command> commandArrayList = new ArrayList<Command>();
-            commandArrayList.add(drawImageCommand);
-            TabController.getCanvasController(receivedCommand.getCanvasID()).
-                    insertRemoteMementoAfterActual(drawImageCommand.getMementoID(),
-                            commandArrayList,true,drawImageCommand.getCreatorID());*/
-
         }
-        else if(receivedCommand instanceof DrawRectangleCommand) {
+        else if(receivedCommand instanceof DrawRectangleCommand) { //és mindenki aki belőle származik
             TabController.getCanvasController(receivedCommand.getCanvasID()).getRemoteDrawLineCommandBufferHandler().addCommand(receivedCommand);
         }
         return receivedCommand;
     }
 
+    public void sendDrawImageCommand(DrawImageCommand command) {
+        command.setImageSize(command.getImageBytes().length);
+        sendPlainText(command.toString());
+        isReadyToSendTo = false;
+        sendByteArray(command.getImageBytes());
+        setClientEntityReady();
+    }
+
     //</editor-fold> desc="COMMAND HANDLING">
 
     //<editor-fold desc="HANDSHAKING">
-
-    private void sendImageOnHandshaking(DrawImageCommand command) {
-        sendByteArray(command.getImageBytes());
-    }
 
     private void sendMenentoOnHandshaking(StateMemento stateMemento, UUID canvasID) {
         ArrayList<Command> cmds = stateMemento.getCommands();
@@ -397,9 +345,6 @@ public class ConnectedClientEntity extends Thread {
         unsafeSendPlainText(new MementoOpenerSignal(stateMemento.getCreatorID(),canvasID,stateMemento.getId(),isLinked).toString());
         for(Command act : cmds) {
             unsafeSendPlainText(act.toString());
-            if(act instanceof DrawImageCommand) {
-                sendImageOnHandshaking((DrawImageCommand) act);
-            }
         }
         unsafeSendPlainText(new MementoCloserSignal(stateMemento.getCreatorID(),canvasID,stateMemento.getId(),isLinked).toString());
     }
@@ -426,11 +371,6 @@ public class ConnectedClientEntity extends Thread {
         }
 
     }
-
-
-
-
-
 
     private NetworkClientEntity receiveNetworkClientEntityInfo() {
         NetworkClientEntity remoteHandshakingInfo;
@@ -472,42 +412,82 @@ public class ConnectedClientEntity extends Thread {
 
         id = remoteHandshakingInfo.getID();
 
-
         networkClientEntity = remoteHandshakingInfo;
         NetworkService.addNetworkClientEntity(remoteHandshakingInfo);
 
         if(amiServer()){
+            byte[] allImageBytes = TabController.getAllBytesFromAllImages();
+            sendAllImageBytesCountOnSync(allImageBytes.length);
+            sendAllImageBytesOnSync(allImageBytes);
             sendSynchronizationCommandsOnHandshaking();
-            unsafeSendPlainText(new SyncedSignal(UserID.getUserID()).toString());
+            unsafeSendPlainText("SYNCED");
+
+            syncImageByteHandler = new SyncImageByteHandler(receiveAllImageBytesOnSync(receiveAllImageBytesCountOnSync()));
+
+            receiveSynchornizationCommands();
+
+        } else {
+            syncImageByteHandler = new SyncImageByteHandler(receiveAllImageBytesOnSync(receiveAllImageBytesCountOnSync()));
+            receiveSynchornizationCommands();
+
+            byte[] allImageBytes = TabController.getAllBytesFromAllImages();
+            sendAllImageBytesCountOnSync(allImageBytes.length);
+            sendAllImageBytesOnSync(allImageBytes);
+            sendSynchronizationCommandsOnHandshaking();
+            unsafeSendPlainText("SYNCED");
         }
+        System.out.println("Im out!");
 
-
-
-        /*if(imServer && NetworkService.isClientInNetwork(id)){
-            System.out.println("This new client is in the network! Closing connection.");
-            timeToStop();
-            return;
-        }*/
-
-        //kinek üres a memento stackje?
-        /*if(myHandshakingInfo.getMementoNumber() == 1 &&
-                remoteHandshakingInfo.getMementoNumber() == 1) //mindkettőnknek csak alapmementó van
-        {
-
-        } else if(myHandshakingInfo.getMementoNumber() > 1 &&
-                remoteHandshakingInfo.getMementoNumber() == 1) //nekünk vannak mementóink
-        {
-            sendSynchronizationCommandsOnHandshaking();
-
-        } else if(myHandshakingInfo.getMementoNumber() > 1 &&
-                remoteHandshakingInfo.getMementoNumber() > 1) //mindkét kliens rendelkezik már mementókkal
-        {
-            sendSynchronizationCommandsOnHandshaking();
-        }*/
-
-
+        setClientEntityReady();
+        isSyncFinished = true;
+        if(amiServer()) {
+            NetworkService.sendSignalUpwards(new NewClientSignal(networkClientEntity.getID(),
+                    networkClientEntity.getNickname(),
+                    networkClientEntity.getIP(),
+                    networkClientEntity.getPort(),
+                    networkClientEntity.getMementoNumber(),
+                    networkClientEntity.getUpperClientID()));
+        }
+        NetworkService.sendDiscoverySignal();
     }
     //</editor-fold> desc="COMMAND HANDLING">
+
+    //<editor-fold desc = "lockHandling">
+
+    private void receiveSynchornizationCommands() {
+        while (scanner.hasNext()) {
+            String receivedMessage = scanner.nextLine();
+            if(receivedMessage.equals("SYNCED"))
+                break;
+            processMessage(receivedMessage);
+        }
+    }
+
+    private void setClientEntityReady() {
+        isReadyToSendTo = true;
+        if(isThreadInWait) {
+            synchronized (isReadyMonitor) {
+                isReadyMonitor.notifyAll();
+            }
+        }
+    }
+
+    private void waitUntilNotify() {
+        isThreadInWait = true;
+        synchronized (isReadyMonitor) {
+            while(!isReadyToSendTo){
+                try {
+                    isReadyMonitor.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    return;
+                }
+            }
+        }
+        isThreadInWait = false;
+    }
+
+    //</editor-fold>
 
     private void initializeStreams(Socket socket) throws IOException {
         outputStream = socket.getOutputStream();
@@ -520,15 +500,38 @@ public class ConnectedClientEntity extends Thread {
         System.out.println("connections's I/O streams are initialized!");
     }
 
-    public NetworkClientEntity getNetworkClientEntity() {return networkClientEntity;}
+    private void sendAllImageBytesCountOnSync(int bytesCount) {
+        Sleep.sleep(400);
+        unsafeSendPlainText(String.valueOf(bytesCount));
+        System.out.println("bytes count sent");
+    }
 
+    private void sendAllImageBytesOnSync(byte[] input) {
+        try {
+            Sleep.sleep(400);
+            sendByteArrayUnsafe(input);
+            System.out.println("all image bytes sent");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("sendByteArrayUnsafe(input) failed");
+        }
+    }
 
+    private int receiveAllImageBytesCountOnSync() {
+        return Integer.parseInt(scanner.nextLine());
+    }
+
+    private byte[] receiveAllImageBytesOnSync(int length) {
+        return receiveByteArray(length);
+    }
+
+    private SyncImageByteHandler syncImageByteHandler;
     private UUID currentPingIDToWaitFor = UUID.randomUUID();
     private long pingFinish;
-
-    private ArrayList<ByteReceiveReadySignal> byteReceiveReadySignalBuffer = new ArrayList<>();
-    private Boolean isReady = false;
-    private Object monitor = new Object();
+    private boolean isReadyToSendTo = false;
+    private boolean isSyncFinished = false;
+    //Szinrkonizációnál nagyon fontos a lock, mert előfordulhat hogy olyan memetóra történik hivatkozás ami még nincs a becsatlakozó kliensénél
+    private Object isReadyMonitor = new Object();
     private boolean isThreadInWait = false;
     private boolean timeToStop = false;
     private Socket socket;

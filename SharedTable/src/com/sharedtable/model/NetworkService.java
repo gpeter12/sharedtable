@@ -2,6 +2,7 @@ package com.sharedtable.model;
 
 import com.sharedtable.controller.*;
 import com.sharedtable.controller.commands.Command;
+import com.sharedtable.controller.commands.DrawImageCommand;
 import com.sharedtable.model.signals.*;
 
 import java.io.IOException;
@@ -49,17 +50,14 @@ public class NetworkService {
     }
 
     public static void subscribeForClientEntityTreeChange(NotifyableClientEntityTreeChange input) {
-        System.out.println("subscribed");
         ClientEntityTreeChangeNotifyables.add(input);
     }
 
     public static void unSubscribeForClientEntityTreeChange(NotifyableClientEntityTreeChange input) {
         ClientEntityTreeChangeNotifyables.remove(input);
-        System.out.println("unSubscribed");
     }
 
     public static void notifyClientEntityTreeChange() {
-        System.out.println("notifying...");
         for(var act : ClientEntityTreeChangeNotifyables) {
             act.notifyClientEntityTreeChange();
         }
@@ -111,21 +109,21 @@ public class NetworkService {
         }
     }
 
-    public static void forwardBytesUpwards(byte[] bytes) {
+    public static void forwardDrawImageCommandUpwards(DrawImageCommand command) {
         if (upperConnectedClientEntity != null)
-            upperConnectedClientEntity.sendByteArray(bytes);
+            upperConnectedClientEntity.sendDrawImageCommand(command);
     }
 
-    public static void forwardBytesDownwardsWithException(byte[] bytes, UUID except) {
+    public static void forwardDrawImageCommandDownwardsWithException(DrawImageCommand command, UUID except) {
         for (ConnectedClientEntity act : lowerConnectedClientEntities) {
             if (!act.getUserId().equals(except))
-                act.sendByteArray(bytes);
+                act.sendDrawImageCommand(command);
         }
     }
 
-    public static void forwardBytesDownwards(byte[] bytes) {
+    public static void forwardDrawImageCommandDownwards(DrawImageCommand command) {
         for (ConnectedClientEntity act : lowerConnectedClientEntities) {
-            act.sendByteArray(bytes);
+            act.sendDrawImageCommand(command);
         }
     }
 
@@ -324,8 +322,7 @@ public class NetworkService {
         entityTree = new NetworkClientEntityTree(getMyNetworkClientEntity());
 
         DiscoverySignal signal = new DiscoverySignal(UserID.getUserID());
-        //sendSignalDownwards(signal);
-
+        sendSignalDownwards(signal);
     }
 
     public static void handleNewClientSignal(NewClientSignal signal) {

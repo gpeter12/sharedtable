@@ -81,11 +81,11 @@ public class MainView extends Application  {
         } else if (startMode == 1) {
             NetworkService.prepareReceievingConnections(2223);
             //NetworkService.connect("127.0.0.1", 2223);f
-            try {
+            /*try {
                 NetworkService.connect(IP, 2222);
             } catch (IOException e) {
                 System.out.println("failed to connect in startMode 1");
-            }
+            }*/
         } else if (startMode == 0) {
             NetworkService.prepareReceievingConnections(2224);
             try {
@@ -101,6 +101,8 @@ public class MainView extends Application  {
                 System.out.println("failed to connect in startMode 4");
             }
         }
+
+
 
         //initConnectWindow();
     }
@@ -147,7 +149,7 @@ public class MainView extends Application  {
     @FXML
     public void onTestConnectPressed(ActionEvent actionEvent) {
         try {
-            NetworkService.connect(IP, 2223);
+            NetworkService.connect(IP, 2222);
         } catch (IOException e) {
             System.out.println("failed to connect in startMode -2");
         }
@@ -191,7 +193,9 @@ public class MainView extends Application  {
     @FXML
     public void onDrawImageModePressed(ActionEvent actionEvent) {
         setDrawingModeOnAllCanvases(DrawingMode.Image);
-        setImageOnAllCanvases(getImageFromClipboard());
+        Image image = getImageFromClipboard();
+        if(image != null)
+            setImageOnAllCanvases(image);
     }
 
     public static void main(String[] args) {
@@ -290,24 +294,24 @@ public class MainView extends Application  {
     //TODO ## sznkornizációkor csak azokat a mementókat tároljuk el, és azokat a tabokat nyitjuk meg amikkel még nem rendelkezünk DONE
     //TODO ## sinkronizációs signal létrehozása a körkörös szonkornizáció elkerülésére DONE
     //TODO ## megfelelően lockolni kell nofity al a még nem szikronizált ConnectedClientEntity-k kimenetét DONE
-
     //TODO ## visszavonásokhoz 350ms sleep DONE
-
     //TODO #8 chat DONE
     //TODO ## ne lehessen több chat window-t megnyitni DONE
-    //TODO ## értelmesen átméretezhetővé tenni az STCanvas-t
-
-    //TODO ## túl vastag vonalnál a vonalakat ellipszisekből építjük
-    //TODO ## túl hosszú draw line darabolása
     //TODO #7 ellipszis DONE
     //TODO #8 téglalap DONE
     //TODO #9 háromszög DONE
+
+
+
+    //TODO ## értelmesen átméretezhetővé tenni az STCanvas-t
     //TODO ## scrollable chat flow
-    //TODO ## image paste
-    //---------LOW PRIORITY-------------------------
+    //TODO ## image paste with exception handling
+    //TODO ## UPnP beinplementálása
+    //TODO ## jelszavas védelem
     //TODO #X a ConnectWindow-ra kiírni a stconnect linket, és a link mezőt. súgógombok a linkek mellé.
     //TODO #X kiírni rögtön init után, ha nem lehet UPNP-n portot nyitni, és tájékoztatni a tűzfalról is
-    //TODO #6 Bármilyen deszinkronizációs hiba esetén a legnegyobb IP vel rendelkező gép mester mementó listát küld szét a reszinkronizációhoz
+    //---------LOW PRIORITY-------------------------
+    //TODO ## túl vastag vonalnál a vonalakat ellipszisekből építjük
 
 
 //TODO #5 automatic lock conflict feloldás (akinek nagyobb az IP-je az kapja a lockot)

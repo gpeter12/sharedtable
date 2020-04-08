@@ -18,7 +18,6 @@ public class RemoteDrawLineCommandBufferHandler {
         this.canvasController = canvasController;
     }
 
-
     public void addCommand(Command command) {
         if (!commandBuffers.containsKey(command.getCreatorID())) {
             throw new RuntimeException("user related command buffer does not exists!\nbuffer not exists for: "+command.getCreatorID());

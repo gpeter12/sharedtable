@@ -19,6 +19,7 @@ public class ClientPropertyWindowView {
         catch (IOException e) {
             System.out.println("failed to get resource ClientPropertyWindow.fxml");
             System.out.println(e);
+            e.printStackTrace();
             return;
         }
 

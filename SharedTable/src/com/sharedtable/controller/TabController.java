@@ -1,5 +1,7 @@
 package com.sharedtable.controller;
 
+import com.sharedtable.controller.commands.Command;
+import com.sharedtable.controller.commands.DrawImageCommand;
 import com.sharedtable.model.NetworkService;
 import com.sharedtable.model.signals.CloseTabSignal;
 import com.sharedtable.model.signals.NewTabSignal;
@@ -100,6 +102,27 @@ public class TabController {
             removeTab(closeTabSignal.getCanvasID());
             stTabPane.removeTab(closeTabSignal.getCanvasID());
                 });
+    }
+
+    public static byte[] getAllBytesFromAllImages() {
+        ArrayList<Byte> resList = new ArrayList<>();
+        for(CanvasController actController : TabController.getAllCanvasControllers()) {
+            for(StateMemento actMemento : actController.getMementos()) {
+                for(Command actCommand : actMemento.getCommands()) {
+                    if(actCommand instanceof DrawImageCommand) {
+                        DrawImageCommand drawImageCommand = (DrawImageCommand)actCommand;
+                        for(byte actByte : drawImageCommand.getImageBytes()) {
+                            resList.add(actByte);
+                        }
+                    }
+                }
+            }
+        }
+        byte[] resArray = new byte[resList.size()];
+        for(int i = 0; i<resArray.length; i++) {
+            resArray[i] = resList.get(i);
+        }
+        return resArray;
     }
 
 ///////////////////////////////////////

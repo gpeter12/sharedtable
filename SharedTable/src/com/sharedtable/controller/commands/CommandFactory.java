@@ -1,11 +1,20 @@
 package com.sharedtable.controller.commands;
 
 import com.sharedtable.controller.TabController;
+import com.sharedtable.model.ArrayPrinter;
+
+import java.util.UUID;
 
 public class CommandFactory {
 
     public static Command getCommand(String[] data) {
         String[] splittedData = data;
+        try{
+            UUID.fromString(data[0]);
+        } catch (Exception e){
+            System.out.println("getCommand() garbage dropped! "+ArrayPrinter.printStringArray(data));
+            return null;
+        }
         int commandIDint = Integer.parseInt(splittedData[1]);
         CommandTypeID commandTypeID = CommandTypeID.values()[commandIDint];
         switch (commandTypeID) {
@@ -32,6 +41,13 @@ public class CommandFactory {
     public static Command setCanvasController(Command command) {
         command.setCanvasController(TabController.getCanvasController(command.getCanvasID()));
         return command;
+    }
+
+    public static boolean isDrawImageCommand(String[] splittedData) {
+        int commandIDint = Integer.parseInt(splittedData[1]);
+        if(CommandTypeID.DrawImageCommand == CommandTypeID.values()[commandIDint])
+            return true;
+        return false;
     }
 
 }
