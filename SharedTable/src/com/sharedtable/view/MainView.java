@@ -1,11 +1,10 @@
 package com.sharedtable.view;
 
 
-import com.sharedtable.controller.CanvasController;
-import com.sharedtable.controller.DrawingMode;
-import com.sharedtable.controller.TabController;
-import com.sharedtable.controller.UserID;
+import com.sharedtable.controller.*;
 import com.sharedtable.model.NetworkService;
+import com.sharedtable.model.signals.NetworkPasswordChangeSignal;
+import com.sharedtable.model.signals.Signal;
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
@@ -32,7 +31,7 @@ import java.util.UUID;
 public class MainView extends Application  {
 
     @Override
-    public void start(Stage primaryStage) {
+    public void start(Stage primaryStageArg) {
 
         Parent root;
         try {
@@ -41,23 +40,23 @@ public class MainView extends Application  {
             System.out.println("failed to get resource MainView.fxml");
             return;
         }
+        primaryStage = primaryStageArg;
         primaryStage.setTitle("Shared Table (mode: "+startMode+")");
         Scene scene = new Scene(root, 640, 480);
         primaryStage.setScene(scene);
-        this.primaryStage = primaryStage;
         primaryStage.show();
 
 
-        this.tabPane = (STTabPane)scene.lookup("#tabPane");
+        tabPane = (STTabPane)scene.lookup("#tabPane");
         new TabController(tabPane, primaryStage);
 
 
-        this.colorPicker = (ColorPicker)scene.lookup("#colorPicker");
+        colorPicker = (ColorPicker)scene.lookup("#colorPicker");
         colorPicker.setValue(Color.BLACK);
         setColorOnAllCanvases(Color.BLACK);
 
 
-        this.lineWidthPicker = (ComboBox) scene.lookup("#lineWidthPicker");
+        lineWidthPicker = (ComboBox) scene.lookup("#lineWidthPicker");
         Object availableWidths[] =
                 { "1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","22","24","26","28","32","36","40" };
         lineWidthPicker.getItems().addAll(availableWidths);
@@ -131,21 +130,39 @@ public class MainView extends Application  {
 
     @FXML
     public void onViewClientListPressed(ActionEvent actionEvent) {
+        if(ClientsWindowView.isOpened())
+            return;
         new ClientsWindowView(primaryStage);
     }
 
     @FXML
     public void onConnectPressed(ActionEvent actionEvent) {
-        new ConnectWindowView();
+        ConnectWindowController connectWindowController = (ConnectWindowController) new ConnectWindowView().getController();
+        try {
+            if(!connectWindowController.isCanceled()) {
+                NetworkService.connect(connectWindowController.getConnectionLink().getIP(),
+                        connectWindowController.getConnectionLink().getPort());
+                if(connectWindowController.getPassword().isEmpty()){
+                    NetworkService.setNetworkPassword("NO_PASSWORD");
+                } else {
+                    NetworkService.setNetworkPassword(connectWindowController.getPassword());
+                }
+                Signal networkPasswordChangeSignal = new NetworkPasswordChangeSignal(UserID.getUserID(),connectWindowController.getPassword());
+                NetworkService.sendSignalDownwards(networkPasswordChangeSignal);
+            }
+        } catch (IOException e) {
+            MessageBox.showError("Sikertelen kapcsolódás!","A megadott címre jelenleg nem lehet kapcsolódni.\n"+e.getMessage());
+        }
     }
 
     @FXML
     public void onCreateNewTabPressed(ActionEvent actionEvent) {
         UUID tabID = UUID.randomUUID();
-        CreateTabView createTabView = new CreateTabView();
-        if(!createTabView.getController().isCanceled()) {
-            TabController.createNewTab(tabID, createTabView.getController().getTabName());
-            NetworkService.sendNewTabSignal(UserID.getUserID(),tabID,createTabView.getController().getTabName());
+        RenameTabView renameTabView = new RenameTabView();
+        RenameTabController renameTabController = ((RenameTabController) renameTabView.getController());
+        if(!renameTabController.isCanceled()) {
+            TabController.createNewTab(tabID, renameTabController.getTabName());
+            NetworkService.sendNewTabSignal(UserID.getUserID(),tabID,renameTabController.getTabName());
         }
 
     }
@@ -207,6 +224,33 @@ public class MainView extends Application  {
                     "nem megfelelő formátumú bellesztési tartalom");
         }
     }
+
+    @FXML
+    public void onChangeNetworkPasswordPressed(ActionEvent actionEvent) {
+        ChangePasswordView changePasswordView = new ChangePasswordView();
+        ChangePasswordWindowController changePasswordWindowController = (ChangePasswordWindowController) changePasswordView.getController();
+        if(!changePasswordWindowController.isCanceled()) {
+            NetworkService.setNetworkPassword(changePasswordWindowController.getPassword());
+            NetworkService.sendNetworkPasswordChangeSignal(UserID.getUserID(),changePasswordWindowController.getPassword());
+        }
+    }
+
+    @FXML
+    public void onRenameCurrentTabPressed(ActionEvent actionEvent) {
+        RenameTabView renameTabView = new RenameTabView();
+        RenameTabController renameTabController = (RenameTabController)renameTabView.getController();
+        TabController.renameTab(TabController.getActualCanvasControler().getCanvasID(),
+                renameTabController.getTabName());
+        NetworkService.sendRenameTabSignal(UserID.getUserID(),
+                TabController.getActualCanvasControler().getCanvasID(),
+                renameTabController.getTabName());
+    }
+
+    @FXML
+    public void onEnableIncomingConnectionsPressed(ActionEvent actionEvent) {
+        
+    }
+
 
     private static void setDrawingModeOnAllCanvases(DrawingMode drawingMode) {
         for(CanvasController act : TabController.getAllCanvasControllers()) {
@@ -272,8 +316,7 @@ public class MainView extends Application  {
     private static ArrayList<Stage> showedStages = new ArrayList<>();
 
 
-    public void onRenameCurrentTabPressed(ActionEvent actionEvent) {
-    }
+
 }
 
 
@@ -314,9 +357,10 @@ public class MainView extends Application  {
 
 
 
-    //TODO ## értelmesen átméretezhetővé tenni az STCanvas-t
+    //TODO ## értelmesen átméretezhetővé tenni az STCanvas-t DONE
+    //TODO ## UserID initFromModel(Model)
     //TODO ## scrollable chat flow
-    //TODO ## image paste with exception handling
+    //TODO ## image paste with exception handling DONE
     //TODO ## UPnP beinplementálása
     //TODO ## jelszavas védelem
     //TODO #X a ConnectWindow-ra kiírni a stconnect linket, és a link mezőt. súgógombok a linkek mellé.

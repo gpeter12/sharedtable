@@ -4,6 +4,7 @@ import com.sharedtable.model.NetworkClientEntity;
 import com.sharedtable.model.NetworkClientEntityTree;
 import com.sharedtable.model.NetworkService;
 import com.sharedtable.view.ClientPropertyWindowView;
+import com.sharedtable.view.ClientsWindowView;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -23,8 +24,8 @@ import java.util.UUID;
 public class ClientsWindowController implements Initializable, NotifyableClientEntityTreeChange {
 
     public ClientsWindowController() {
-
     }
+
 
     private void setMouseDoubleClickEvent() {
         treeView.setOnMouseClicked(new EventHandler<MouseEvent>()
@@ -46,7 +47,10 @@ public class ClientsWindowController implements Initializable, NotifyableClientE
         TreeItem item = (TreeItem)treeView.getSelectionModel().getSelectedItem();
         clientID = UUID.fromString(((Text)item.getValue()).getId());}
         catch (Exception e) {return;}
-        new ClientPropertyWindowView(NetworkService.getEntityTree().getNetworkClientEntity(clientID));
+        if(clientsWindowView == null) {
+            throw new RuntimeException("clientsWindowView was not set previously!");
+        }
+        new ClientPropertyWindowView(NetworkService.getEntityTree().getNetworkClientEntity(clientID),clientsWindowView);
     }
 
     @Override
@@ -127,10 +131,16 @@ public class ClientsWindowController implements Initializable, NotifyableClientE
         return Objects.hash(id);
     }
 
+    public void setView(ClientsWindowView clientsWindowView) {
+        System.out.println("view setted");
+        this.clientsWindowView = clientsWindowView;
+    }
+
     @FXML
     private TreeItem<Text> rootItem;
     @FXML
     private TreeView treeView;
     private UUID id = UUID.randomUUID();
+    private ClientsWindowView clientsWindowView;
 
 }

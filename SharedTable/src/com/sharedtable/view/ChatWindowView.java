@@ -9,32 +9,20 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-public class ChatWindowView {
+public class ChatWindowView extends GeneralView{
 
     public ChatWindowView(Stage owner) {
-        if(isOpened)
-            return;
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("ChatWindow.fxml"));
-        Parent parent;
-        try{parent = fxmlLoader.load();}
-        catch (IOException e) {
-            System.out.println("failed to get resource ChatWindow.fxml");
-            System.out.println(e);
-            return;
-        }
+        super("ChatWindow.fxml",Modality.NONE,owner,"Chat");
 
-        Scene scene = new Scene(parent,400,600);
-        Stage stage = new Stage();stage.initOwner(owner);
-        stage.initModality(Modality.NONE);
-        stage.setScene(scene);
-        stage.setTitle("Chat");
-        stage.setOnCloseRequest(event -> {
+        getStage().setOnCloseRequest(event -> {
             ChatService.setChatWindowController(null);
             isOpened = false;
         });
         isOpened = true;
-        stage.show();
+        getStage().show();
     }
+
+    public boolean isOpened() {return isOpened;}
 
     private static boolean isOpened = false;
 

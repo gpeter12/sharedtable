@@ -38,8 +38,24 @@ public class SignalFactory {
             return new ChatMessageSignal(input);
         else if(isByteReceiveReadySignal(input))
             return new ByteReceiveReadySignal(input);
+        else if(isChangePasswordSignal(input))
+            return new NetworkPasswordChangeSignal(input);
+        else if(isRenameTabSignal(input))
+            return new RenameTabSignal(input);
         else
             throw new RuntimeException("Unrecognised signal! "+ArrayPrinter.printStringArray(input));
+    }
+
+    private static boolean isRenameTabSignal(String[] input) {
+        if(input[1].equals("TABRENAME"))
+            return true;
+        return false;
+    }
+
+    private static boolean isChangePasswordSignal(String[] input) {
+        if(input[1].equals("PASSWD"))
+            return true;
+        return false;
     }
 
     private static boolean isByteReceiveReadySignal(String[] input) {

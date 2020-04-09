@@ -19,7 +19,7 @@ public class TabController {
     public TabController(STTabPane stTabPane, Stage primaryStage) {
         this.primaryStage = primaryStage;
         this.stTabPane = stTabPane;
-        createNewTab(UUID.randomUUID(),"newTab");
+        createNewTab(UUID.randomUUID(),UserID.getNickname()+" hozott vászna");
     }
 
     public static void createNewTab(UUID canvasID, String tabName) {
@@ -125,6 +125,11 @@ public class TabController {
         return resArray;
     }
 
+    public static void renameTab(UUID canvasID, String tabName) {
+        System.out.println("renaming tab to: "+tabName);
+        stTabPane.renameTab(canvasID,tabName);
+    }
+
 ///////////////////////////////////////
     private static void removeCanvasController(UUID id) {
         canvasControllers.remove(getCanvasController(id));
@@ -143,6 +148,4 @@ public class TabController {
     private static Stage primaryStage;
     private static ArrayList<CanvasController> canvasControllers = new ArrayList<>();
     private static STTabPane stTabPane;
-
-
 }

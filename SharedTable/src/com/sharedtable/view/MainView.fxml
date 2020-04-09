@@ -4,46 +4,49 @@
 <?import javafx.scene.layout.VBox?>
 <VBox fx:controller="com.sharedtable.view.MainView" xmlns:fx="http://javafx.com/fxml">
     <children>
-        <MenuBar>
-            <Menu text="Commands">
-                <MenuItem text="TestConnect" onAction="#onTestConnectPressed"></MenuItem>
-            </Menu>
-            <Menu text="Hálózat">
-                <MenuItem text="Kapcsolódás más klienshez" onAction="#onConnectPressed"></MenuItem>
-                <MenuItem text="Hálózati kliens fa" onAction="#onViewClientListPressed"></MenuItem>
-                <MenuItem text="TestConnect" onAction="#onTestConnectPressed"></MenuItem>
-            </Menu>
-            <Menu text="Vászon">
-                <MenuItem text="Vászon letakarítása" onAction="#onClearPressed"></MenuItem>
-                <MenuItem text="Visszavonás" onAction="#onUndoPressed"></MenuItem>
-                <MenuItem text="Mégis" onAction="#onRedoPressed"></MenuItem>
-            </Menu>
-            <Menu text="Lapok">
-                <MenuItem text="Új lap" onAction="#onCreateNewTabPressed"></MenuItem>
-                <MenuItem text="Jelenlegi lap átnevezése" onAction="#onRenameCurrentTabPressed"></MenuItem>
-            </Menu>
-            <Menu text="Rajzolási módok">
-                <MenuItem text="Téglalap" onAction="#onDrawRectangleModePressed"></MenuItem>
-                <MenuItem text="Folytonos vonal" onAction="#onDrawLineModePressed"></MenuItem>
-                <MenuItem text="Egyenlőszárú háromszög" onAction="#onDrawTriangleModePressed"></MenuItem>
-                <MenuItem text="Ellipszis" onAction="#onDrawEllipseModePressed"></MenuItem>
-                <MenuItem text="Kép beszúrása" onAction="#onDrawImageModePressed"></MenuItem>
-            </Menu>
-            <Menu text="Chat">
-                <MenuItem text="Beszélgetés megnyitása" onAction="#onOpenChatPressed"></MenuItem>
-            </Menu>
-            <Menu text="Névjegy">
+        <VBox spacing="10" alignment="CENTER_LEFT">
+            <MenuBar>
+                <!--<Menu text="Commands">
+                    <MenuItem text="TestConnect" onAction="#onTestConnectPressed"></MenuItem>
+                </Menu>-->
+                <Menu text="Hálózat">
+                    <MenuItem text="Kapcsolódás más klienshez" onAction="#onConnectPressed"></MenuItem>
+                    <MenuItem text="Bejövő kapcsolatok engedélyezése" onAction="#onEnableIncomingConnectionsPressed"></MenuItem>
+                    <MenuItem text="Hálózati kliens fa" onAction="#onViewClientListPressed"></MenuItem>
+                    <MenuItem text="Halózati jelszó megváltoztatása" onAction="#onChangeNetworkPasswordPressed"></MenuItem>
+                </Menu>
+                <Menu text="Vászon">
+                    <MenuItem text="Vászon letakarítása" onAction="#onClearPressed"></MenuItem>
+                    <MenuItem text="Visszavonás" onAction="#onUndoPressed"></MenuItem>
+                    <MenuItem text="Mégis" onAction="#onRedoPressed"></MenuItem>
+                    <MenuItem text="Új vászon" onAction="#onCreateNewTabPressed"></MenuItem>
+                    <MenuItem text="Jelenlegi vászon átnevezése" onAction="#onRenameCurrentTabPressed"></MenuItem>
+                </Menu>
+                <Menu text="Rajzolási módok">
+                    <MenuItem text="Téglalap" onAction="#onDrawRectangleModePressed"></MenuItem>
+                    <MenuItem text="Folytonos vonal" onAction="#onDrawLineModePressed"></MenuItem>
+                    <MenuItem text="Egyenlőszárú háromszög" onAction="#onDrawTriangleModePressed"></MenuItem>
+                    <MenuItem text="Ellipszis" onAction="#onDrawEllipseModePressed"></MenuItem>
+                    <MenuItem text="Kép beszúrása" onAction="#onDrawImageModePressed"></MenuItem>
+                </Menu>
+                <Menu text="Chat">
+                    <MenuItem text="Beszélgetés megnyitása" onAction="#onOpenChatPressed"></MenuItem>
+                </Menu>
+                <Menu text="Névjegy">
 
-            </Menu>
-        </MenuBar>
-        <HBox spacing="5" alignment="CENTER_LEFT">
-            <Label>   Szín választása:</Label>
-            <ColorPicker fx:id="colorPicker" minHeight="25" onAction="#onColorSelected" ></ColorPicker>
-            <Label>  Vonal vastagság:</Label>
-            <ComboBox fx:id="lineWidthPicker" minHeight="25" onAction="#onLineWidthSelected" value="1"></ComboBox>
-        </HBox>
+                </Menu>
+            </MenuBar>
 
-        <STTabPane fx:id="tabPane">
-        </STTabPane>
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label>   Szín választása:</Label>
+                <ColorPicker fx:id="colorPicker" minHeight="25" onAction="#onColorSelected" ></ColorPicker>
+                <Label>  Vonal vastagság:</Label>
+                <ComboBox fx:id="lineWidthPicker" minHeight="25" onAction="#onLineWidthSelected" value="1"></ComboBox>
+            </HBox>
+
+            <STTabPane fx:id="tabPane">
+            </STTabPane>
+        </VBox>
+
     </children>
 </VBox>

@@ -1,8 +1,10 @@
 package com.sharedtable.view;
 
 
+import javafx.application.Platform;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.text.Text;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -27,6 +29,13 @@ public class STTabPane extends TabPane {
         newTab.setText(tabName);
         getTabs().add(newTab);
         return tabID;
+    }
+
+    public void renameTab(UUID tabID, String tabName) {
+        Platform.runLater(() -> {
+            getTab(tabID).setText(tabName);
+        });
+
     }
 
     public void removeTab(UUID tabID) {
@@ -56,4 +65,6 @@ public class STTabPane extends TabPane {
     public STCanvas getCanvas(UUID tabID) {
         return (STCanvas)getTab(tabID).getContent();
     }
+
+
 }

@@ -176,6 +176,7 @@ public class NetworkService {
 
 
     public static NetworkClientEntity checkClientChildrenForNewUpperToConnect(UUID id, boolean isSibling) {
+
         NetworkClientEntity entity = entityTree.getNetworkClientEntity(id);
         for(NetworkClientEntity act : entityTree.getCloseChildren(entity)) {
             if(act.getPort() != -1 && !act.getID().equals(UserID.getUserID())) {
@@ -206,6 +207,8 @@ public class NetworkService {
 
     public static NetworkClientEntity findNewUpperClientEntityToConnect(UUID exUpperID) {
         Sleep.sleep(1000);
+        if(!entityTree.contains(exUpperID))
+            return null;
         NetworkClientEntity exUpper = entityTree.getNetworkClientEntity(exUpperID);
         if(exUpper.getUpperClientID() != null) {
             NetworkClientEntity exUpperUpper = entityTree.getNetworkClientEntity(exUpper.getUpperClientID());
@@ -237,6 +240,8 @@ public class NetworkService {
 
     public static NetworkClientEntity findNewSiblingClientEntityToConnect(UUID exUpperID) {
         Sleep.sleep(1000);
+        if(!entityTree.contains(exUpperID))
+            return null;
         System.out.println("try to connect to sibling");
         NetworkClientEntity newUpper = checkClientChildrenForNewUpperToConnect(exUpperID,true);
         if (newUpper != null) {
@@ -276,11 +281,24 @@ public class NetworkService {
         sendSignalDownwards(signal);
     }
 
+    public static void sendNetworkPasswordChangeSignal(UUID userID, String password) {
+        Signal networkPasswordChangeSignal = new NetworkPasswordChangeSignal(userID,password);
+        sendSignalUpwards(networkPasswordChangeSignal);
+        sendSignalDownwards(networkPasswordChangeSignal);
+    }
+
     public static void sendCloseTabSignal(UUID creatorID, UUID canvasID) {
         Signal closeTabSignal = new CloseTabSignal(creatorID, canvasID);
         sendSignalDownwards(closeTabSignal);
         sendSignalUpwards(closeTabSignal);
     }
+
+    public static void sendRenameTabSignal(UUID creatorID, UUID canvasID, String newName){
+        Signal renameTabSignal = new RenameTabSignal(creatorID,canvasID,newName);
+        sendSignalDownwards(renameTabSignal);
+        sendSignalUpwards(renameTabSignal);
+    }
+
 
     public static void sendMementoOpenerSignal(UUID userID, UUID canvasID, UUID mementoID, boolean isLinked) {
         sendSignalUpwards(new MementoOpenerSignal(userID, canvasID, mementoID, isLinked));
@@ -373,6 +391,7 @@ public class NetworkService {
             return;
         System.out.println("try to remove: "+id.toString());
         if(upperConnectedClientEntity != null && upperConnectedClientEntity.getUserId().equals(id)) {
+            //upperConnectedClientEntity.timeToStop();
             upperConnectedClientEntity = null;
             if(findNewUpperClientEntityToConnect(id) == null &&
                     findNewSiblingClientEntityToConnect(id) == null)
@@ -423,6 +442,16 @@ public class NetworkService {
         //semaphore.release();
     }
 
+    public static String getNetworkPassword() {
+        return networkPassword;
+    }
+
+    public static void setNetworkPassword(String password) {
+        System.out.println("changin password to: "+password);
+        networkPassword = password;
+    }
+
+
     private static ConnectedClientEntity getConnectedClientEntityByUUID(UUID uuid) {
         if(upperConnectedClientEntity != null && upperConnectedClientEntity.getUserId().equals(uuid)) {
             return upperConnectedClientEntity;
@@ -444,8 +473,8 @@ public class NetworkService {
     private static ConnectedClientEntity upperConnectedClientEntity = null;
     private static CopyOnWriteArrayList<ConnectedClientEntity> lowerConnectedClientEntities = new CopyOnWriteArrayList<>();
     private static ConnectionReceiverThread connectionReceiverThread;
-    private static int reconnectTry = 0;
     private static CopyOnWriteArrayList<NotifyableClientEntityTreeChange> ClientEntityTreeChangeNotifyables = new CopyOnWriteArrayList<>();
+    private static String networkPassword = "NO_PASSWORD";
 
     static {
         me = new NetworkClientEntity(UserID.getUserID(), UserID.getNickname(), UserID.getPublicIP(),
@@ -454,6 +483,7 @@ public class NetworkService {
                 null);
         entityTree = new NetworkClientEntityTree(me);
     }
+
 
 
 }

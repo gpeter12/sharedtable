@@ -41,7 +41,7 @@ public class NewTabSignal implements Signal {
         return tabName;
     }
 
-    private UUID creatorID;
-    private UUID canvasID;
-    private String tabName;
+    UUID creatorID;
+    UUID canvasID;
+    String tabName;
 }

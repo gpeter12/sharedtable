@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.text.Text;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
 
@@ -17,45 +18,59 @@ public class MessageBox {
     }
 
     public static void showInformation(String header, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Információ");
-        alert.setHeaderText(header);
-        alert.setContentText(message);
-        alert.showAndWait();
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Információ");
+            alert.setHeaderText(header);
+            alert.setContentText(message);
+            alert.showAndWait();
+        });
+
+
     }
 
     public static void showWarning(String header, String message) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Figyelmeztetés");
-        alert.setHeaderText(header);
-        alert.setContentText(message);
-        alert.showAndWait();
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Figyelmeztetés");
+            alert.setHeaderText(header);
+            alert.setContentText(message);
+            alert.showAndWait();
+        });
+
     }
 
 
     public static void showError(String header, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("HIBA!");
-        alert.setHeaderText(header);
-        alert.setContentText(message);
-        alert.showAndWait();
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("HIBA!");
+            alert.setHeaderText(header);
+            alert.setContentText(message);
+            alert.showAndWait();
+        });
+
     }
 
-    public static boolean showConfirmation(String header, String message) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Megerősítés szükséges!");
-        alert.setHeaderText(header);
-        alert.setContentText(message);
+    /*public static boolean showConfirmation(String header, String message) {
+        Optional<ButtonType> result = null;
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Megerősítés szükséges!");
+            alert.setHeaderText(header);
+            alert.setContentText(message);
 
-        Optional<ButtonType> result = alert.showAndWait();
+            result = alert.showAndWait();
+
+        });
         if (result.get() == ButtonType.OK){
             return true;
         } else {
             return false;
         }
-    }
+    }*/
 
-    public static void showPopup(String message, int time, Stage stage) {
+    /*public static void showPopup(String message, int time, Stage stage) {
         Popup popup = new Popup();
         Label label = new Label(message);
         label.setStyle(" -fx-background-color: white; -fx-background-opacity: 1.0");
@@ -80,5 +95,5 @@ public class MessageBox {
         Timer timer = new Timer("Timer");
         long delay = time;
         timer.schedule(task, delay);
-    }
+    }*/
 }

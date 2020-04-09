@@ -8,15 +8,22 @@ public class ConnectionLink {
 
     private void processLink(String input) {
         String[] parts = input.split("stconnect://");
-        String[] portAndIP = parts[1].split(":");
-        int port = Integer.parseInt(portAndIP[1]);
-        String IP = portAndIP[0];
+        if(!input.startsWith("stconnect://")){
+            throw new IllegalArgumentException("Invalid prefix");
+        }
+        String[] ipAndPort = parts[1].split(":");
+        if(ipAndPort.length != 2){
+            throw new IllegalArgumentException("invalid link component number");
+        }
+
+        String IP = ipAndPort[0];
+        int port = Integer.parseInt(ipAndPort[1]);
 
         if (port < 1024 || port > 65535) {
-            throw new RuntimeException("Invalid port number");
+            throw new IllegalArgumentException("Invalid port number");
         }
         if (!validateIP(IP)) {
-            throw new RuntimeException("Invalid IP address");
+            throw new IllegalArgumentException("Invalid IP address");
         }
 
         this.port = port;

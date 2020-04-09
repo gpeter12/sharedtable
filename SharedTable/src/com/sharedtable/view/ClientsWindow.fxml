@@ -7,11 +7,10 @@
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.sharedtable.controller.ClientsWindowController"
-      style="-fx-spacing: 10px">
-    <Label fx:id="label">Minden hálózathoz csatlakozott klienst tartalmazó fa:</Label>
+      spacing="10" alignment="center">
     <Label>Dupla kattintással több opció érhető el velük kapcsolatban!</Label>
     <TreeView fx:id="treeView" prefHeight="600">
-        <TreeItem expanded="true" value="All clients in the network" fx:id="rootItem"></TreeItem>
+        <TreeItem expanded="true" value="Minden hálózathoz csatlakozott klienst tartalmazó fa" fx:id="rootItem"></TreeItem>
     </TreeView>
 
 </VBox>

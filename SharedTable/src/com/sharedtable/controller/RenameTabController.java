@@ -2,13 +2,17 @@ package com.sharedtable.controller;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
-public class RenameTabController {
+import java.net.URL;
+import java.util.ResourceBundle;
+
+public class RenameTabController implements Initializable {
 
 
     @FXML
@@ -43,4 +47,8 @@ public class RenameTabController {
     private String tabName;
     private boolean isCanceled = true;
 
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+
+    }
 }

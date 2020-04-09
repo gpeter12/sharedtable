@@ -1,22 +1,42 @@
 package com.sharedtable.controller;
 
+import com.sharedtable.view.MessageBox;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-public class ConnectWindowController {
+import java.net.URL;
+import java.util.ResourceBundle;
+
+public class ConnectWindowController implements Initializable {
 
     @FXML
     void btnConnectButtonClicked(ActionEvent event) {
-        connectionLink = new ConnectionLink(connectionLinkField.getText());
+        try{
+            connectionLink = new ConnectionLink(connectionLinkField.getText());
+            System.out.println(connectionLink.getIP());
+            System.out.println(connectionLink.getPort());
+        } catch (IllegalArgumentException e) {
+            MessageBox.showError("Érvénytelen kapcsolódási link!","A megadott kapcsolódási link érvénytelen!\n"+e.getMessage());
+            return;
+        }
+        isCanceled = false;
         closeStage(event);
     }
 
-    public static ConnectionLink getConnectionLink() {
+    public ConnectionLink getConnectionLink() {
         return connectionLink;
     }
+
+    public String getPassword() {
+        return passwordField.getText();
+    }
+
+    public boolean isCanceled() {return isCanceled;}
 
     private void closeStage(ActionEvent event) {
         Node source = (Node) event.getSource();
@@ -24,8 +44,16 @@ public class ConnectWindowController {
         stage.close();
     }
 
-    private static ConnectionLink connectionLink;
+    private ConnectionLink connectionLink;
 
     @FXML
     private TextField connectionLinkField;
+    @FXML
+    private PasswordField passwordField;
+    private boolean isCanceled = true;
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+
+    }
 }
