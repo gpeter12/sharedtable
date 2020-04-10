@@ -1,9 +1,9 @@
 package com.sharedtable.model.Network;
 
-import com.sharedtable.UPnP.UPnPConfigException;
 import com.sharedtable.controller.*;
 import com.sharedtable.controller.commands.Command;
 import com.sharedtable.controller.commands.DrawImageCommand;
+import com.sharedtable.model.Network.UPnP.UPnPConfigException;
 import com.sharedtable.model.signals.*;
 import com.sharedtable.view.MessageBox;
 
@@ -237,7 +237,7 @@ public class NetworkService {
     }
 
     public static NetworkClientEntity findNewUpperClientEntityToConnect(UUID exUpperID) {
-        Sleep.sleep(1000);
+        //Sleep.sleep(1000);
         if(!entityTree.contains(exUpperID))
             return null;
         NetworkClientEntity exUpper = entityTree.getNetworkClientEntity(exUpperID);
@@ -270,7 +270,7 @@ public class NetworkService {
     }
 
     public static NetworkClientEntity findNewSiblingClientEntityToConnect(UUID exUpperID) {
-        Sleep.sleep(1000);
+        //Sleep.sleep(1000);
         if(!entityTree.contains(exUpperID))
             return null;
         System.out.println("try to connect to sibling");

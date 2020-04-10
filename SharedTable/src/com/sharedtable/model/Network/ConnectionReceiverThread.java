@@ -1,7 +1,7 @@
 package com.sharedtable.model.Network;
 
-import com.sharedtable.UPnP.UPnP;
-import com.sharedtable.UPnP.UPnPConfigException;
+import com.sharedtable.model.Network.UPnP.UPnPConfigException;
+import com.sharedtable.model.Network.UPnP.UPnPHandler;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -11,9 +11,7 @@ public class ConnectionReceiverThread extends Thread {
     public ConnectionReceiverThread(int port) throws IOException, UPnPConfigException {
         ServerSocket ss = new ServerSocket(port);
 
-        if(!UPnP.openPortTCP(port)) {
-            throw new UPnPConfigException();
-        }
+        UPnPHandler.openPort(port);
 
         serverSocket = ss;
         openedPort = serverSocket.getLocalPort();

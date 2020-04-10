@@ -7,10 +7,10 @@
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.sharedtable.controller.ConnectWindowController"
       alignment="center" spacing="10" minWidth="600" minHeight="200">
-    <Label>Kapcsolódási link (PL.: stconnect://178.164.137.147:2222)</Label>
+    <Label style="-fx-font-size: 16px; -fx-font-weight: bold">Kapcsolódási link (PL.: stconnect://178.164.137.147:2222)</Label>
     <HBox alignment="center" spacing="5">
         <TextField fx:id="connectionLinkField" minWidth="400" minHeight="20"
-                   promptText="Kapcsolódási link (PL.: stconnect://178.164.137.147:2222)" text="stconnect://127.0.0.1:2222"></TextField>
+                   promptText="Kapcsolódási link (PL.: stconnect://178.164.137.147:2222)"></TextField>
 
     </HBox>
     <Label>Jelszó (amennyiben szükséges)</Label>

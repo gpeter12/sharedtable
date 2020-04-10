@@ -1,9 +1,11 @@
 package com.sharedtable.view;
 
 
-import com.sharedtable.UPnP.UPnP;
 import com.sharedtable.controller.*;
 import com.sharedtable.model.Network.NetworkService;
+import com.sharedtable.model.Network.UPnP.UPnPConfigException;
+import com.sharedtable.model.Network.UPnP.UPnPHandler;
+import com.sharedtable.model.Persistence.UserDataPersistence;
 import com.sharedtable.model.signals.NetworkPasswordChangeSignal;
 import com.sharedtable.model.signals.Signal;
 import javafx.application.Application;
@@ -32,20 +34,28 @@ public class MainView extends Application  {
 
     @Override
     public void start(Stage primaryStageArg) {
+        Scene scene = initMainView(primaryStageArg);
+        initUserData();
+        initControls(scene);
+    }
 
+    private Scene initMainView(Stage primaryStageArg) {
         Parent root;
         try {
             root = FXMLLoader.load(getClass().getResource("MainView.fxml"));
         } catch (IOException e) {
             System.out.println("failed to get resource MainView.fxml");
-            return;
+            return null;
         }
         primaryStage = primaryStageArg;
         primaryStage.setTitle("Shared Table (mode: "+startMode+")");
         Scene scene = new Scene(root, 640, 480);
         primaryStage.setScene(scene);
         primaryStage.show();
+        return scene;
+    }
 
+    private void initControls(Scene scene) {
         tabPane = (STTabPane)scene.lookup("#tabPane");
         new TabController(tabPane, primaryStage);
 
@@ -62,6 +72,16 @@ public class MainView extends Application  {
 
         tabPane.minHeightProperty().bind(primaryStage.heightProperty());
         tabPane.minWidthProperty().bind(primaryStage.widthProperty());
+    }
+
+    private void initUserData() {
+        UserDataPersistence userDataPersistence = new UserDataPersistence();
+        UserID.setPersistence(userDataPersistence);
+        if(userDataPersistence.isRequiresInit()){
+            SetClientDataWindowController setClientDataWindowController =
+                    (SetClientDataWindowController) new SetClientDataView().getController();
+            UserID.setNickname(setClientDataWindowController.getNickname());
+        }
     }
 
     @Override
@@ -248,15 +268,16 @@ public class MainView extends Application  {
     }
 
     private static void closeOpenedPortOnRouter() {
-        if(UPnP.getOpenedPort() == -1)
+        if(UPnPHandler.getOpenedPort() == -1)
             return;
         System.out.println("closing opened port on router...");
-        if(!UPnP.closePortTCP(UPnP.getOpenedPort())) {
+        try{
+            UPnPHandler.closePort(UPnPHandler.getOpenedPort());
+        }
+        catch (UPnPConfigException e){
             System.out.println("UPnP.closePortTCP() failed!");
         }
-        System.out.println("closed opened port on router...");
     }
-
 
     public static void main(String[] args) {
         startMode = Integer.parseInt(args[0]);
@@ -325,7 +346,7 @@ public class MainView extends Application  {
 
     //TODO ## értelmesen átméretezhetővé tenni az STCanvas-t DONE
     //TODO ## UserID initFromModel(Model)
-    //TODO ## scrollable chat flow 
+    //TODO ## scrollable chat flow
     //TODO ## image paste with exception handling DONE
     //TODO ## UPnP beinplementálása DONE
     //TODO ## jelszavas védelem DONE
