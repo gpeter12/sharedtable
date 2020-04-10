@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.sharedtable.controller.ConnectionLinkWindowController"
+      alignment="TOP_CENTER" spacing="10" minWidth="600" minHeight="200">
+    <Label></Label>
+    <Label style="-fx-font-size: 16px; -fx-font-weight: bold">Kapcsolódási link generálása </Label>
+    <Label>Küldje ek az alábbi linket valamilyen csatornán keresztül annak aki kapcsolódni szeretne az Ön munkamenetéhez!</Label>
+    <HBox alignment="center" spacing="5">
+        <TextField fx:id="connectionLinkField" editable="false" minWidth="400" minHeight="20"></TextField>
+        <Button text="Másolás" onAction="#btnCopyClicked"></Button>
+    </HBox>
+</VBox>

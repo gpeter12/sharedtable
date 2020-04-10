@@ -1,4 +1,4 @@
-package com.sharedtable.model;
+package com.sharedtable.model.Network;
 
 public class SyncImageByteHandler {
 

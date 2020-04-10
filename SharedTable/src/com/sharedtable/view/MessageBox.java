@@ -2,13 +2,10 @@ package com.sharedtable.view;
 
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
-import javafx.scene.text.Text;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
 
-import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -25,8 +22,6 @@ public class MessageBox {
             alert.setContentText(message);
             alert.showAndWait();
         });
-
-
     }
 
     public static void showWarning(String header, String message) {
@@ -70,7 +65,7 @@ public class MessageBox {
         }
     }*/
 
-    /*public static void showPopup(String message, int time, Stage stage) {
+    public static void showPopup(String message, int time, Stage stage) {
         Popup popup = new Popup();
         Label label = new Label(message);
         label.setStyle(" -fx-background-color: white; -fx-background-opacity: 1.0");
@@ -95,5 +90,5 @@ public class MessageBox {
         Timer timer = new Timer("Timer");
         long delay = time;
         timer.schedule(task, delay);
-    }*/
+    }
 }

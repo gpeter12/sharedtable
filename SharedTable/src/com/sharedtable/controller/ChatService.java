@@ -1,6 +1,6 @@
 package com.sharedtable.controller;
 
-import com.sharedtable.model.NetworkService;
+import com.sharedtable.model.Network.NetworkService;
 import com.sharedtable.model.signals.ChatMessageSignal;
 
 import java.util.ArrayList;

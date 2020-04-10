@@ -1,8 +1,8 @@
 package com.sharedtable.controller;
 
-import com.sharedtable.model.NetworkClientEntity;
-import com.sharedtable.model.NetworkClientEntityTree;
-import com.sharedtable.model.NetworkService;
+import com.sharedtable.model.Network.NetworkClientEntity;
+import com.sharedtable.model.Network.NetworkClientEntityTree;
+import com.sharedtable.model.Network.NetworkService;
 import com.sharedtable.view.ClientPropertyWindowView;
 import com.sharedtable.view.ClientsWindowView;
 import javafx.application.Platform;

@@ -4,7 +4,6 @@ package com.sharedtable.view;
 import javafx.application.Platform;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.text.Text;
 
 import java.util.ArrayList;
 import java.util.UUID;

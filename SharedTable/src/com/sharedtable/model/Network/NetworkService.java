@@ -1,9 +1,11 @@
-package com.sharedtable.model;
+package com.sharedtable.model.Network;
 
+import com.sharedtable.UPnP.UPnPConfigException;
 import com.sharedtable.controller.*;
 import com.sharedtable.controller.commands.Command;
 import com.sharedtable.controller.commands.DrawImageCommand;
 import com.sharedtable.model.signals.*;
+import com.sharedtable.view.MessageBox;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -18,14 +20,43 @@ public class NetworkService {
         return entityTree;
     }
 
+    public static boolean enableReceivingConnections() {
+        int port1 = 23243;
+        try{
+            prepareReceievingConnections(port1);
+        } catch (IOException e) {
+            try{
+                prepareReceievingConnections(0);
+            } catch (IOException e1){
+                MessageBox.showError("Hiba a port megnyitáskor!","A rendszer nem engedélyezi port megnyitását ");
+                e1.printStackTrace();
+                return false;
+            } catch (UPnPConfigException e2) {
+                showUPnPErrorMessage(port1);
+                return false;
+            }
+        } catch (UPnPConfigException e) {
+            showUPnPErrorMessage(port1);
+            e.printStackTrace();
+            return false;
+        }
+        System.out.println("return true");
+        return true;
+    }
 
+    private static void showUPnPErrorMessage(int port1) {
+        MessageBox.showError("UPnP konfigurálási hiba!",
+                "A routeren nem engedélyezett vagy támogatott\n az UPnP protkoll. " +
+                        "Használjon port forwardingot \nerre a potra: "+port1);
+    }
 
     //<editor-fold desc="CONNECTIVITY">
     //launch connection receiver thread
-    public static void prepareReceievingConnections(int port) {
+    private static void prepareReceievingConnections(int port) throws IOException, UPnPConfigException {
         connectionReceiverThread = new ConnectionReceiverThread(port);
+
         connectionReceiverThread.start();
-        me.setPort(port);
+        me.setPort(connectionReceiverThread.getOpenedPort());
         System.out.println("Prepared for receiving connections");
     }
 

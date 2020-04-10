@@ -1,4 +1,6 @@
-package com.sharedtable.model;
+package com.sharedtable.model.Network;
+
+import com.sharedtable.model.ArrayPrinter;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -19,7 +21,7 @@ public class NetworkClientEntity {
     public NetworkClientEntity(String[] input) {
         String[] splittedInput = input;
         if(splittedInput.length != 7 && !input[0].equals("HSI")) {
-            throw new IllegalArgumentException("corrupted handshaking info! length:"+splittedInput.length+" :"+ArrayPrinter.printStringArray(splittedInput));
+            throw new IllegalArgumentException("corrupted handshaking info! length:"+splittedInput.length+" :"+ ArrayPrinter.printStringArray(splittedInput));
         }
         id = UUID.fromString(splittedInput[1]);
         nickname = splittedInput[2];

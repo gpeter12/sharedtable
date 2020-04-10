@@ -1,24 +1,23 @@
-package com.sharedtable.model;
+package com.sharedtable.model.Network;
+
+import com.sharedtable.UPnP.UPnP;
+import com.sharedtable.UPnP.UPnPConfigException;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 
 public class ConnectionReceiverThread extends Thread {
 
-    public ConnectionReceiverThread(int port) {
-        try {
-            serverSocket = new ServerSocket(port);
-            /*if(!com.sharedtable.UPnP.isUPnPAvailable()) {
-                //TODO rendesen lekezelni, ablakos hibaüzenettel és javalattal
-                throw new RuntimeException("com.sharedtable.UPnP is not available");
-            } else {
-                //TODO rendesen portot választani
-                //com.sharedtable.UPnP.openPortTCP(2222);
-            }*/
+    public ConnectionReceiverThread(int port) throws IOException, UPnPConfigException {
+        ServerSocket ss = new ServerSocket(port);
 
-        } catch (Exception e) {
-            throw new RuntimeException("Error during server socket initialization\n" + e);
+        if(!UPnP.openPortTCP(port)) {
+            throw new UPnPConfigException();
         }
+
+        serverSocket = ss;
+        openedPort = serverSocket.getLocalPort();
+
     }
 
     @Override
@@ -36,6 +35,10 @@ public class ConnectionReceiverThread extends Thread {
         }
     }
 
+    public int getOpenedPort() {
+        return openedPort;
+    }
+
     public void timeToStop() {
         timeToStop = true;
         //com.sharedtable.UPnP.closePortTCP(2222);
@@ -49,4 +52,5 @@ public class ConnectionReceiverThread extends Thread {
 
     private boolean timeToStop = false;
     private ServerSocket serverSocket;
+    private int openedPort;
 }

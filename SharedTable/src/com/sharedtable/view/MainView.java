@@ -1,8 +1,9 @@
 package com.sharedtable.view;
 
 
+import com.sharedtable.UPnP.UPnP;
 import com.sharedtable.controller.*;
-import com.sharedtable.model.NetworkService;
+import com.sharedtable.model.Network.NetworkService;
 import com.sharedtable.model.signals.NetworkPasswordChangeSignal;
 import com.sharedtable.model.signals.Signal;
 import javafx.application.Application;
@@ -24,7 +25,6 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.UUID;
 
 
@@ -46,7 +46,6 @@ public class MainView extends Application  {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-
         tabPane = (STTabPane)scene.lookup("#tabPane");
         new TabController(tabPane, primaryStage);
 
@@ -63,48 +62,6 @@ public class MainView extends Application  {
 
         tabPane.minHeightProperty().bind(primaryStage.heightProperty());
         tabPane.minWidthProperty().bind(primaryStage.widthProperty());
-
-        //FOR DEBUG PURPUSES
-        if (IP == null)
-            IP = "127.0.0.1";
-        if (port == -1) {
-            if (startMode == 2)
-                port = 2222;
-            if (startMode == 0)
-                port = 2223;
-            if (startMode == 1)
-                port = 2222;
-        }
-
-        if (startMode == 2) {
-            NetworkService.prepareReceievingConnections(2222);
-        } else if (startMode == 1) {
-            NetworkService.prepareReceievingConnections(2223);
-            //NetworkService.connect("127.0.0.1", 2223);f
-            /*try {
-                NetworkService.connect(IP, 2222);
-            } catch (IOException e) {
-                System.out.println("failed to connect in startMode 1");
-            }*/
-        } else if (startMode == 0) {
-            NetworkService.prepareReceievingConnections(2224);
-            try {
-                NetworkService.connect(IP, 2223);
-            } catch (IOException e) {
-                System.out.println("failed to connect in startMode 0");
-            }
-        } else if (startMode == -1) {
-            NetworkService.prepareReceievingConnections(2225);
-            try {
-                NetworkService.connect(IP, 2223);
-            } catch (IOException e) {
-                System.out.println("failed to connect in startMode 4");
-            }
-        }
-
-
-
-        //initConnectWindow();
     }
 
     @Override
@@ -248,17 +205,18 @@ public class MainView extends Application  {
 
     @FXML
     public void onEnableIncomingConnectionsPressed(ActionEvent actionEvent) {
-        
+        if(NetworkService.enableReceivingConnections())
+            new ConnectionLinkView();
     }
 
 
-    private static void setDrawingModeOnAllCanvases(DrawingMode drawingMode) {
+    private void setDrawingModeOnAllCanvases(DrawingMode drawingMode) {
         for(CanvasController act : TabController.getAllCanvasControllers()) {
             act.setDrawingMode(drawingMode);
         }
     }
 
-    private static void setColorOnAllCanvases(Color color) {
+    private void setColorOnAllCanvases(Color color) {
         for(CanvasController act : TabController.getAllCanvasControllers()) {
             act.setColor(color);
         }
@@ -270,7 +228,7 @@ public class MainView extends Application  {
         }
     }
 
-    private static void setImageOnAllCanvases(Image image) {
+    private void setImageOnAllCanvases(Image image) {
         for(CanvasController act : TabController.getAllCanvasControllers()) {
             act.setCurrentImage(image);
         }
@@ -283,14 +241,20 @@ public class MainView extends Application  {
             BufferedImage image = (BufferedImage) clipboard.getData(DataFlavor.imageFlavor);
             return SwingFXUtils.toFXImage(image, null);
         } catch (UnsupportedFlavorException e) {
-            /*System.out.println(e);
-            e.printStackTrace();*/
             return null;
         } catch (IOException e) {
-            /*System.out.println(e);
-            e.printStackTrace();*/
             return null;
         }
+    }
+
+    private static void closeOpenedPortOnRouter() {
+        if(UPnP.getOpenedPort() == -1)
+            return;
+        System.out.println("closing opened port on router...");
+        if(!UPnP.closePortTCP(UPnP.getOpenedPort())) {
+            System.out.println("UPnP.closePortTCP() failed!");
+        }
+        System.out.println("closed opened port on router...");
     }
 
 
@@ -300,24 +264,26 @@ public class MainView extends Application  {
             IP = args[1];
             port = Integer.parseInt(args[2]);
         }
-        launch(args);
+        try {
+            launch(args);
+            closeOpenedPortOnRouter();
+        } finally {
+            closeOpenedPortOnRouter();
+        }
     }
 
     @FXML
-    private static STTabPane tabPane;
+    private STTabPane tabPane;
     @FXML
-    private static ColorPicker colorPicker;
+    private ColorPicker colorPicker;
     @FXML
-    private static ComboBox lineWidthPicker;
+    private ComboBox lineWidthPicker;
     private static int startMode;
     private static String IP = null;
     private static int port = -1;
-    private static Stage primaryStage;
-    private static ArrayList<Stage> showedStages = new ArrayList<>();
-
-
-
+    private Stage primaryStage;
 }
+
 
 
     //TODO #1 Memento állapottárolásra (Caretaker, originator) DONE
@@ -359,12 +325,12 @@ public class MainView extends Application  {
 
     //TODO ## értelmesen átméretezhetővé tenni az STCanvas-t DONE
     //TODO ## UserID initFromModel(Model)
-    //TODO ## scrollable chat flow
+    //TODO ## scrollable chat flow 
     //TODO ## image paste with exception handling DONE
-    //TODO ## UPnP beinplementálása
-    //TODO ## jelszavas védelem
-    //TODO #X a ConnectWindow-ra kiírni a stconnect linket, és a link mezőt. súgógombok a linkek mellé.
-    //TODO #X kiírni rögtön init után, ha nem lehet UPNP-n portot nyitni, és tájékoztatni a tűzfalról is
+    //TODO ## UPnP beinplementálása DONE
+    //TODO ## jelszavas védelem DONE
+    //TODO #X a ConnectWindow-ra kiírni a stconnect linket, és a link mezőt. súgógombok a linkek mellé. DONE
+    //TODO #X kiírni rögtön init után, ha nem lehet UPNP-n portot nyitni, és tájékoztatni a tűzfalról is DONE
     //---------LOW PRIORITY-------------------------
     //TODO ## túl vastag vonalnál a vonalakat ellipszisekből építjük
 

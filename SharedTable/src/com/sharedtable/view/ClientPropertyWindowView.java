@@ -1,14 +1,8 @@
 package com.sharedtable.view;
 
 import com.sharedtable.controller.ClientPropertyWindowController;
-import com.sharedtable.model.NetworkClientEntity;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
+import com.sharedtable.model.Network.NetworkClientEntity;
 import javafx.stage.Modality;
-import javafx.stage.Stage;
-
-import java.io.IOException;
 
 public class ClientPropertyWindowView extends GeneralView {
 

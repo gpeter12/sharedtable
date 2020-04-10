@@ -27,6 +27,11 @@ package com.sharedtable.UPnP;
 public class UPnP {
 
     private static Gateway defaultGW = null;
+    private static int openedPort = -1;
+    public static int getOpenedPort(){
+        return openedPort;
+    }
+
     private static final GatewayFinder finder = new GatewayFinder() {
         @Override
         public void gatewayFound(Gateway g) {
@@ -71,7 +76,11 @@ public class UPnP {
      */
     public static boolean openPortTCP(int port) {
         if (!isUPnPAvailable()) return false;
-        return defaultGW.openPort(port, false);
+        if(defaultGW.openPort(port, false)){
+            openedPort = port;
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -94,7 +103,13 @@ public class UPnP {
      */
     public static boolean closePortTCP(int port) {
         if (!isUPnPAvailable()) return false;
-        return defaultGW.closePort(port, false);
+        if( defaultGW.closePort(port, false)){
+            if(openedPort == port)
+                openedPort =-1;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

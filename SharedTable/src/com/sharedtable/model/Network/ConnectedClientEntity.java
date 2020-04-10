@@ -1,4 +1,4 @@
-package com.sharedtable.model;
+package com.sharedtable.model.Network;
 
 import com.sharedtable.controller.*;
 import com.sharedtable.controller.commands.*;
