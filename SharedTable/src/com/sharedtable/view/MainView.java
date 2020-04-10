@@ -241,6 +241,14 @@ public class MainView extends Application  {
             new ConnectionLinkView();
     }
 
+    @FXML
+    public void onEraserPressed(ActionEvent actionEvent) {
+        setColorOnAllCanvases(Color.WHITE);
+        colorPicker.setValue(Color.WHITE);
+        lineWidthPicker.setValue(String.valueOf(16));
+        setLineWidthOnAllCanvases(16);
+    }
+
 
     private void setDrawingModeOnAllCanvases(DrawingMode drawingMode) {
         for(CanvasController act : TabController.getAllCanvasControllers()) {
@@ -320,6 +328,8 @@ public class MainView extends Application  {
     private static int port = -1;
     private Stage primaryStage;
     private static Logger logger = null;
+
+
 }
 
 

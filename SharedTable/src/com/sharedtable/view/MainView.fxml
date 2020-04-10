@@ -23,8 +23,9 @@
                     <MenuItem text="Jelenlegi vászon átnevezése" onAction="#onRenameCurrentTabPressed"></MenuItem>
                 </Menu>
                 <Menu text="Rajzolási módok">
-                    <MenuItem text="Téglalap" onAction="#onDrawRectangleModePressed"></MenuItem>
                     <MenuItem text="Folytonos vonal" onAction="#onDrawLineModePressed"></MenuItem>
+                    <MenuItem text="Radír" onAction="#onEraserPressed"></MenuItem>
+                    <MenuItem text="Téglalap" onAction="#onDrawRectangleModePressed"></MenuItem>
                     <MenuItem text="Egyenlőszárú háromszög" onAction="#onDrawTriangleModePressed"></MenuItem>
                     <MenuItem text="Ellipszis" onAction="#onDrawEllipseModePressed"></MenuItem>
                     <MenuItem text="Kép beszúrása" onAction="#onDrawImageModePressed"></MenuItem>
