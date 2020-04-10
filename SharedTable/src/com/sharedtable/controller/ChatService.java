@@ -40,7 +40,6 @@ public class ChatService {
 
     public static void setChatWindowController(ChatWindowController currentChatWindowController) {
         if(currentChatWindowController == null)
-            System.out.println("setChatWindowController: NULL!");
         chatWindowController_unsafe = currentChatWindowController;
     }
     public static void printAllMessages(ChatWindowController chatWindowController) {

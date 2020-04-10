@@ -52,5 +52,4 @@ public class ConnectionLink {
 
     private int port;
     private String IP;
-
 }

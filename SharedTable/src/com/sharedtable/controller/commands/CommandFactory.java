@@ -4,15 +4,16 @@ import com.sharedtable.controller.TabController;
 import com.sharedtable.model.ArrayPrinter;
 
 import java.util.UUID;
+import java.util.logging.Logger;
 
 public class CommandFactory {
 
-    public static Command getCommand(String[] data) {
+    public static Command getCommand(String[] data, Logger logger) {
         String[] splittedData = data;
         try{
             UUID.fromString(data[0]);
         } catch (Exception e){
-            System.out.println("getCommand() garbage dropped! "+ArrayPrinter.printStringArray(data));
+            logger.severe("getCommand() garbage dropped! "+ArrayPrinter.printStringArray(data));
             return null;
         }
         int commandIDint = Integer.parseInt(splittedData[1]);

@@ -2,6 +2,8 @@ package com.sharedtable.model.signals;
 
 import com.sharedtable.model.ArrayPrinter;
 
+import java.util.logging.Logger;
+
 public class SignalFactory {
 
     public static boolean isSignal(String[] input) {
@@ -11,7 +13,6 @@ public class SignalFactory {
     }
 
     public static Signal getSignal(String[] input) {
-        System.out.println("signal received: "+ArrayPrinter.printStringArray(input));
         if(!isSignal(input))
             throw new RuntimeException("input is not a signal! "+ ArrayPrinter.printStringArray(input));
         if(isMementoOpenerSignal(input))
@@ -43,6 +44,7 @@ public class SignalFactory {
         else if(isRenameTabSignal(input))
             return new RenameTabSignal(input);
         else
+
             throw new RuntimeException("Unrecognised signal! "+ArrayPrinter.printStringArray(input));
     }
 

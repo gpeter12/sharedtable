@@ -1,7 +1,9 @@
 package com.sharedtable.controller;
 
+import com.sharedtable.LoggerConfig;
 import com.sharedtable.controller.commands.*;
 import com.sharedtable.model.Network.NetworkService;
+import com.sharedtable.view.MainView;
 import com.sharedtable.view.STCanvas;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -10,10 +12,12 @@ import javafx.scene.shape.Rectangle;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 public class CanvasController {
 
     public CanvasController(STCanvas STCanvas, UUID canvasID) {
+        logger = LoggerConfig.setLogger(Logger.getLogger(MainView.class.getName()));
         this.STCanvas = STCanvas;
         this.canvasID = canvasID;
         STCanvas.initEventHandlers(this);
@@ -23,7 +27,6 @@ public class CanvasController {
         StateMemento firstMemento = stateOriginator.createMemento();
         firstMemento.setId(UUID.fromString("00000000-0000-0000-0000-000000000000"));
         actMementoID = firstMemento.getId();
-        System.out.println("FIRST MEMENTO "+actMementoID);
         stateCaretaker.addMemento(firstMemento,true);
         commandExecutorThread.start();
     }
@@ -136,7 +139,7 @@ public class CanvasController {
     public void redo() {
         if(TabController.getActualCanvasControler().equals(this)){
             restoreNextMemento();
-            Sleep.sleep(100);
+            Sleep.sleep(100,logger);
         }
 
     }
@@ -144,7 +147,7 @@ public class CanvasController {
     public void undo() {
         if(TabController.getActualCanvasControler().equals(this)){
             restorePreviosMemento();
-            Sleep.sleep(100);
+            Sleep.sleep(100,logger);
         }
 
     }
@@ -163,9 +166,10 @@ public class CanvasController {
 
     public void insertRemoteMementoAfterActual(UUID id, ArrayList<Command> commands, boolean link, UUID creatorID) {
         if(stateCaretaker.hasMememnto(id)){
-            System.out.println("--remote memento dropped: "+id.toString());
+            logger.info("remote memento dropped: "+id.toString());
             return;
         }
+        logger.info("inserting remote memento (ID:"+id.toString()+" from "+creatorID);
         //mi történik helyileg, ha valaki távol befejez egy rajzolást a rajzolásom alatt
         if(!stateOriginator.isCommandBufferEmpty()) {//ha nem üres akkor épp rajzolok...
             NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
@@ -178,10 +182,6 @@ public class CanvasController {
     }
 
     public ArrayList<StateMemento> getMementos() {return stateCaretaker.getMementos();}
-
-    public void printAllMementos() {
-        stateCaretaker.printAllMementos();
-    }
 
     public UUID getCurrentMementoID() {return actMementoID;}
 
@@ -272,7 +272,7 @@ public class CanvasController {
             stateCaretaker.addMemento(memento, actMementoID, link);
         }
         actMementoID = memento.getId();
-        System.out.println("new memento added: "+actMementoID);
+        logger.info("new memento added: "+actMementoID);
         return memento;
     }
 
@@ -281,7 +281,7 @@ public class CanvasController {
     }
 
     private void restorePreviosMemento() {
-        System.out.println(stateCaretaker.getMementoIndexByID(actMementoID) - 1);
+        logger.info("restoring memento #"+String.valueOf(stateCaretaker.getMementoIndexByID(actMementoID) - 1));
         StateMemento memento =stateCaretaker.getMementoByIndex(
                 stateCaretaker.getMementoIndexByID(
                         actMementoID) - 1);
@@ -290,7 +290,7 @@ public class CanvasController {
     }
 
     private void restoreNextMemento() {
-        System.out.println(stateCaretaker.getMementoIndexByID(actMementoID) + 1);
+        logger.info("restoring memento #"+String.valueOf(stateCaretaker.getMementoIndexByID(actMementoID) + 1));
         StateMemento memento = stateCaretaker.getMementoByIndex(
                 stateCaretaker.getMementoIndexByID(
                         actMementoID) + 1);
@@ -343,6 +343,7 @@ public class CanvasController {
     private Color currentColor = Color.BLACK;
     private int currentLineWidth = 1;
 
+    private Logger logger = null;
 
 
 }

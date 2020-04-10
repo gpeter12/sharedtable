@@ -1,10 +1,12 @@
 package com.sharedtable.controller;
 
+import com.sharedtable.LoggerConfig;
 import com.sharedtable.controller.commands.Command;
 import com.sharedtable.controller.commands.DrawImageCommand;
 import com.sharedtable.model.Network.NetworkService;
 import com.sharedtable.model.signals.CloseTabSignal;
 import com.sharedtable.model.signals.NewTabSignal;
+import com.sharedtable.view.MainView;
 import com.sharedtable.view.STTab;
 import com.sharedtable.view.STTabPane;
 import javafx.application.Platform;
@@ -13,10 +15,12 @@ import javafx.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 public class TabController {
 
     public TabController(STTabPane stTabPane, Stage primaryStage) {
+        logger = LoggerConfig.setLogger(Logger.getLogger(MainView.class.getName()));
         this.primaryStage = primaryStage;
         this.stTabPane = stTabPane;
         createNewTab(UUID.randomUUID(),UserID.getNickname()+" hozott vászna");
@@ -126,7 +130,6 @@ public class TabController {
     }
 
     public static void renameTab(UUID canvasID, String tabName) {
-        System.out.println("renaming tab to: "+tabName);
         stTabPane.renameTab(canvasID,tabName);
     }
 
@@ -140,12 +143,14 @@ public class TabController {
             if(act.getCanvasID().equals(id))
                 return act;
         }
-        System.out.println("canvas controller not found (probably bacaouse of Plafrom.runLater call)! Retrying...");
-        try { Thread.sleep(100); } catch (Exception e) { System.out.println("Sleep fail!"); }
+        logger.warning("canvas controller not found (probably bacaouse of Plafrom.runLater call)! Retrying...");
+        Sleep.sleep(100,logger);
         return getCanvasController(id);
     }
 
     private static Stage primaryStage;
     private static ArrayList<CanvasController> canvasControllers = new ArrayList<>();
     private static STTabPane stTabPane;
+    private static Logger logger = null;
+
 }

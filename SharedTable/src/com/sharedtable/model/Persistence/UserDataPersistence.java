@@ -1,34 +1,40 @@
 package com.sharedtable.model.Persistence;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.UUID;
-
-
+import com.sharedtable.LoggerConfig;
+import com.sharedtable.view.MainView;
 import com.sharedtable.view.MessageBox;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.UUID;
+import java.util.logging.Logger;
+
 public class UserDataPersistence {
 
     public UserDataPersistence() {
+        logger = LoggerConfig.setLogger(Logger.getLogger(MainView.class.getName()));
         try {
             getFile();
             readAllUserData();
         } catch (UnrecognizedOSException e) {
+            logger.severe("unknown operating system!");
             MessageBox.showError("Ismeretlen operációs rendszer!","Felhasználói adatfájl írása nem lehetséges!");
-            hasPersistance = false;
+            hasPersistence = false;
             e.printStackTrace();
         } catch (IOException e) {
+            logger.severe(e.getMessage());
             MessageBox.showError("Adatfájl I/O hiba","Felhasználói adatfájl írása/olvasása nem lehetséges!");
-            hasPersistance = false;
+            hasPersistence = false;
             e.printStackTrace();
         } catch (ParseException e) {
+            logger.severe(e.getMessage());
             MessageBox.showError("Adatfájl I/O hiba","Felhasználói adatfájl sértült!");
-            hasPersistance = false;
+            hasPersistence = false;
             e.printStackTrace();
             userDataFile.delete();
         }
@@ -36,12 +42,12 @@ public class UserDataPersistence {
 
     private File getFile() throws UnrecognizedOSException, IOException {
         String filePath;
-        if(System.getProperty("os.name").contains("Windows")) {
-            createDirectory(getDirectoryPathOnWindows());
-            filePath = getFilePathOnWindows();
-        } else if(System.getProperty("os.name").contains("Linux")){
-            createDirectory(getDirectoryPathOnLinux());
-            filePath = getFilePathOnLinux();
+        if(FilePathHandler.isPlatformWindows()) {
+            FilePathHandler.createDirectory(FilePathHandler.getDirectoryPathOnWindows());
+            filePath = FilePathHandler.getFilePathOnWindows();
+        } else if(FilePathHandler.isPlatformLinux()){
+            FilePathHandler.createDirectory(FilePathHandler.getDirectoryPathOnLinux());
+            filePath = FilePathHandler.getFilePathOnLinux();
         } else {
             throw new UnrecognizedOSException();
         }
@@ -58,51 +64,18 @@ public class UserDataPersistence {
         return userDataFile;
     }
 
-    private String getFilePathOnLinux() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getDirectoryPathOnLinux())
-                .append("/userconfig.json");
-        return sb.toString();
-    }
 
-    private String getFilePathOnWindows() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getDirectoryPathOnWindows())
-                .append("\\userconfig.json");
-        return sb.toString();
-    }
-
-    private String getDirectoryPathOnLinux() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(System.getProperty("user.home"))
-            .append("/.config/SharedTable");
-        return sb.toString();
-    }
-
-    private String getDirectoryPathOnWindows() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(System.getProperty("user.home"))
-                .append("\\AppData\\Local\\SharedTable");
-        return sb.toString();
-    }
-
-    private void createDirectory(String path) {
-        File directory = new File(path);
-        if (!directory.exists()){
-            directory.mkdirs();
-        }
-    }
 
     private void createFile(String path) throws IOException {
         File file = new File(path);
         if(file.createNewFile())
-            System.out.println("file created: "+path);
+            logger.info("file created: "+path);
         else
-            System.out.println("file NOT created: "+path);
+            logger.info("file NOT created becaouse of its existance: "+path);
     }
 
     public void writeAllUserData() throws IOException {
-        if(userDataFile == null)
+        if(userDataFile == null ||!hasPersistence())
             return;
         JSONObject obj = new JSONObject();
         obj.put("nickname",userNickname);
@@ -120,8 +93,8 @@ public class UserDataPersistence {
     }
 
     public void readAllUserData() throws IOException, ParseException {
-        if(userDataFile == null || !userDataFile.canWrite()){
-            System.out.println("cant read file!");
+        if(userDataFile == null || !userDataFile.canWrite() ||!hasPersistence()){
+            logger.severe("cant read file!");
             return;
         }
         JSONParser parser = new JSONParser();
@@ -167,8 +140,8 @@ public class UserDataPersistence {
         return requiresInit;
     }
 
-    public boolean hasPersistance() {
-        return hasPersistance;
+    public boolean hasPersistence() {
+        return hasPersistence;
     }
 
     private String userNickname = "username";
@@ -177,7 +150,10 @@ public class UserDataPersistence {
 
     private boolean requiresInit = false;
     private File userDataFile = null;
-    private boolean hasPersistance = true;
+    private boolean hasPersistence = true;
+
+    private Logger logger = null;
+
 
 
 }

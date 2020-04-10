@@ -1,6 +1,8 @@
 package com.sharedtable.view;
 
 
+import com.sharedtable.Constants;
+import com.sharedtable.LoggerConfig;
 import com.sharedtable.controller.*;
 import com.sharedtable.model.Network.NetworkService;
 import com.sharedtable.model.Network.UPnP.UPnPConfigException;
@@ -28,12 +30,18 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 
 public class MainView extends Application  {
 
     @Override
     public void start(Stage primaryStageArg) {
+        logger = LoggerConfig.setLogger(Logger.getLogger(MainView.class.getName()));
+        logger.info("appstarted");
+
+        NetworkService.initLogger();
+
         Scene scene = initMainView(primaryStageArg);
         initUserData();
         initControls(scene);
@@ -44,7 +52,7 @@ public class MainView extends Application  {
         try {
             root = FXMLLoader.load(getClass().getResource("MainView.fxml"));
         } catch (IOException e) {
-            System.out.println("failed to get resource MainView.fxml");
+            logger.severe("failed to get resource MainView.fxml");
             return null;
         }
         primaryStage = primaryStageArg;
@@ -78,6 +86,7 @@ public class MainView extends Application  {
         UserDataPersistence userDataPersistence = new UserDataPersistence();
         UserID.setPersistence(userDataPersistence);
         if(userDataPersistence.isRequiresInit()){
+            logger.info("user data file not initalized yet");
             SetClientDataWindowController setClientDataWindowController =
                     (SetClientDataWindowController) new SetClientDataView().getController();
             UserID.setNickname(setClientDataWindowController.getNickname());
@@ -86,6 +95,7 @@ public class MainView extends Application  {
 
     @Override
     public void stop() {
+        logger.info("stopping application");
         TabController.stop();
         NetworkService.timeToStop();
     }
@@ -120,7 +130,7 @@ public class MainView extends Application  {
                 NetworkService.connect(connectWindowController.getConnectionLink().getIP(),
                         connectWindowController.getConnectionLink().getPort());
                 if(connectWindowController.getPassword().isEmpty()){
-                    NetworkService.setNetworkPassword("NO_PASSWORD");
+                    NetworkService.setNetworkPassword(Constants.getNoPasswordConstant());
                 } else {
                     NetworkService.setNetworkPassword(connectWindowController.getPassword());
                 }
@@ -128,6 +138,7 @@ public class MainView extends Application  {
                 NetworkService.sendSignalDownwards(networkPasswordChangeSignal);
             }
         } catch (IOException e) {
+            logger.fine("connaction failed: "+e.getMessage());
             MessageBox.showError("Sikertelen kapcsolódás!","A megadott címre jelenleg nem lehet kapcsolódni.\n"+e.getMessage());
         }
     }
@@ -149,7 +160,7 @@ public class MainView extends Application  {
         try {
             NetworkService.connect(IP, 2222);
         } catch (IOException e) {
-            System.out.println("failed to connect in startMode -2");
+            logger.severe("failed to connect in startMode -2");
         }
     }
 
@@ -197,6 +208,7 @@ public class MainView extends Application  {
             setImageOnAllCanvases(image);
         }
         else {
+            logger.info("wrong image format on clipboard");
             MessageBox.showError("Hiba a kép beillesztésekor",
                     "nem megfelelő formátumú bellesztési tartalom");
         }
@@ -261,8 +273,10 @@ public class MainView extends Application  {
             BufferedImage image = (BufferedImage) clipboard.getData(DataFlavor.imageFlavor);
             return SwingFXUtils.toFXImage(image, null);
         } catch (UnsupportedFlavorException e) {
+            logger.info(e.getMessage());
             return null;
         } catch (IOException e) {
+            logger.info(e.getMessage());
             return null;
         }
     }
@@ -270,12 +284,12 @@ public class MainView extends Application  {
     private static void closeOpenedPortOnRouter() {
         if(UPnPHandler.getOpenedPort() == -1)
             return;
-        System.out.println("closing opened port on router...");
+        logger.info("closing opened port on router...");
         try{
             UPnPHandler.closePort(UPnPHandler.getOpenedPort());
         }
         catch (UPnPConfigException e){
-            System.out.println("UPnP.closePortTCP() failed!");
+            logger.severe("UPnP.closePort() failed!");
         }
     }
 
@@ -288,6 +302,8 @@ public class MainView extends Application  {
         try {
             launch(args);
             closeOpenedPortOnRouter();
+        } catch (Exception e) {
+            logger.severe("FATAL EXCEPTION bubbled up to Main() "+e.getMessage());
         } finally {
             closeOpenedPortOnRouter();
         }
@@ -303,6 +319,7 @@ public class MainView extends Application  {
     private static String IP = null;
     private static int port = -1;
     private Stage primaryStage;
+    private static Logger logger = null;
 }
 
 

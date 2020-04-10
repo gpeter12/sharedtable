@@ -59,8 +59,6 @@ public class ClientsWindowController implements Initializable, NotifyableClientE
     }
 
     private synchronized void init() {
-        System.out.println("init()");
-
         NetworkClientEntity rootEntity = NetworkService.getEntityTree().getRoot();
 
         TreeItem rootChild = createTreeItem(rootEntity.getID().toString(),
@@ -132,7 +130,6 @@ public class ClientsWindowController implements Initializable, NotifyableClientE
     }
 
     public void setView(ClientsWindowView clientsWindowView) {
-        System.out.println("view setted");
         this.clientsWindowView = clientsWindowView;
     }
 

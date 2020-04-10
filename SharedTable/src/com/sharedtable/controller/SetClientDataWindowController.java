@@ -9,7 +9,6 @@ import javafx.stage.Stage;
 
 import java.net.URL;
 import java.util.ResourceBundle;
-import java.util.UUID;
 
 public class SetClientDataWindowController implements Initializable {
 

@@ -1,20 +1,29 @@
 package com.sharedtable.model.Network;
 
+import com.sharedtable.Constants;
+import com.sharedtable.LoggerConfig;
 import com.sharedtable.controller.*;
 import com.sharedtable.controller.commands.Command;
 import com.sharedtable.controller.commands.DrawImageCommand;
 import com.sharedtable.model.Network.UPnP.UPnPConfigException;
 import com.sharedtable.model.signals.*;
+import com.sharedtable.view.MainView;
 import com.sharedtable.view.MessageBox;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Logger;
 
 public class NetworkService {
 
-    private NetworkService() { }
+    private NetworkService() {
+    }
+
+    public static void initLogger() {
+        logger = LoggerConfig.setLogger(Logger.getLogger(MainView.class.getName()));
+    }
 
     public static NetworkClientEntityTree getEntityTree() {
         return entityTree;
@@ -23,11 +32,13 @@ public class NetworkService {
     public static boolean enableReceivingConnections() {
         int port1 = 23243;
         try{
-            prepareReceievingConnections(port1);
+            prepareReceivingConnections(port1);
         } catch (IOException e) {
             try{
-                prepareReceievingConnections(0);
+                logger.warning("standard port open failed!");
+                prepareReceivingConnections(0);
             } catch (IOException e1){
+                logger.severe("can't open any port!");
                 MessageBox.showError("Hiba a port megnyitáskor!","A rendszer nem engedélyezi port megnyitását ");
                 e1.printStackTrace();
                 return false;
@@ -36,11 +47,11 @@ public class NetworkService {
                 return false;
             }
         } catch (UPnPConfigException e) {
+            logger.info("UPnP not supported!");
             showUPnPErrorMessage(port1);
             e.printStackTrace();
             return false;
         }
-        System.out.println("return true");
         return true;
     }
 
@@ -52,12 +63,12 @@ public class NetworkService {
 
     //<editor-fold desc="CONNECTIVITY">
     //launch connection receiver thread
-    private static void prepareReceievingConnections(int port) throws IOException, UPnPConfigException {
+    private static void prepareReceivingConnections(int port) throws IOException, UPnPConfigException {
         connectionReceiverThread = new ConnectionReceiverThread(port);
 
         connectionReceiverThread.start();
         me.setPort(connectionReceiverThread.getOpenedPort());
-        System.out.println("Prepared for receiving connections");
+        logger.info("Prepared for receiving connections");
     }
 
     //make outgoing connection
@@ -87,6 +98,7 @@ public class NetworkService {
     }
 
     public static void notifyClientEntityTreeChange() {
+        logger.info("notifying subscribed controls about ClientEntityTreeChange...");
         for(var act : ClientEntityTreeChangeNotifyables) {
             act.notifyClientEntityTreeChange();
         }
@@ -102,6 +114,7 @@ public class NetworkService {
             try {
                 act.sendCommand(command);
             } catch (Exception e) {
+                logger.info("An error occured during sending commands downwards\n Command: "+command+"\nClient id: "+act.getUserId());
                 throw new RuntimeException("An error occured during sending commands downwards");
             }
         }
@@ -192,12 +205,12 @@ public class NetworkService {
         sendSignalDownwards(pingSignal);
         long start = System.nanoTime();
         prepareConnectedClientsToReceivePingResponse(pingSignal.getPingID());
-        Sleep.sleep(1500);
+        Sleep.sleep(1500,logger);
         long finish = searchForResult(pingSignal.getPingID());
         if(finish != -1){
              res = finish-start;
         }
-        System.out.println("ping result: "+res+" ns ("+(res/(double)1000000)+" ms)");
+        logger.info("ping result: "+res+" ns ("+(res/(double)1000000)+" ms)");
         return res;
     }
 
@@ -216,14 +229,15 @@ public class NetworkService {
                         connect(act.getIP(), act.getPort());
                     else {
                         if(isPortOpened()) {
+                            logger.info("both siblings are enabled to receive connections");
                             // hogy csak az egyik testvér kapcsolódjon a másikhoz, ha mindketten képesek kapcsolatot fogadni
                             if(UserID.getUserID().compareTo(act.getID()) == -1){
                                 connect(act.getIP(), act.getPort());
-                                System.out.println("!!!!!!Im the one who conntects!!!!!");
+                                logger.info("both siblings enabled to receive connections. This sibling connecting");
                             }
                         } else {
                             connect(act.getIP(), act.getPort());
-                            System.out.println("sibling found to connect to!");
+                            logger.info("sibling found to connect to!");
                         }
                     }
 
@@ -243,13 +257,13 @@ public class NetworkService {
         NetworkClientEntity exUpper = entityTree.getNetworkClientEntity(exUpperID);
         if(exUpper.getUpperClientID() != null) {
             NetworkClientEntity exUpperUpper = entityTree.getNetworkClientEntity(exUpper.getUpperClientID());
-            System.out.println("checking children of exUpperUpper...");
+            logger.info("checking children of exUpperUpper...");
             NetworkClientEntity newUpper = checkClientChildrenForNewUpperToConnect(exUpperUpper.getID(),false);
             if(newUpper != null) {
                 return newUpper;
             } else {
-                System.out.println("children check failed");
-                System.out.println("trying to connect to the parent of the children...");
+                logger.info("children check failed");
+                logger.info("trying to connect to the parent of the children...");
                 try {
                     connect(exUpperUpper.getIP(), exUpperUpper.getPort());
                 } catch (IOException e) {
@@ -258,7 +272,7 @@ public class NetworkService {
                 return exUpperUpper;
             }
         } else {//akkor ő root
-            System.out.println("trying connect to root...");
+            logger.info("trying connect to root...");
             NetworkClientEntity root =  entityTree.getNetworkClientEntity(exUpperID);
             try {
                 connect(root.getIP(), root.getPort());
@@ -273,7 +287,7 @@ public class NetworkService {
         //Sleep.sleep(1000);
         if(!entityTree.contains(exUpperID))
             return null;
-        System.out.println("try to connect to sibling");
+        logger.info("try to connect to sibling");
         NetworkClientEntity newUpper = checkClientChildrenForNewUpperToConnect(exUpperID,true);
         if (newUpper != null) {
             return newUpper;
@@ -369,6 +383,7 @@ public class NetworkService {
         entityTree = new NetworkClientEntityTree(getMyNetworkClientEntity());
 
         DiscoverySignal signal = new DiscoverySignal(UserID.getUserID());
+        logger.info("sending discovery signal downwards... "+signal);
         sendSignalDownwards(signal);
     }
 
@@ -417,18 +432,28 @@ public class NetworkService {
         notifyClientEntityTreeChange();
     }
 
+    private static void logEntityTree() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("All Network client entities: \n");
+        for(NetworkClientEntity act : entityTree.getAllClients()) {
+           sb.append(act).append("\n");
+        }
+        logger.info(sb.toString());
+    }
+
     public static synchronized void removeClientEntity(UUID id) {
         if(timeToStop)
             return;
-        System.out.println("try to remove: "+id.toString());
+        logger.info("try to remove becouse of disconnect: "+id.toString());
         if(upperConnectedClientEntity != null && upperConnectedClientEntity.getUserId().equals(id)) {
-            //upperConnectedClientEntity.timeToStop();
             upperConnectedClientEntity = null;
+            logger.info("connection upwards has dropped. Trying to connect another client on the known network...");
+            logEntityTree();
             if(findNewUpperClientEntityToConnect(id) == null &&
                     findNewSiblingClientEntityToConnect(id) == null)
             {
                 upperConnectedClientEntity = null;
-                System.out.println("Im the new root!");
+                logger.info("Client search failed! I'm the new root!");
                 entityTree.setMeRoot();
                 sendDiscoverySignal();
                 notifyClientEntityTreeChange();
@@ -439,7 +464,6 @@ public class NetworkService {
             if(act.getUserId().equals(id)){
                 lowerConnectedClientEntities.remove(act);
                 if(amiRoot()){
-                    //entityTree.removeNetworkClientEntity(act.getNetworkClientEntity());
                     sendDiscoverySignal();
                     notifyClientEntityTreeChange();
                 }
@@ -453,7 +477,7 @@ public class NetworkService {
                     true);
             connectedClientEntity.setLowerClientEntity(true);
             lowerConnectedClientEntities.add(connectedClientEntity);
-            //addNetworkClientEntity(connectedClientEntity.getNetworkClientEntity());
+            logger.info("new lower ConnectedClientEntity added");
     }
 
     public static boolean isClientInNetwork(UUID clientID) {
@@ -461,7 +485,7 @@ public class NetworkService {
     }
 
     public static void timeToStop() {
-        //acquireSemaphore();
+        logger.info("stopping...");
         timeToStop = true;
         if(connectionReceiverThread != null)
             connectionReceiverThread.timeToStop();
@@ -478,7 +502,7 @@ public class NetworkService {
     }
 
     public static void setNetworkPassword(String password) {
-        System.out.println("changin password to: "+password);
+        logger.info("changin password");
         networkPassword = password;
     }
 
@@ -492,6 +516,7 @@ public class NetworkService {
                 return act;
             }
         }
+        logger.info("getConnectedClientEntityByUUID(UUID uuid) User not found by ID");
         throw new RuntimeException("User not found by ID");
     }
 
@@ -505,7 +530,8 @@ public class NetworkService {
     private static CopyOnWriteArrayList<ConnectedClientEntity> lowerConnectedClientEntities = new CopyOnWriteArrayList<>();
     private static ConnectionReceiverThread connectionReceiverThread;
     private static CopyOnWriteArrayList<NotifyableClientEntityTreeChange> ClientEntityTreeChangeNotifyables = new CopyOnWriteArrayList<>();
-    private static String networkPassword = "NO_PASSWORD";
+    private static String networkPassword = Constants.getNoPasswordConstant();
+    private static Logger logger = null;
 
     static {
         me = new NetworkClientEntity(UserID.getUserID(), UserID.getNickname(), UserID.getPublicIP(),

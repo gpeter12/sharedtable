@@ -18,8 +18,6 @@ public class ConnectWindowController implements Initializable {
     void btnConnectButtonClicked(ActionEvent event) {
         try{
             connectionLink = new ConnectionLink(connectionLinkField.getText());
-            System.out.println(connectionLink.getIP());
-            System.out.println(connectionLink.getPort());
         } catch (IllegalArgumentException e) {
             MessageBox.showError("Érvénytelen kapcsolódási link!","A megadott kapcsolódási link érvénytelen!\n"+e.getMessage());
             return;

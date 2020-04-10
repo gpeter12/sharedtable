@@ -1,8 +1,10 @@
 package com.sharedtable.model.Network;
 
+import com.sharedtable.LoggerConfig;
 import com.sharedtable.controller.*;
 import com.sharedtable.controller.commands.*;
 import com.sharedtable.model.signals.*;
+import com.sharedtable.view.MainView;
 import com.sharedtable.view.MessageBox;
 
 import java.io.*;
@@ -11,15 +13,19 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 public class ConnectedClientEntity extends Thread {
 
     public ConnectedClientEntity(Socket socket, boolean isLowerClientEntity) {
+        logger = LoggerConfig.setLogger(Logger.getLogger(MainView.class.getName()));
+        logger.info("creating ConnectedClientEntity "+socket.getInetAddress()+" isLower: "+isLowerClientEntity);
         this.socket = socket;
         this.isLowerClientEntity = isLowerClientEntity;
         try {
             initializeStreams(socket);
         } catch (Exception e) {
+            logger.warning("Inititalization of input/output network streams failed.");
             throw new RuntimeException("Inititalization of input/output network streams failed.");
         }
         start();
@@ -41,7 +47,7 @@ public class ConnectedClientEntity extends Thread {
         try {
             handshakingProcess();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning(e.getMessage());
             handleScannerClose();
             return;
         }
@@ -72,11 +78,12 @@ public class ConnectedClientEntity extends Thread {
                 TabController.getCanvasController(receivedCommand.getCanvasID()).processRemoteCommand(receivedCommand);
             }
         } else {
-            System.out.println("ConnectedClientEntity: receivedMessage was empty!");
+            logger.warning("ConnectedClientEntity: receivedMessage was empty!");
         }
     }
 
     private void handleScannerClose() {
+        logger.info("handling scanner close. closing connection...");
         if(!timeToStop){
             if(amiServer()) {
                 NetworkService.forwardMessageUpwards(new DisconnectSignal(networkClientEntity.getID(),
@@ -85,8 +92,10 @@ public class ConnectedClientEntity extends Thread {
             }
         }
         if(isThreadInWait) {
+            logger.info("thread in wait during shutdown process!");
             synchronized (isReadyMonitor) {
                 isReadyMonitor.notifyAll();
+                logger.info("threads are notifyed!");
             }
         }
         timeToStop();
@@ -116,6 +125,7 @@ public class ConnectedClientEntity extends Thread {
 
     public void timeToStop() {
         try {
+            logger.info("timeToStop = true");
             timeToStop = true;
             bufferedWriter.close();
             outputStream.close();
@@ -141,12 +151,13 @@ public class ConnectedClientEntity extends Thread {
         try {
             sendByteArrayUnsafe(input);
         } catch (IOException e) {
-            System.out.println("send image byte array failure!");
+            logger.severe("send image byte array failure!");
             handleScannerClose();
         }
     }
 
     private void sendByteArrayUnsafe(byte[] input) throws IOException {
+        logger.info("sending byte array... length: "+input.length);
         dataOutputStream.write(input);
         dataOutputStream.flush();
     }
@@ -161,7 +172,7 @@ public class ConnectedClientEntity extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
             handleScannerClose();
-            handleScannerClose();
+            logger.severe("network connection dropped during byte array receive.");
             MessageBox.showError("A hálózati kapcsolat megszakadt!","A hálózati kapcsolat megszakadt \nbájttömb fogadásakor.");
         }
         return res;
@@ -169,11 +180,11 @@ public class ConnectedClientEntity extends Thread {
 
     private void unsafeSendPlainText(String input) {
         try {
-            System.out.println("sending: "+input+" to: "+id);
+            logger.info("sending: "+input+" to: "+id);
             bufferedWriter.write(input+"\n");
             bufferedWriter.flush();
         } catch (Exception e) {
-            System.out.println("Exception happened during sending plain text: "+input+"! closing connection... " + e);
+            logger.severe("Exception happened during sending plain text: "+input+"! closing connection... " + e);
             handleScannerClose();
         }
     }
@@ -211,6 +222,7 @@ public class ConnectedClientEntity extends Thread {
     //<editor-fold desc="SIGNAL HANDLING">
 
     private void handleSignal(Signal signal) {
+        logger.info("handling signal: "+signal.toString());
         if(signal instanceof MementoOpenerSignal) {
             MementoOpenerSignal mementoOpenerSignal = (MementoOpenerSignal) signal;
             handleMementoOpenerSingnal(mementoOpenerSignal);
@@ -244,9 +256,6 @@ public class ConnectedClientEntity extends Thread {
         } else if(signal instanceof ChatMessageSignal) {
             ChatMessageSignal chatMessageSignal = (ChatMessageSignal)signal;
             NetworkService.handleChatMessageSignal(chatMessageSignal);
-        } else if(signal instanceof ByteReceiveReadySignal) {
-            ByteReceiveReadySignal byteReceiveReadySignal = (ByteReceiveReadySignal)signal;
-            //handleByteReceiveReadySignal(byteReceiveReadySignal);
         } else if(signal instanceof NetworkPasswordChangeSignal) {
             NetworkPasswordChangeSignal networkPasswordChangeSignal = (NetworkPasswordChangeSignal)signal;
             handleChangeNetworkPasswordSignal(networkPasswordChangeSignal);
@@ -259,12 +268,6 @@ public class ConnectedClientEntity extends Thread {
 
     private void handleChangeNetworkPasswordSignal(NetworkPasswordChangeSignal networkPasswordChangeSignal) {
         NetworkService.setNetworkPassword(networkPasswordChangeSignal.getPassword());
-    }
-
-    private void handleByteReceiveReadySignal(ByteReceiveReadySignal signal) {
-        if(UserID.getUserID().equals(signal.getReceiverID())) {
-            //setImageSendLockReady();
-        }
     }
 
     private void handleMementoCloserSignal(MementoCloserSignal signal) {
@@ -317,10 +320,10 @@ public class ConnectedClientEntity extends Thread {
 
     //<editor-fold desc="COMMAND HANDLING">
     private Command processCommand(String[] splittedCommand) {
-        Command receivedCommand = CommandFactory.getCommand(splittedCommand);
+        Command receivedCommand = CommandFactory.getCommand(splittedCommand,logger);
         if(receivedCommand == null)
             return null;
-        System.out.println("received command: "+receivedCommand.toString()+ "from: "+id);
+        logger.info("received command: "+receivedCommand.toString()+ "from: "+id);
         if(receivedCommand instanceof DrawLineCommand) {
             TabController.getCanvasController(receivedCommand.getCanvasID()).getRemoteDrawLineCommandBufferHandler().addCommand(receivedCommand);
         } else if(receivedCommand instanceof DrawImageCommand) {
@@ -389,10 +392,11 @@ public class ConnectedClientEntity extends Thread {
             try {
                 remoteHandshakingInfo = new NetworkClientEntity(scanner.nextLine().split(";"));
             } catch (IllegalArgumentException e){
-                System.out.println("illegal argument. Try receive handshaking info again...");
+                logger.warning("illegal argument. Try receive handshaking info again...");
                 return receiveNetworkClientEntityInfo();
             }
         } else {
+            logger.warning("connection dropped during handshakingProcess");
             throw new RuntimeException("connection dropped during handshakingProcess");
         }
         return remoteHandshakingInfo;
@@ -405,6 +409,7 @@ public class ConnectedClientEntity extends Thread {
     }
 
     private void handshakingProcess() {
+        logger.info("handshaking process started");
         NetworkClientEntity remoteHandshakingInfo = null;
         NetworkClientEntity myHandshakingInfo = NetworkService.getMyNetworkClientEntity();
 
@@ -422,17 +427,19 @@ public class ConnectedClientEntity extends Thread {
         }
 
         id = remoteHandshakingInfo.getID();
-
+        logger.info("remote ID: "+id);
         networkClientEntity = remoteHandshakingInfo;
         NetworkService.addNetworkClientEntity(remoteHandshakingInfo);
 
         if(amiServer()){
             if(!receiveNetworkPassword().equals(NetworkService.getNetworkPassword())){
-                sendNetworkPasswordValidationResult(false);
+                logger.info("passwords are not matching.");
+                sendNetworkPasswordValidationResultOnSync(false);
+                logger.info("sending Network Password Validation Result: false");
                 handleScannerClose();
                 return;
             } else {
-                sendNetworkPasswordValidationResult(true);
+                sendNetworkPasswordValidationResultOnSync(true);
             }
 
             byte[] allImageBytes = TabController.getAllBytesFromAllImages();
@@ -446,8 +453,8 @@ public class ConnectedClientEntity extends Thread {
             receiveSynchornizationCommands();
 
         } else {
-            sendNetworkPassword(NetworkService.getNetworkPassword());
-            if(!receiveNetworkPasswordValidationResult()) {
+            sendNetworkPasswordOnSync(NetworkService.getNetworkPassword());
+            if(!receiveNetworkPasswordValidationResultOnSync()) {
                 MessageBox.showError("Érvénytelen jelszó!", "A megadott hálózati jelszó érvénytelen");
                 handleScannerClose();
                 return;
@@ -525,27 +532,27 @@ public class ConnectedClientEntity extends Thread {
         dataInputStream = new DataInputStream(new BufferedInputStream(inputStream));
         dataOutputStream = new DataOutputStream(new BufferedOutputStream(outputStream));
         //dataInputStream.
-        System.out.println("connections's I/O streams are initialized!");
+        logger.info("connections's I/O streams are initialized!");
     }
 
     private void sendAllImageBytesCountOnSync(int bytesCount) {
-        Sleep.sleep(400);
+        Sleep.sleep(400,logger);
         unsafeSendPlainText(String.valueOf(bytesCount));
-        System.out.println("bytes count sent");
+        logger.info("bytes count sent");
     }
 
     private void sendAllImageBytesOnSync(byte[] input) {
         try {
-            Sleep.sleep(400);
+            Sleep.sleep(400,logger);
             sendByteArrayUnsafe(input);
-            System.out.println("all image bytes sent");
+            logger.info("all image bytes sent");
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("sendByteArrayUnsafe(input) failed");
+            logger.info("sendByteArrayUnsafe(input) failed");
         }
     }
 
-    private void sendNetworkPassword(String networkPassword) {
+    private void sendNetworkPasswordOnSync(String networkPassword) {
         unsafeSendPlainText(networkPassword);
     }
 
@@ -554,11 +561,12 @@ public class ConnectedClientEntity extends Thread {
             return scanner.nextLine();
         else {
             MessageBox.showError("A hálózati kapcsolat megszakadt!","A hálózati kapcsolat megszakadt \na jelszó fogadásakor.");
+            logger.info("receiveNetworkPassword() connection closed");
             throw new RuntimeException("receiveNetworkPassword() connection closed");
         }
     }
 
-    private boolean receiveNetworkPasswordValidationResult() {
+    private boolean receiveNetworkPasswordValidationResultOnSync() {
         if(scanner.hasNext()) {
             String resultString = scanner.nextLine();
             if(resultString.equals("PASSWD_OK")){
@@ -566,15 +574,17 @@ public class ConnectedClientEntity extends Thread {
             } else if (resultString.equals("PASSWD_INVALID")){
                 return false;
             } else {
+                logger.severe("receiveNetworkPasswordValidationResult() Unrecognized result!");
                 throw new RuntimeException("receiveNetworkPasswordValidationResult() Unrecognized result!");
             }
         } else {
+            logger.warning(("receiveNetworkPasswordValidationResult() connection closed"));
             MessageBox.showError("A hálózati kapcsolat megszakadt!","A hálózati kapcsolat megszakadt \na jelszó validáció eredményének küldésekor.");
             throw new RuntimeException("receiveNetworkPasswordValidationResult() connection closed");
         }
     }
 
-    private void sendNetworkPasswordValidationResult(boolean result) {
+    private void sendNetworkPasswordValidationResultOnSync(boolean result) {
         if(result){
             unsafeSendPlainText("PASSWD_OK");
         } else {
@@ -586,6 +596,7 @@ public class ConnectedClientEntity extends Thread {
         if(scanner.hasNext())
             return Integer.parseInt(scanner.nextLine());
         else {
+            logger.warning("receiveAllImageBytesCountOnSync() connection closed");
             MessageBox.showError("A hálózati kapcsolat megszakadt!","A hálózati kapcsolat megszakadt \na képek méretének fogadásakor.");
             throw new RuntimeException("receiveAllImageBytesCountOnSync() connection closed");
         }
@@ -615,4 +626,5 @@ public class ConnectedClientEntity extends Thread {
     private boolean isLowerClientEntity;
     private UUID id = null;
     private NetworkClientEntity networkClientEntity;
+    private static Logger logger = null;
 }
