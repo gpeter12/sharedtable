@@ -362,8 +362,8 @@ public class MainView extends Application  {
 
 
     //TODO ## értelmesen átméretezhetővé tenni az STCanvas-t DONE
-    //TODO ## UserID initFromModel(Model)
-    //TODO ## scrollable chat flow
+    //TODO ## UserID initFromModel(Model) DONE
+    //TODO ## scrollable chat flow DONE
     //TODO ## image paste with exception handling DONE
     //TODO ## UPnP beinplementálása DONE
     //TODO ## jelszavas védelem DONE

@@ -44,7 +44,7 @@
                 <ComboBox fx:id="lineWidthPicker" minHeight="25" onAction="#onLineWidthSelected" value="1"></ComboBox>
             </HBox>
 
-            <STTabPane fx:id="tabPane">
+            <STTabPane fx:id="tabPane" style="-fx-background-color: white">
             </STTabPane>
         </VBox>
 

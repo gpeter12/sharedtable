@@ -14,6 +14,8 @@ public class ChatWindowView extends GeneralView{
             isOpened = false;
         });
         isOpened = true;
+        getStage().setResizable(true);
+        getStage().setMaxWidth(600);
         getStage().show();
     }
 

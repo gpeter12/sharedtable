@@ -1,6 +1,7 @@
 package com.sharedtable.controller;
 
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TextArea;
@@ -11,6 +12,9 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -37,22 +41,51 @@ public class ChatWindowController implements Initializable {
         return resText;
     }
 
+    private String dropLastChar(String input) {
+        StringBuilder sb = new StringBuilder();
+        for(int i=0; i<input.length()-1; i++) {
+            sb.append(input.charAt(i));
+        }
+        return sb.toString();
+    }
+
+    private void sendMessage(){
+        ChatService.handleOutgoingChatMessage(dropLastChar(chatInput.getText()));
+        chatInput.setText("");
+    }
+
+    private void placeTextToSystemClipboard(String text) {
+        StringSelection stringSelection = new StringSelection(text);
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(stringSelection, null);
+    }
+
+
+
     @FXML
     public void onKeyPressed(KeyEvent keyEvent) {
         if (keyEvent.getCode().equals(KeyCode.ENTER) && keyEvent.isShiftDown()) {
             chatInput.setText(chatInput.getText()+"\n");
-            return;
+            chatInput.positionCaret(chatInput.getText().length());
+        } else if (keyEvent.getCode().equals(KeyCode.ENTER)) {
+            sendMessage();
         }
-        if (keyEvent.getCode().equals(KeyCode.ENTER)) {
-            ChatService.handleOutgoingChatMessage(chatInput.getText().replace("\n",""));
-            chatInput.setText("");
-        }
+
+    }
+    @FXML
+    public void btnSendClicked(ActionEvent actionEvent) {
+        sendMessage();
+    }
+    @FXML
+    public void btnCopyClicked(ActionEvent actionEvent) {
+        placeTextToSystemClipboard(ChatService.getAllMessageTexts());
     }
 
     @FXML
     private TextFlow chatFlow;
     @FXML
     private TextArea chatInput;
+
 
 
 }

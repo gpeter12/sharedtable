@@ -18,7 +18,16 @@ public class ChatService {
             getChatWindowController().printMessage(signal.getNickname(), signal.getMessage(),
                     signal.getCreatorID().equals(UserID.getUserID()));
         }
+    }
 
+    public static String getAllMessageTexts() {
+        StringBuilder sb = new StringBuilder();
+        for(ChatMessageSignal act : chatMessageSignals) {
+            sb.append(act.getNickname())
+                    .append(": ")
+                    .append(act.getMessage()).append("\n");
+        }
+        return sb.toString();
     }
 
     public static void handleOutgoingChatMessage(String message) {
@@ -39,7 +48,6 @@ public class ChatService {
     private static boolean hasChatWindowController() {return chatWindowController_unsafe != null;}
 
     public static void setChatWindowController(ChatWindowController currentChatWindowController) {
-        if(currentChatWindowController == null)
         chatWindowController_unsafe = currentChatWindowController;
     }
     public static void printAllMessages(ChatWindowController chatWindowController) {
