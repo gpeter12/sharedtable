@@ -4,9 +4,11 @@ package com.sharedtable.view;
 import com.sharedtable.Constants;
 import com.sharedtable.LoggerConfig;
 import com.sharedtable.controller.*;
+import com.sharedtable.model.Network.NetworkClientEntity;
 import com.sharedtable.model.Network.NetworkService;
 import com.sharedtable.model.Network.UPnP.UPnPConfigException;
 import com.sharedtable.model.Network.UPnP.UPnPHandler;
+import com.sharedtable.model.Persistence.FilePathHandler;
 import com.sharedtable.model.Persistence.UserDataPersistence;
 import com.sharedtable.model.signals.NetworkPasswordChangeSignal;
 import com.sharedtable.model.signals.Signal;
@@ -29,22 +31,42 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.UUID;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 
 public class MainView extends Application  {
 
     @Override
     public void start(Stage primaryStageArg) {
-        logger = LoggerConfig.setLogger(Logger.getLogger(MainView.class.getName()));
+        logger = setLogger(Logger.getLogger(MainView.class.getName()));
         logger.info("appstarted");
 
         NetworkService.initLogger();
 
         Scene scene = initMainView(primaryStageArg);
-        initUserData();
+        if(isInDebugMode) {
+            initDebugMode(startMode);
+        } else {
+            initUserData();
+        }
+        viewAvailableUpdates();
         initControls(scene);
+        NetworkService.initService();
+    }
+
+    private void viewAvailableUpdates() {
+        UpdateChecker updateChecker = new UpdateChecker("https://people.inf.elte.hu/gpeter/stBuildNum");
+        if(updateChecker.isUpdateAvailable()){
+            logger.info("new update available!");
+            new UpdateNotificationView();
+        }
+
     }
 
     private Scene initMainView(Stage primaryStageArg) {
@@ -52,12 +74,13 @@ public class MainView extends Application  {
         try {
             root = FXMLLoader.load(getClass().getResource("MainView.fxml"));
         } catch (IOException e) {
-            logger.severe("failed to get resource MainView.fxml");
+            e.printStackTrace();
+            logger.severe("failed to get resource MainView.fxml "+e.getMessage());
             return null;
         }
         primaryStage = primaryStageArg;
-        primaryStage.setTitle("Shared Table (mode: "+startMode+")");
-        Scene scene = new Scene(root, 640, 480);
+        primaryStage.setTitle("Shared Table");
+        Scene scene = new Scene(root, 1366, 768);
         primaryStage.setScene(scene);
         primaryStage.show();
         return scene;
@@ -90,6 +113,38 @@ public class MainView extends Application  {
             SetClientDataWindowController setClientDataWindowController =
                     (SetClientDataWindowController) new SetClientDataView().getController();
             UserID.setNickname(setClientDataWindowController.getNickname());
+        }
+    }
+
+    private void initDebugMode(int mode) {
+        primaryStage.setTitle("Debug mode: "+mode);
+        logger.info("application staarted in debug mode: "+mode);
+        UserID.setUserID(UUID.randomUUID());
+        NetworkService.initService();
+        UserID.setUserID(UUID.randomUUID());
+        if (startMode == 3) {
+            NetworkService.enableReceivingConnections(2222);
+        } else if (startMode == 2) {
+            NetworkService.enableReceivingConnections(2223);
+            try {
+                NetworkService.connect(IP, 2222);
+            } catch (IOException e) {
+                logger.severe("failed to connect in startMode 2");
+            }
+        } else if (startMode == 1) {
+            NetworkService.enableReceivingConnections(2224);
+            try {
+                NetworkService.connect(IP, 2223);
+            } catch (IOException e) {
+                logger.severe("failed to connect in startMode 1");
+            }
+        } else if (startMode == 0) {
+            NetworkService.enableReceivingConnections(2225);
+            try {
+                NetworkService.connect(IP, 2223);
+            } catch (IOException e) {
+                logger.severe("failed to connect in startMode 0");
+            }
         }
     }
 
@@ -237,23 +292,70 @@ public class MainView extends Application  {
 
     @FXML
     public void onEnableIncomingConnectionsPressed(ActionEvent actionEvent) {
-        if(NetworkService.enableReceivingConnections())
+        if(NetworkService.enableReceivingConnections(-1))
             new ConnectionLinkView();
     }
 
     @FXML
     public void onEraserPressed(ActionEvent actionEvent) {
+        setDrawingModeOnAllCanvases(DrawingMode.ContinousLine);
         setColorOnAllCanvases(Color.WHITE);
         colorPicker.setValue(Color.WHITE);
         lineWidthPicker.setValue(String.valueOf(16));
         setLineWidthOnAllCanvases(16);
     }
 
+    @FXML
+    public void onOpenWebViewPressed(ActionEvent actionEvent) {
+        new UpdateNotificationView();
+    }
+
+    @FXML
+    public void onAboutPressed(ActionEvent actionEvent) {
+        new AboutView();
+    }
+
+    @FXML
+    public void onFindUpdatePressed(ActionEvent actionEvent) {
+        UpdateChecker updateChecker = new UpdateChecker("https://people.inf.elte.hu/gpeter/stBuildNum");
+        if(updateChecker.isUpdateAvailable()){
+            viewAvailableUpdates();
+        } else {
+            MessageBox.showInformation("Nem érhető el frissítés!","Ez a kliens jelenleg a legfrissebb \nverzióval rendelkezik.");
+        }
+    }
+
+    @FXML
+    public void onHelpPressed(ActionEvent actionEvent) {
+        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+            new Thread(() -> {
+                try {
+                    Desktop.getDesktop().browse(new URI("http://www.google.com"));
+                } catch (IOException | URISyntaxException e1) {
+                    e1.printStackTrace();
+                }
+            }).start();
+        } else {
+            MessageBox.showError("Nem nyitható meg böngésző!","Ez az OS nem támogatja \nböngésző ablak megnyitását");
+        }
+    }
 
     private void setDrawingModeOnAllCanvases(DrawingMode drawingMode) {
+        setDefaultColor();
+        setDefaultLineWidth();
         for(CanvasController act : TabController.getAllCanvasControllers()) {
             act.setDrawingMode(drawingMode);
         }
+    }
+
+    private void setDefaultColor() {
+        setColorOnAllCanvases(Color.BLACK);
+        colorPicker.setValue(Color.BLACK);
+    }
+
+    private void setDefaultLineWidth(){
+        lineWidthPicker.setValue(String.valueOf(1));
+        setLineWidthOnAllCanvases(1);
     }
 
     private void setColorOnAllCanvases(Color color) {
@@ -301,16 +403,44 @@ public class MainView extends Application  {
         }
     }
 
-    public static void main(String[] args) {
-        startMode = Integer.parseInt(args[0]);
-        if (args.length > 1) {
-            IP = args[1];
-            port = Integer.parseInt(args[2]);
+    private static Logger setLogger(Logger logger){
+        FileHandler fh=null;
+
+        try {
+            if (FilePathHandler.isPlatformWindows()) {
+                FilePathHandler.createDirectory(FilePathHandler.getDirectoryPathOnWindows());
+                fh = new FileHandler(FilePathHandler.getDirectoryPathOnWindows() + "\\logfile.log");
+            } else if (FilePathHandler.isPlatformLinux()) {
+                FilePathHandler.createDirectory(FilePathHandler.getDirectoryPathOnLinux());
+                fh = new FileHandler(FilePathHandler.getDirectoryPathOnLinux() + "/logfile.log");
+            }
+        } catch (Exception e) {
+            System.out.println("creating logfile error");
+            MessageBox.showError("Hiba a naplófájl létrehozásakor!","");
         }
+
+        logger.addHandler(fh);
+        logger.setLevel(Level.FINEST);
+        SimpleFormatter formatter = new SimpleFormatter();
+        fh.setFormatter(formatter);
+        logger.getHandlers()[0].setLevel(Level.FINEST);
+
+        return logger;
+    }
+
+    public static void main(String[] args) {
+
+
+        if(args.length > 1 && args[0].equals("debug")){
+            isInDebugMode =true;
+            startMode = Integer.parseInt(args[1]);
+        }
+
         try {
             launch(args);
             closeOpenedPortOnRouter();
         } catch (Exception e) {
+            e.printStackTrace();
             logger.severe("FATAL EXCEPTION bubbled up to Main() "+e.getMessage());
         } finally {
             closeOpenedPortOnRouter();
@@ -324,10 +454,12 @@ public class MainView extends Application  {
     @FXML
     private ComboBox lineWidthPicker;
     private static int startMode;
-    private static String IP = null;
+    private static String IP = "127.0.0.1";
     private static int port = -1;
     private Stage primaryStage;
-    private static Logger logger = null;
+    private static Logger logger = Logger.getLogger(MainView.class.getName());
+    private static boolean isInDebugMode = false;
+
 
 
 }

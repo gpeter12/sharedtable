@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 public class UserDataPersistence {
 
     public UserDataPersistence() {
-        logger = LoggerConfig.setLogger(Logger.getLogger(MainView.class.getName()));
+        logger = Logger.getLogger(MainView.class.getName());
         try {
             getFile();
             readAllUserData();

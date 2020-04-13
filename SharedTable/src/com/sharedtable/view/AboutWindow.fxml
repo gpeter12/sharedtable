@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+      style="-fx-padding: 20px; -fx-spacing: 10px" prefWidth="400" prefHeight="200">
+    <Label style="-fx-font-size: 16px; -fx-font-weight: bold">Shared Table</Label>
+    <Label>Version: 0.8 beta</Label>
+    <Label>built on 2020.04.13 by Gaál Péter</Label>
+</VBox>

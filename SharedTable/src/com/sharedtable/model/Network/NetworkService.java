@@ -6,6 +6,7 @@ import com.sharedtable.controller.*;
 import com.sharedtable.controller.commands.Command;
 import com.sharedtable.controller.commands.DrawImageCommand;
 import com.sharedtable.model.Network.UPnP.UPnPConfigException;
+import com.sharedtable.model.Network.UPnP.UPnPHandler;
 import com.sharedtable.model.signals.*;
 import com.sharedtable.view.MainView;
 import com.sharedtable.view.MessageBox;
@@ -22,15 +23,31 @@ public class NetworkService {
     }
 
     public static void initLogger() {
-        logger = LoggerConfig.setLogger(Logger.getLogger(MainView.class.getName()));
+        logger = Logger.getLogger(MainView.class.getName());
+    }
+
+    public static void initService() {
+        initLogger();
+        me = new NetworkClientEntity(UserID.getUserID(), UserID.getNickname(), UserID.getPublicIP(),
+                -1,
+                TabController.getMementoCountOnAllCanvasController(),
+                null,Constants.getBuildNumber());
+        entityTree = new NetworkClientEntityTree(me);
     }
 
     public static NetworkClientEntityTree getEntityTree() {
         return entityTree;
     }
 
-    public static boolean enableReceivingConnections() {
-        int port1 = 23243;
+    public static boolean enableReceivingConnections(int port) {
+        int port1 = -1;
+        if(port==-1){
+            port1 = 23243;
+        } else {
+            port1 = port;
+        }
+
+
         try{
             prepareReceivingConnections(port1);
         } catch (IOException e) {
@@ -65,17 +82,22 @@ public class NetworkService {
     //launch connection receiver thread
     private static void prepareReceivingConnections(int port) throws IOException, UPnPConfigException {
         connectionReceiverThread = new ConnectionReceiverThread(port);
-
         connectionReceiverThread.start();
         me.setPort(connectionReceiverThread.getOpenedPort());
         logger.info("Prepared for receiving connections");
+        UPnPHandler.openPort(port);
     }
 
     //make outgoing connection
     public static void connect(final String IP, int port) throws IOException {
+        if(upperConnectedClientEntity != null) {
+            reconnecting = true;
+            upperConnectedClientEntity.handleScannerClose();
+        }
+
         upperConnectedClientEntity = new ConnectedClientEntity(new Socket(IP, port),
                 false);
-
+        reconnecting = false;
         //entityTree.addNetworkClientEntity(upperConnectedClientEntity.getNetworkClientEntity());
         //THREADING MIATT IDE MÁR SEMMI NEM JÖHET!
 
@@ -311,7 +333,8 @@ public class NetworkService {
                 me.getIP(),
                 me.getPort(),
                 me.getMementoNumber(),
-                me.getUpperClientID()).toString());
+                me.getUpperClientID(),
+                me.getClientBuildNumber()).toString());
         forwardMessageDownwards(discoverySignal.toString());
     }
 
@@ -397,7 +420,8 @@ public class NetworkService {
                 signal.getIP(),
                 signal.getPort(),
                 signal.getMementoNumber(),
-                signal.getParentID());
+                signal.getParentID(),
+                signal.getClientBuildNumber());
         addNetworkClientEntity(entity);
         sendEntityTreeSignal();
         notifyClientEntityTreeChange();
@@ -449,7 +473,7 @@ public class NetworkService {
             upperConnectedClientEntity = null;
             logger.info("connection upwards has dropped. Trying to connect another client on the known network...");
             logEntityTree();
-            if(findNewUpperClientEntityToConnect(id) == null &&
+            if(!reconnecting && findNewUpperClientEntityToConnect(id) == null &&
                     findNewSiblingClientEntityToConnect(id) == null)
             {
                 upperConnectedClientEntity = null;
@@ -524,6 +548,7 @@ public class NetworkService {
     //</editor-fold> desc="CLIENT OBJECT MANAGEMENT">
 
     private static boolean timeToStop = false;
+    private static boolean reconnecting = false;
     private static NetworkClientEntity me;
     private static NetworkClientEntityTree entityTree;
     private static ConnectedClientEntity upperConnectedClientEntity = null;
@@ -531,16 +556,7 @@ public class NetworkService {
     private static ConnectionReceiverThread connectionReceiverThread;
     private static CopyOnWriteArrayList<NotifyableClientEntityTreeChange> ClientEntityTreeChangeNotifyables = new CopyOnWriteArrayList<>();
     private static String networkPassword = Constants.getNoPasswordConstant();
-    private static Logger logger = null;
-
-    static {
-        me = new NetworkClientEntity(UserID.getUserID(), UserID.getNickname(), UserID.getPublicIP(),
-                -1,
-                TabController.getMementoCountOnAllCanvasController(),
-                null);
-        entityTree = new NetworkClientEntityTree(me);
-    }
-
+    private static Logger logger = Logger.getLogger(MainView.class.getName());
 
 
 }

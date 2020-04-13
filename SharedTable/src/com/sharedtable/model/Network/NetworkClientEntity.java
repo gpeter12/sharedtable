@@ -8,7 +8,7 @@ import java.util.UUID;
 public class NetworkClientEntity {
 
     public NetworkClientEntity(UUID uuid, String nickname, String IP, int port,
-                               int mementoNumber,UUID parentID)
+                               int mementoNumber,UUID parentID, int clientBuildNumber)
     {
         this.id = uuid;
         this.IP = IP;
@@ -16,6 +16,7 @@ public class NetworkClientEntity {
         this.nickname = nickname;
         this.mementoNumber = mementoNumber;
         this.upperClientID = parentID;
+        this.clientBuildNumber = clientBuildNumber;
     }
 
     public NetworkClientEntity(String[] input) {
@@ -29,6 +30,7 @@ public class NetworkClientEntity {
         port = Integer.parseInt(splittedInput[4]);
         mementoNumber = Integer.parseInt(input[5]);
         upperClientID = parentIDFromString(input[6]);
+        clientBuildNumber = Integer.parseInt(input[7]);
     }
 
     private String parentIDToString(UUID parentID) {
@@ -48,9 +50,14 @@ public class NetworkClientEntity {
 
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("HSI").append(";").append(id.toString()).append(";").append(nickname).append(";").append(IP).
-                append(";").append(port).append(";").append(mementoNumber).append(";").
-                append(parentIDToString(upperClientID)).append(";");
+        sb.append("HSI").append(";")
+                .append(id.toString()).append(";")
+                .append(nickname).append(";")
+                .append(IP).append(";")
+                .append(port).append(";")
+                .append(mementoNumber).append(";")
+                .append(parentIDToString(upperClientID)).append(";")
+                .append(clientBuildNumber).append(";"); //kell a separator, mert az EntityTreeSignal-ban ezek a stringek egymás után vannak fűzve!!!
         return sb.toString();
     }
 
@@ -90,7 +97,10 @@ public class NetworkClientEntity {
     public void setMementoNumber(int mementoNumber) {
         this.mementoNumber = mementoNumber;
     }
-
+    public void setPort(int i) {
+        port = i;
+    }
+    public int getClientBuildNumber() {return clientBuildNumber;}
     @Override
     public int hashCode() {
         return Objects.hash(id);
@@ -102,12 +112,8 @@ public class NetworkClientEntity {
     private String IP;
     private int port;
     private String nickname;
-
-
-
+    private int clientBuildNumber;
     private int mementoNumber;
 
-    public void setPort(int i) {
-        port = i;
-    }
+
 }

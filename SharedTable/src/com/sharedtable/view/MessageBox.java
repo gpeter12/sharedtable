@@ -38,14 +38,31 @@ public class MessageBox {
 
     public static void showError(String header, String message) {
         Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("HIBA!");
-            alert.setHeaderText(header);
-            alert.setContentText(message);
-            alert.showAndWait();
+           Alert alert = new Alert(Alert.AlertType.ERROR);
+           alert.setTitle("HIBA!");
+           alert.setHeaderText(header);
+           alert.setContentText(message);
+           alert.showAndWait();
         });
-
     }
+
+    public static void showSyncWindow() {
+        Platform.runLater(() -> {
+            syncProcessView = new SyncProcessView();
+        });
+    }
+
+    public static void closeSyncWindow() {
+        if(syncProcessView != null) {
+            Platform.runLater(() -> {
+                syncProcessView.closeWindow();
+            });
+        } else {
+            throw new RuntimeException("SyncProcessView was not shown!");
+        }
+    }
+
+    private static SyncProcessView syncProcessView = null;
 
     /*public static boolean showConfirmation(String header, String message) {
         Optional<ButtonType> result = null;

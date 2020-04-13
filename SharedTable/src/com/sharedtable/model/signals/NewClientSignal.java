@@ -5,7 +5,7 @@ import java.util.UUID;
 public class NewClientSignal implements Signal {
 
 public NewClientSignal(UUID clientID, String nickname, String IP, int port,
-                   int mementoNumber, UUID parentID)
+                   int mementoNumber, UUID parentID, int clientBuildNumber)
     {
         this.clientID = clientID;
         this.nickname = nickname;
@@ -13,6 +13,7 @@ public NewClientSignal(UUID clientID, String nickname, String IP, int port,
         this.port = port;
         this.mementoNumber = mementoNumber;
         this.parentID = parentID;
+        this.clientBuildNumber = clientBuildNumber;
     }
 
     public NewClientSignal(String[] input) {
@@ -22,6 +23,7 @@ public NewClientSignal(UUID clientID, String nickname, String IP, int port,
         port = Integer.parseInt(input[5]);
         mementoNumber = Integer.parseInt(input[6]);
         parentID = parentIDFromString(input[7]);
+        clientBuildNumber = Integer.parseInt(input[8]);
     }
 
     private String parentIDToString(UUID parentID) {
@@ -41,12 +43,13 @@ public NewClientSignal(UUID clientID, String nickname, String IP, int port,
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("SIG;CONN;").append(clientID).append(";").
-                append(nickname).append(";").
-                append(IP).append(";").
-                append(port).append(";").
-                append(mementoNumber).append(";").
-                append(parentIDToString(parentID));
+        sb.append("SIG;CONN;").append(clientID).append(";")
+                .append(nickname).append(";")
+                .append(IP).append(";")
+                .append(port).append(";")
+                .append(mementoNumber).append(";")
+                .append(parentIDToString(parentID)).append(";")
+                .append(clientBuildNumber).append(";"); //kell a separator, mert az EntityTreeSignal-ban ezek a stringek egymás után vannak fűzve!!!
         return sb.toString();
     }
 
@@ -98,7 +101,17 @@ public NewClientSignal(UUID clientID, String nickname, String IP, int port,
     public void setParentID(UUID parentID) {
         this.parentID = parentID;
     }
+
+    public int getClientBuildNumber() {
+        return clientBuildNumber;
+    }
+
+    public void setClientBuildNumber(int clientBuildNumber) {
+        this.clientBuildNumber = clientBuildNumber;
+    }
     //</editor-fold>
+
+
 
     private UUID clientID;
     private String nickname;
@@ -106,4 +119,5 @@ public NewClientSignal(UUID clientID, String nickname, String IP, int port,
     private int port;
     private int mementoNumber;
     private UUID parentID;
+    private int clientBuildNumber;
 }

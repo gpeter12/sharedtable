@@ -61,7 +61,7 @@ public class ClientsWindowController implements Initializable, NotifyableClientE
     private synchronized void init() {
         NetworkClientEntity rootEntity = NetworkService.getEntityTree().getRoot();
 
-        TreeItem rootChild = createTreeItem(rootEntity.getID().toString(),
+        TreeItem rootChild = createTreeItem(rootEntity.getNickname(),
                 UserID.getUserID().equals(rootEntity.getID()),
                 UserID.getUserID().equals(rootEntity.getID()),
                 rootEntity.getID().toString());
@@ -95,7 +95,7 @@ public class ClientsWindowController implements Initializable, NotifyableClientE
             return;
         for(NetworkClientEntity act : children) {
 
-            TreeItem<Text> child = createTreeItem(act.getID().toString(),UserID.getUserID().equals(act.getID()),
+            TreeItem<Text> child = createTreeItem(act.getNickname(),UserID.getUserID().equals(act.getID()),
                     UserID.getUserID().equals(act.getID()),act.getID().toString());
             viewRoot.getChildren().add(child);
             loadChildData(child,entityTree,act);

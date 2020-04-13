@@ -52,7 +52,11 @@ public class UserID {
         return res;
     }
 
-    private static UUID userID = UUID.randomUUID();
+    public static void setUserID(UUID id) {
+        userID = id;
+    }
+
+    private static UUID userID = null;
     private static String nickname = "nickname";
     private static final String IP = getPublicIPFromRouter();
     private static UserDataPersistence userDataPersistence;

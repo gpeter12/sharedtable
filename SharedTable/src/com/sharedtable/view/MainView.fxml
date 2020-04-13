@@ -8,7 +8,8 @@
             <MenuBar>
                 <!--<Menu text="Commands">
                     <MenuItem text="TestConnect" onAction="#onTestConnectPressed"></MenuItem>
-                </Menu>-->
+                    <MenuItem text="OpenWebView" onAction="#onOpenWebViewPressed"></MenuItem>
+                </Menu> -->
                 <Menu text="Hálózat">
                     <MenuItem text="Kapcsolódás más klienshez" onAction="#onConnectPressed"></MenuItem>
                     <MenuItem text="Bejövő kapcsolatok engedélyezése" onAction="#onEnableIncomingConnectionsPressed"></MenuItem>
@@ -33,8 +34,10 @@
                 <Menu text="Chat">
                     <MenuItem text="Beszélgetés megnyitása" onAction="#onOpenChatPressed"></MenuItem>
                 </Menu>
-                <Menu text="Névjegy">
-
+                <Menu text="Programról">
+                    <MenuItem text="Névjegy" onAction="#onAboutPressed"></MenuItem>
+                    <MenuItem text="Frissítések keresése" onAction="#onFindUpdatePressed"></MenuItem>
+                    <MenuItem text="Súgó" onAction="#onHelpPressed"></MenuItem>
                 </Menu>
             </MenuBar>
 

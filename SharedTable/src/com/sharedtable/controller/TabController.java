@@ -20,8 +20,7 @@ import java.util.logging.Logger;
 public class TabController {
 
     public TabController(STTabPane stTabPane, Stage primaryStage) {
-        logger = LoggerConfig.setLogger(Logger.getLogger(MainView.class.getName()));
-        this.primaryStage = primaryStage;
+        logger = Logger.getLogger(MainView.class.getName());        this.primaryStage = primaryStage;
         this.stTabPane = stTabPane;
         createNewTab(UUID.randomUUID(),UserID.getNickname()+" hozott vászna");
     }
@@ -151,6 +150,6 @@ public class TabController {
     private static Stage primaryStage;
     private static ArrayList<CanvasController> canvasControllers = new ArrayList<>();
     private static STTabPane stTabPane;
-    private static Logger logger = null;
+    private static Logger logger = Logger.getLogger(MainView.class.getName());
 
 }

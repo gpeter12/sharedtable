@@ -12,12 +12,13 @@ import javafx.scene.shape.Rectangle;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
 
 public class CanvasController {
 
     public CanvasController(STCanvas STCanvas, UUID canvasID) {
-        logger = LoggerConfig.setLogger(Logger.getLogger(MainView.class.getName()));
+        logger = Logger.getLogger(MainView.class.getName());
         this.STCanvas = STCanvas;
         this.canvasID = canvasID;
         STCanvas.initEventHandlers(this);
@@ -31,7 +32,8 @@ public class CanvasController {
         commandExecutorThread.start();
     }
 
-    public void mouseDown(Point p) {
+    public synchronized void mouseDown(Point p) {
+        try {semaphore.acquire(); } catch (InterruptedException e) {e.printStackTrace(); }
         lastPoint = p;
         isMouseDown = true;
         NetworkService.sendMementoOpenerSignal(UserID.getUserID(),canvasID,stateOriginator.getNextMementoID(),true);
@@ -76,6 +78,7 @@ public class CanvasController {
             NetworkService.forwardDrawImageCommandUpwards(drawImageCommand);
         }
         NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
+        semaphore.release();
     }
 
     public void mouseMove(Point p) {
@@ -272,7 +275,6 @@ public class CanvasController {
             stateCaretaker.addMemento(memento, actMementoID, link);
         }
         actMementoID = memento.getId();
-        logger.info("new memento added: "+actMementoID);
         return memento;
     }
 
@@ -327,6 +329,8 @@ public class CanvasController {
         throw new UnsupportedOperationException();
     }
 
+
+
     private RemoteDrawLineCommandBufferHandler remoteDrawLineCommandBufferHandler =
             new RemoteDrawLineCommandBufferHandler(this);
     private UUID canvasID;
@@ -337,12 +341,12 @@ public class CanvasController {
     private Rectangle currentRect;
     private Image currentImage;
     private STCanvas STCanvas;
-    private DrawingMode currentMode = DrawingMode.Rectangle;
+    private DrawingMode currentMode = DrawingMode.ContinousLine;
     private UUID actMementoID;
     private CommandExecutorThread commandExecutorThread = new CommandExecutorThread();
     private Color currentColor = Color.BLACK;
     private int currentLineWidth = 1;
-
+    private Semaphore semaphore = new Semaphore(1);
     private Logger logger = null;
 
 

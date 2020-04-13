@@ -1,5 +1,6 @@
 package com.sharedtable.model.Network;
 
+import com.sharedtable.Constants;
 import com.sharedtable.LoggerConfig;
 import com.sharedtable.controller.*;
 import com.sharedtable.controller.commands.*;
@@ -18,8 +19,8 @@ import java.util.logging.Logger;
 public class ConnectedClientEntity extends Thread {
 
     public ConnectedClientEntity(Socket socket, boolean isLowerClientEntity) {
-        logger = LoggerConfig.setLogger(Logger.getLogger(MainView.class.getName()));
-        logger.info("creating ConnectedClientEntity "+socket.getInetAddress()+" isLower: "+isLowerClientEntity);
+        logger = Logger.getLogger(MainView.class.getName());
+        logger.info("creating ConnectedClientEntity isLower: "+isLowerClientEntity);
         this.socket = socket;
         this.isLowerClientEntity = isLowerClientEntity;
         try {
@@ -47,6 +48,7 @@ public class ConnectedClientEntity extends Thread {
         try {
             handshakingProcess();
         } catch (Exception e) {
+            e.printStackTrace();
             logger.warning(e.getMessage());
             handleScannerClose();
             return;
@@ -82,7 +84,7 @@ public class ConnectedClientEntity extends Thread {
         }
     }
 
-    private void handleScannerClose() {
+    public void handleScannerClose() {
         logger.info("handling scanner close. closing connection...");
         if(!timeToStop){
             if(amiServer()) {
@@ -341,7 +343,7 @@ public class ConnectedClientEntity extends Thread {
         return receivedCommand;
     }
 
-    public void sendDrawImageCommand(DrawImageCommand command) {
+    public synchronized void sendDrawImageCommand(DrawImageCommand command) {
         command.setImageSize(command.getImageBytes().length);
         sendPlainText(command.toString());
         isReadyToSendTo = false;
@@ -408,8 +410,10 @@ public class ConnectedClientEntity extends Thread {
         return isLowerClientEntity;
     }
 
-    private void handshakingProcess() {
+    private synchronized void handshakingProcess() {
         logger.info("handshaking process started");
+        MessageBox.showSyncWindow();
+
         NetworkClientEntity remoteHandshakingInfo = null;
         NetworkClientEntity myHandshakingInfo = NetworkService.getMyNetworkClientEntity();
 
@@ -429,6 +433,9 @@ public class ConnectedClientEntity extends Thread {
         id = remoteHandshakingInfo.getID();
         logger.info("remote ID: "+id);
         networkClientEntity = remoteHandshakingInfo;
+
+
+
         NetworkService.addNetworkClientEntity(remoteHandshakingInfo);
 
         if(amiServer()){
@@ -478,9 +485,12 @@ public class ConnectedClientEntity extends Thread {
                     networkClientEntity.getIP(),
                     networkClientEntity.getPort(),
                     networkClientEntity.getMementoNumber(),
-                    networkClientEntity.getUpperClientID()));
+                    networkClientEntity.getUpperClientID(),
+                    networkClientEntity.getClientBuildNumber()));
         }
         NetworkService.sendDiscoverySignal();
+        MessageBox.closeSyncWindow();
+        VersionMismatchHandler.HandleVersionMismatch(checkClientVersion(remoteHandshakingInfo));
     }
     //</editor-fold> desc="COMMAND HANDLING">
 
@@ -533,6 +543,10 @@ public class ConnectedClientEntity extends Thread {
         dataOutputStream = new DataOutputStream(new BufferedOutputStream(outputStream));
         //dataInputStream.
         logger.info("connections's I/O streams are initialized!");
+    }
+
+    private int checkClientVersion(NetworkClientEntity entity) {
+        return Integer.compare(entity.getClientBuildNumber(), Constants.getBuildNumber());
     }
 
     private void sendAllImageBytesCountOnSync(int bytesCount) {
@@ -626,5 +640,5 @@ public class ConnectedClientEntity extends Thread {
     private boolean isLowerClientEntity;
     private UUID id = null;
     private NetworkClientEntity networkClientEntity;
-    private static Logger logger = null;
+    private Logger logger;
 }

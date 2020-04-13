@@ -1,11 +1,15 @@
 package com.sharedtable.controller;
 
+import com.sharedtable.view.MainView;
+
 import java.util.ArrayList;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 public class StateCaretaker {
 
     public StateCaretaker() {
+        logger = java.util.logging.Logger.getLogger(MainView.class.getName());
     }
 
     private void linkWithLastMemento(StateMemento stateMemento) {
@@ -15,9 +19,16 @@ public class StateCaretaker {
     }
 
     public void addMemento(StateMemento stateMemento,boolean link) {
+        logger.info("new memento added to the top: "+stateMemento.getId());
         if (mementos.size() > 0 && link)
             linkWithLastMemento(stateMemento);
         mementos.add(stateMemento);
+    }
+
+    public void addMemento(StateMemento stateMemento, UUID after, boolean link) {
+        logger.info("new memento INSERTED: "+stateMemento.getId());
+        cleanupAfterStateInsertion(after);
+        addMemento(stateMemento,link);
     }
 
     public void printAllMementos() {
@@ -36,13 +47,12 @@ public class StateCaretaker {
         return false;
     }
 
-    public void addMemento(StateMemento stateMemento, UUID after, boolean link) {
-        cleanupAfterStateInsertion(after);
-        addMemento(stateMemento,link);
-    }
+
 
     private void cleanupAfterStateInsertion(UUID wantedMementoID) {
-        while (getMementoByIndex(mementos.size() - 1).getId().equals(wantedMementoID)) {
+        logger.info("cleaning up from top until reach "+wantedMementoID);
+        while (!(getMementoByIndex(mementos.size() - 1).getId().equals(wantedMementoID))) {
+            logger.info("removing #"+(mementos.size() - 1)+" memento due to insertion between 2 mementos.");
             mementos.remove(getMementoByIndex(mementos.size() - 1));
             if(mementos.size()==0) {
                 throw new RuntimeException("target memento not found, all mementos were removed.");
@@ -82,4 +92,5 @@ public class StateCaretaker {
     }
 
     private ArrayList<StateMemento> mementos = new ArrayList<>();
+    private Logger logger;
 }
