@@ -2,9 +2,7 @@ package com.sharedtable.view;
 
 
 import com.sharedtable.Constants;
-import com.sharedtable.LoggerConfig;
 import com.sharedtable.controller.*;
-import com.sharedtable.model.Network.NetworkClientEntity;
 import com.sharedtable.model.Network.NetworkService;
 import com.sharedtable.model.Network.UPnP.UPnPConfigException;
 import com.sharedtable.model.Network.UPnP.UPnPHandler;
@@ -30,9 +28,12 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.UUID;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -106,8 +107,9 @@ public class MainView extends Application  {
     }
 
     private void initUserData() {
+        UserID.setPublicIP(getExternalIP());
         UserDataPersistence userDataPersistence = new UserDataPersistence();
-        UserID.setPersistence(userDataPersistence);
+        UserID.initWithPersistence(userDataPersistence);
         if(userDataPersistence.isRequiresInit()){
             logger.info("user data file not initalized yet");
             SetClientDataWindowController setClientDataWindowController =
@@ -400,6 +402,40 @@ public class MainView extends Application  {
         }
         catch (UPnPConfigException e){
             logger.severe("UPnP.closePort() failed!");
+        }
+    }
+
+    private static String getPublicIPFromRouter() throws UPnPConfigException {
+        return UPnPHandler.getExternalIP();
+    }
+
+    private static String getPublicIPFromWeb() throws ExternalIPDownloadFailureException {
+        String systemipaddress = "";
+        try {
+            URL url_name = new URL("http://bot.whatismyipaddress.com");
+
+            BufferedReader sc = new BufferedReader(new InputStreamReader(url_name.openStream()));
+
+            // reads system IPAddress
+            systemipaddress = sc.readLine().trim();
+        } catch (Exception e) {
+            throw new ExternalIPDownloadFailureException(e.getMessage());
+        }
+        return systemipaddress;
+    }
+
+    private static String getExternalIP() {
+        try{
+            return getPublicIPFromRouter();
+        } catch (UPnPConfigException e) {
+            //e.printStackTrace();
+            logger.warning("can't get External IP due to UPnPConfigException! Trying to get it from web...");
+            try {
+                return getPublicIPFromWeb();
+            } catch (ExternalIPDownloadFailureException e2) {
+                logger.warning("can't get external IP due to ExternalIPDownloadFailureException: "+e2);
+                return "ExternalIPDownloadFailureException";
+            }
         }
     }
 

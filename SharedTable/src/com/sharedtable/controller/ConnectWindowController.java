@@ -7,6 +7,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
 import java.net.URL;
@@ -16,6 +17,19 @@ public class ConnectWindowController implements Initializable {
 
     @FXML
     void btnConnectButtonClicked(ActionEvent event) {
+        onClosing();
+        closeStage(event);
+    }
+
+    @FXML
+    public void onKeyPressed(KeyEvent keyEvent) {
+        onClosing();
+        Node source = (Node) keyEvent.getSource();
+        Stage stage = (Stage) source.getScene().getWindow();
+        stage.close();
+    }
+
+    private void onClosing() {
         try{
             connectionLink = new ConnectionLink(connectionLinkField.getText());
         } catch (IllegalArgumentException e) {
@@ -23,7 +37,6 @@ public class ConnectWindowController implements Initializable {
             return;
         }
         isCanceled = false;
-        closeStage(event);
     }
 
     public ConnectionLink getConnectionLink() {
@@ -54,4 +67,6 @@ public class ConnectWindowController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
     }
+
+
 }

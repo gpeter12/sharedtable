@@ -5,6 +5,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
 import java.net.URL;
@@ -26,6 +28,17 @@ public class SetClientDataWindowController implements Initializable {
         closeStage(actionEvent);
     }
 
+    @FXML
+    public void onKeyPressed(KeyEvent keyEvent) {
+        if (keyEvent.getCode().equals(KeyCode.ENTER)) {
+            isCanceled = false;
+
+            Node source = (Node) keyEvent.getSource();
+            Stage stage = (Stage) source.getScene().getWindow();
+            stage.close();
+        }
+    }
+
     public boolean isCanceled() {return isCanceled;}
 
     private void closeStage(ActionEvent event) {
@@ -43,5 +56,6 @@ public class SetClientDataWindowController implements Initializable {
     @FXML
     private TextField nicknameField;
     private boolean isCanceled = true;
+
 
 }

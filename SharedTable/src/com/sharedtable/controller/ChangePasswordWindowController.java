@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.PasswordField;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
 import java.net.URL;
@@ -18,13 +19,25 @@ public class ChangePasswordWindowController implements Initializable {
     }
 
     public void btnChangePasswordClicked(ActionEvent actionEvent) {
+        onClosing();
+        closeStage(actionEvent);
+    }
+
+    @FXML
+    public void onKeyPressed(KeyEvent keyEvent) {
+        onClosing();
+        Node source = (Node) keyEvent.getSource();
+        Stage stage = (Stage) source.getScene().getWindow();
+        stage.close();
+    }
+
+    private void onClosing(){
         if(passwordField1.getText().equals(passwordField2.getText())) {
             isCanceled = false;
         } else {
             MessageBox.showError("A megadott jelszavak nem egyeznek meg!","A két mezőnek ugyanazt a jelszót kell tartalmaznia!");
             isCanceled = true;
         }
-        closeStage(actionEvent);
     }
 
     @Override
@@ -53,6 +66,7 @@ public class ChangePasswordWindowController implements Initializable {
 
 
     private boolean isCanceled = true;
+
 
 
 }

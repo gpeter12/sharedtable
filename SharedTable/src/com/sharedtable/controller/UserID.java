@@ -5,7 +5,10 @@ import com.sharedtable.model.Network.UPnP.UPnPConfigException;
 import com.sharedtable.model.Network.UPnP.UPnPHandler;
 import com.sharedtable.model.Persistence.UserDataPersistence;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.UUID;
 
 public class UserID {
@@ -14,10 +17,16 @@ public class UserID {
 
     }
 
-    public static void setPersistence(UserDataPersistence persistence) {
+    public static void initWithPersistence(UserDataPersistence persistence) {
         userID = persistence.getUserID();
         nickname = persistence.getUserNickname();
         userDataPersistence =persistence;
+    }
+
+    public static void initWithoutPersistence(UUID userID, String nickname, String externalIP) {
+        UserID.userID = userID;
+        UserID.nickname = nickname;
+        UserID.IP = externalIP;
     }
 
     public static UUID getUserID() {
@@ -32,6 +41,8 @@ public class UserID {
         return IP;
     }
 
+    public static void setPublicIP(String ip) {IP = ip;}
+
     public static void setNickname(String nickname) {
         UserID.nickname = nickname;
         userDataPersistence.setUserNickname(nickname);
@@ -42,15 +53,7 @@ public class UserID {
         }
     }
 
-    private static String getPublicIPFromRouter() {
-        String res;
-        try {
-            res = UPnPHandler.getExternalIP();
-        } catch (UPnPConfigException e) {
-            return "UPnP Unsupported";
-        }
-        return res;
-    }
+
 
     public static void setUserID(UUID id) {
         userID = id;
@@ -58,6 +61,7 @@ public class UserID {
 
     private static UUID userID = null;
     private static String nickname = "nickname";
-    private static final String IP = getPublicIPFromRouter();
+    private static String IP = null;
     private static UserDataPersistence userDataPersistence;
+
 }

@@ -7,7 +7,7 @@
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.sharedtable.controller.SetClientDataWindowController"
-      alignment="center" spacing="10" minWidth="300" minHeight="200">
+      alignment="center" spacing="10" minWidth="300" minHeight="200" onKeyPressed="#onKeyPressed">
     <Label style="-fx-font-size: 16px; -fx-font-weight: bold">Add meg a nickneved</Label>
     <TextField fx:id="nicknameField" maxWidth="200" prefHeight="20"
            promptText="nicknév"></TextField>
