@@ -17,25 +17,36 @@ public class ConnectWindowController implements Initializable {
 
     @FXML
     void btnConnectButtonClicked(ActionEvent event) {
-        onClosing();
+        try {
+            onClosing();
+        } catch (IllegalArgumentException e) {
+            onInvalidInput(e);
+            return;
+        }
         closeStage(event);
     }
 
     @FXML
     public void onKeyPressed(KeyEvent keyEvent) {
+        try {
+            onClosing();
+        } catch (IllegalArgumentException e) {
+            onInvalidInput(e);
+            return;
+        }
         onClosing();
         Node source = (Node) keyEvent.getSource();
         Stage stage = (Stage) source.getScene().getWindow();
         stage.close();
     }
 
-    private void onClosing() {
-        try{
-            connectionLink = new ConnectionLink(connectionLinkField.getText());
-        } catch (IllegalArgumentException e) {
-            MessageBox.showError("Érvénytelen kapcsolódási link!","A megadott kapcsolódási link érvénytelen!\n"+e.getMessage());
-            return;
-        }
+    private void onInvalidInput(IllegalArgumentException e) {
+        MessageBox.showError("Érvénytelen kapcsolódási link!","A megadott kapcsolódási link érvénytelen!\n"+e.getMessage());
+        isCanceled =true;
+    }
+
+    private void onClosing() throws IllegalArgumentException{
+        connectionLink = new ConnectionLink(connectionLinkField.getText());
         isCanceled = false;
     }
 

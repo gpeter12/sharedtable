@@ -139,7 +139,7 @@ public class CanvasController {
         commandExecutorThread.timeToStop();
     }
 
-    public void redo() {
+    public synchronized void redo() {
         if(TabController.getActualCanvasControler().equals(this)){
             restoreNextMemento();
             Sleep.sleep(100,logger);
@@ -147,7 +147,7 @@ public class CanvasController {
 
     }
 
-    public void undo() {
+    public synchronized void undo() {
         if(TabController.getActualCanvasControler().equals(this)){
             restorePreviosMemento();
             Sleep.sleep(100,logger);

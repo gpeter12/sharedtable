@@ -332,7 +332,7 @@ public class MainView extends Application  {
         if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
             new Thread(() -> {
                 try {
-                    Desktop.getDesktop().browse(new URI("http://www.google.com"));
+                    Desktop.getDesktop().browse(new URI("https://people.inf.elte.hu/gpeter/sharedtable/faq.html"));
                 } catch (IOException | URISyntaxException e1) {
                     e1.printStackTrace();
                 }

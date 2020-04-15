@@ -13,6 +13,7 @@ import com.sharedtable.view.MessageBox;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.security.MessageDigestSpi;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
@@ -40,6 +41,10 @@ public class NetworkService {
     }
 
     public static boolean enableReceivingConnections(int port) {
+        if(connectionReceiverThread != null){
+            MessageBox.showInformation("Már készen állok...","A bejövő kapcsolatok fogadása már lehetséges!");
+            return true;
+        }
         int port1 = -1;
         if(port==-1){
             port1 = 23243;

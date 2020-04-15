@@ -19,24 +19,38 @@ public class ChangePasswordWindowController implements Initializable {
     }
 
     public void btnChangePasswordClicked(ActionEvent actionEvent) {
-        onClosing();
+        try{
+            onClosing();
+        } catch (IllegalArgumentException e) {
+            onPasswordMismatch();
+            return;
+        }
         closeStage(actionEvent);
     }
 
     @FXML
     public void onKeyPressed(KeyEvent keyEvent) {
-        onClosing();
+        try{
+            onClosing();
+        } catch (IllegalArgumentException e) {
+            onPasswordMismatch();
+            return;
+        }
         Node source = (Node) keyEvent.getSource();
         Stage stage = (Stage) source.getScene().getWindow();
         stage.close();
     }
 
-    private void onClosing(){
+    private void onPasswordMismatch() {
+        MessageBox.showError("A megadott jelszavak nem egyeznek meg!","A két mezőnek ugyanazt a jelszót kell tartalmaznia!");
+        isCanceled = true;
+    }
+
+    private void onClosing() throws IllegalArgumentException{
         if(passwordField1.getText().equals(passwordField2.getText())) {
             isCanceled = false;
         } else {
-            MessageBox.showError("A megadott jelszavak nem egyeznek meg!","A két mezőnek ugyanazt a jelszót kell tartalmaznia!");
-            isCanceled = true;
+            throw new IllegalArgumentException("password mismatch!");
         }
     }
 

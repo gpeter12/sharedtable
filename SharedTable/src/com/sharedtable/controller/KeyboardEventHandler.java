@@ -9,17 +9,30 @@ public class KeyboardEventHandler {
 
     public void handleEvent(KeyEvent event) {
 
-        //redo keycombo
-        if (event.isControlDown() && isZDown(event) && !event.isShiftDown()) {
+        //redo keycomboSys
+        if(System.getProperty("os.name").contains("Windows")){
+            if (event.isControlDown() && event.getText().equals("z")) {
+                canvasController.undo();
 
-            canvasController.undo();
+            }
+            //undo keycombo
+            if (event.isControlDown() && event.getText().equals("y")) {
+                canvasController.redo();
+
+            }
+        } else if(System.getProperty("os.name").contains("Linux")){
+            if (event.isControlDown() && isZDown(event) && !event.isShiftDown()) {
+
+                canvasController.undo();
+            }
+
+            //undo keycombo
+            if (event.isControlDown() && event.isShiftDown() && isZDown(event)) {
+                canvasController.redo();
+
+            }
         }
 
-        //undo keycombo
-        if (event.isControlDown() && event.isShiftDown() && isZDown(event)) {
-            canvasController.redo();
-
-        }
     }
 
     private boolean isZDown(KeyEvent event) {
