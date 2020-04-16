@@ -1,5 +1,7 @@
 package com.sharedtable.model.Persistence;
 
+import com.sharedtable.Constants;
+
 import java.io.File;
 
 public class FilePathHandler {
@@ -38,11 +40,4 @@ public class FilePathHandler {
         }
     }
 
-    public static boolean isPlatformWindows() {
-        return System.getProperty("os.name").contains("Windows");
-    }
-
-    public static boolean isPlatformLinux() {
-        return System.getProperty("os.name").contains("Linux");
-    }
 }

@@ -1,6 +1,6 @@
 package com.sharedtable.model.Persistence;
 
-import com.sharedtable.LoggerConfig;
+import com.sharedtable.Constants;
 import com.sharedtable.view.MainView;
 import com.sharedtable.view.MessageBox;
 import org.json.simple.JSONObject;
@@ -42,10 +42,10 @@ public class UserDataPersistence {
 
     private File getFile() throws UnrecognizedOSException, IOException {
         String filePath;
-        if(FilePathHandler.isPlatformWindows()) {
+        if(Constants.isPlatformWindows()) {
             FilePathHandler.createDirectory(FilePathHandler.getDirectoryPathOnWindows());
             filePath = FilePathHandler.getFilePathOnWindows();
-        } else if(FilePathHandler.isPlatformLinux()){
+        } else if(Constants.isPlatformLinux()){
             FilePathHandler.createDirectory(FilePathHandler.getDirectoryPathOnLinux());
             filePath = FilePathHandler.getFilePathOnLinux();
         } else {

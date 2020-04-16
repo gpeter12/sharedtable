@@ -14,8 +14,9 @@ import java.util.UUID;
 
 public class RemoteDrawLineCommandBufferHandler {
 
-    public RemoteDrawLineCommandBufferHandler(CanvasController canvasController) {
+    public RemoteDrawLineCommandBufferHandler(CanvasController canvasController, BooleanFlag isMementoCreating) {
         this.canvasController = canvasController;
+        this.isMementoCreating = isMementoCreating;
     }
 
     public void addCommand(Command command) {
@@ -31,9 +32,11 @@ public class RemoteDrawLineCommandBufferHandler {
         commandBuffers.remove(userID);
         if(!isLinked)
             canvasController.processSateChangeCommand(mementoID); //a láncolási szakadásokat figyelembe véve újra rajzol
+        isMementoCreating.setFlag(!commandBuffers.isEmpty());
     }
 
     public void openNewMemento(UUID userID) {
+        isMementoCreating.setFlag(true);
         if (commandBuffers.containsKey(userID)) {
             throw new RuntimeException("user related command buffer already exists!");
         }
@@ -50,4 +53,5 @@ public class RemoteDrawLineCommandBufferHandler {
 
     private HashMap<UUID, ArrayList<Command>> commandBuffers = new HashMap<>();
     private CanvasController canvasController;
+    private BooleanFlag isMementoCreating;
 }

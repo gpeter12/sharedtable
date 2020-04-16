@@ -17,8 +17,8 @@ public class EntityTreeSignal implements Signal {
         entityTree = new NetworkClientEntityTree();
         creatorID = UUID.fromString(input[2]);
         ArrayList<NetworkClientEntity> res = new ArrayList<>();
-        for(int i=3; i<input.length; i=i+8) {
-            String[] pres = new String[8];
+        for(int i=3; i<input.length; i=i+9){//MODIFY i=i+9!
+            String[] pres = new String[9]; //MODIFY 9!
             pres[0] = input[i];
             pres[1] = input[i+1];
             pres[2] = input[i+2];
@@ -27,6 +27,7 @@ public class EntityTreeSignal implements Signal {
             pres[5] = input[i+5];
             pres[6] = input[i+6];
             pres[7] = input[i+7];
+            pres[8] = input[i+8];
             NetworkClientEntity entity = new NetworkClientEntity(pres);
             res.add(entity);
         }

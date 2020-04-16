@@ -18,13 +18,14 @@ import java.util.logging.Logger;
 
 public class ConnectedClientEntity extends Thread {
 
-    public ConnectedClientEntity(Socket socket, boolean isLowerClientEntity) {
+    public ConnectedClientEntity(Socket socket, Socket brSocket, boolean isLowerClientEntity) {
         logger = Logger.getLogger(MainView.class.getName());
         logger.info("creating ConnectedClientEntity isLower: "+isLowerClientEntity);
         this.socket = socket;
+        this.byteReceiverSocket = brSocket;
         this.isLowerClientEntity = isLowerClientEntity;
         try {
-            initializeStreams(socket);
+            initializeStreams(socket,brSocket);
         } catch (Exception e) {
             logger.warning("Inititalization of input/output network streams failed.");
             throw new RuntimeException("Inititalization of input/output network streams failed.");
@@ -133,6 +134,7 @@ public class ConnectedClientEntity extends Thread {
             outputStream.close();
             inputStream.close();
             socket.close();
+            byteReceiverSocket.close();
             NetworkService.removeClientEntity(id);
             setClientEntityReady();
         } catch (IOException e) {
@@ -286,37 +288,37 @@ public class ConnectedClientEntity extends Thread {
                 openNewMemento(
                         (signal.getCreatorID()));
     }
-        //<editor-fold desc="PINGING">
+    //<editor-fold desc="PINGING">
 
-        private void handlePingSignal(PingSignal pingSignal) {
-            if(pingSignal.getTargetClientID().equals(UserID.getUserID()) && !pingSignal.isRespond())
-                sendPingSignalResponse(pingSignal);
-            if(pingSignal.isRespond() &&
-                    pingSignal.getPingID().equals(currentPingIDToWaitFor))
-            {
-                pingFinish = System.nanoTime();
-            }
+    private void handlePingSignal(PingSignal pingSignal) {
+        if(pingSignal.getTargetClientID().equals(UserID.getUserID()) && !pingSignal.isRespond())
+            sendPingSignalResponse(pingSignal);
+        if(pingSignal.isRespond() &&
+                pingSignal.getPingID().equals(currentPingIDToWaitFor))
+        {
+            pingFinish = System.nanoTime();
         }
+    }
 
-        private void sendPingSignalResponse(PingSignal signal) {
-            signal.setRespond(true);
-            NetworkService.sendSignalDownwards(signal);
-            NetworkService.sendSignalUpwards(signal);
+    private void sendPingSignalResponse(PingSignal signal) {
+        signal.setRespond(true);
+        NetworkService.sendSignalDownwards(signal);
+        NetworkService.sendSignalUpwards(signal);
+    }
+
+    public void setPingIDtoWaitFor(UUID pingID) {
+        currentPingIDToWaitFor = pingID;
+    }
+
+    public long getPingResult(UUID pingID) {
+        if(pingID.equals(currentPingIDToWaitFor)){
+            return pingFinish;
+        } else {
+            return -1;
         }
+    }
 
-        public void setPingIDtoWaitFor(UUID pingID) {
-            currentPingIDToWaitFor = pingID;
-        }
-
-        public long getPingResult(UUID pingID) {
-                if(pingID.equals(currentPingIDToWaitFor)){
-                    return pingFinish;
-                } else {
-                    return -1;
-                }
-        }
-
-        //</editor-fold> desc="PINGING">
+    //</editor-fold> desc="PINGING">
 
     //</editor-fold> desc="SIGNAL HANDLING">
 
@@ -534,14 +536,14 @@ public class ConnectedClientEntity extends Thread {
 
     //</editor-fold>
 
-    private void initializeStreams(Socket socket) throws IOException {
+    private void initializeStreams(Socket socket,Socket brSocket) throws IOException {
         outputStream = socket.getOutputStream();
         inputStream = socket.getInputStream();
         scanner = new Scanner(new InputStreamReader(new BufferedInputStream(inputStream)));
         bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
-        dataInputStream = new DataInputStream(new BufferedInputStream(inputStream));
-        dataOutputStream = new DataOutputStream(new BufferedOutputStream(outputStream));
-        //dataInputStream.
+        dataInputStream = new DataInputStream(new BufferedInputStream(byteReceiverSocket.getInputStream()));
+        dataOutputStream = new DataOutputStream(new BufferedOutputStream(byteReceiverSocket.getOutputStream()));
+
         logger.info("connections's I/O streams are initialized!");
     }
 
@@ -550,14 +552,14 @@ public class ConnectedClientEntity extends Thread {
     }
 
     private void sendAllImageBytesCountOnSync(int bytesCount) {
-        Sleep.sleep(400,logger);
+        //Sleep.sleep(400,logger);
         unsafeSendPlainText(String.valueOf(bytesCount));
         logger.info("bytes count sent");
     }
 
     private void sendAllImageBytesOnSync(byte[] input) {
         try {
-            Sleep.sleep(400,logger);
+            //Sleep.sleep(400,logger);
             sendByteArrayUnsafe(input);
             logger.info("all image bytes sent");
         } catch (IOException e) {
@@ -631,6 +633,7 @@ public class ConnectedClientEntity extends Thread {
     private boolean isThreadInWait = false;
     private boolean timeToStop = false;
     private Socket socket;
+    private Socket byteReceiverSocket;
     private OutputStream outputStream;
     private InputStream inputStream;
     private BufferedWriter bufferedWriter;

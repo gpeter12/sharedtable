@@ -1,5 +1,7 @@
 package com.sharedtable.model.signals;
 
+import com.sharedtable.Constants;
+
 import java.util.UUID;
 
 public class NewClientSignal implements Signal {
@@ -14,6 +16,7 @@ public NewClientSignal(UUID clientID, String nickname, String IP, int port,
         this.mementoNumber = mementoNumber;
         this.parentID = parentID;
         this.clientBuildNumber = clientBuildNumber;
+        this.platform = Constants.getPLatformString();
     }
 
     public NewClientSignal(String[] input) {
@@ -24,6 +27,7 @@ public NewClientSignal(UUID clientID, String nickname, String IP, int port,
         mementoNumber = Integer.parseInt(input[6]);
         parentID = parentIDFromString(input[7]);
         clientBuildNumber = Integer.parseInt(input[8]);
+        platform = input[9];
     }
 
     private String parentIDToString(UUID parentID) {
@@ -49,7 +53,8 @@ public NewClientSignal(UUID clientID, String nickname, String IP, int port,
                 .append(port).append(";")
                 .append(mementoNumber).append(";")
                 .append(parentIDToString(parentID)).append(";")
-                .append(clientBuildNumber).append(";"); //kell a separator, mert az EntityTreeSignal-ban ezek a stringek egymás után vannak fűzve!!!
+                .append(clientBuildNumber).append(";")
+                .append(platform).append(";"); //kell a separator, mert az EntityTreeSignal-ban ezek a stringek egymás után vannak fűzve!!!
         return sb.toString();
     }
 
@@ -120,4 +125,5 @@ public NewClientSignal(UUID clientID, String nickname, String IP, int port,
     private int mementoNumber;
     private UUID parentID;
     private int clientBuildNumber;
+    private String platform;
 }

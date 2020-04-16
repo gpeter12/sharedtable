@@ -1,6 +1,5 @@
 package com.sharedtable.controller;
 
-import com.sharedtable.LoggerConfig;
 import com.sharedtable.controller.commands.*;
 import com.sharedtable.model.Network.NetworkService;
 import com.sharedtable.view.MainView;
@@ -33,13 +32,60 @@ public class CanvasController {
     }
 
     public synchronized void mouseDown(Point p) {
+        if(lastOpenedMementoID != null) {
+            NetworkService.sendMementoCloserSignal(UserID.getUserID(),getCanvasID(),lastOpenedMementoID,true);
+        }
+        if(isMementoCreatingFromRemote.isFlag())
+            return;
         try {semaphore.acquire(); } catch (InterruptedException e) {e.printStackTrace(); }
         lastPoint = p;
         isMouseDown = true;
+        lastOpenedMementoID = stateOriginator.getNextMementoID();
         NetworkService.sendMementoOpenerSignal(UserID.getUserID(),canvasID,stateOriginator.getNextMementoID(),true);
     }
 
+    public void mouseMove(Point p) {
+        if(isMementoCreatingFromRemote.isFlag() || !isMouseDown)
+            return;
+        if (isMouseDown) {
+            Command command;
+            if (currentMode == DrawingMode.ContinousLine) {
+                command = new DrawLineCommand(this, lastPoint, p, UserID.getUserID(),currentColor,currentLineWidth);
+                stateOriginator.addCommand(command);
+                commandExecutorThread.addCommandToCommandQueue(command);
+                lastPoint = p;
+                NetworkService.propagateCommandDownwards(command);
+                NetworkService.propagateCommandUpwards(command);
+            } else if(currentMode == DrawingMode.Rectangle) {
+                currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
+                command = new DrawRectangleCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
+                processSateChangeCommand(getCurrentMementoID());
+                commandExecutorThread.addCommandToCommandQueue(command);
+            } else if(currentMode == DrawingMode.Triangle) {
+                currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
+                command = new DrawTriangleCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
+                processSateChangeCommand(getCurrentMementoID());
+                commandExecutorThread.addCommandToCommandQueue(command);
+            } else if(currentMode == DrawingMode.Ellipse) {
+                currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
+                command = new DrawEllipseCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
+                processSateChangeCommand(getCurrentMementoID());
+                commandExecutorThread.addCommandToCommandQueue(command);
+            } else if(currentMode == DrawingMode.Image) {
+                currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
+                command = new DrawImageCommand(this,UserID.getUserID(),currentRect,currentImage,stateOriginator.getNextMementoID());
+                processSateChangeCommand(getCurrentMementoID());
+                commandExecutorThread.addCommandToCommandQueue(command);
+            }
+            else {
+                throw new RuntimeException("no drawing mode selected");
+            }
+        }
+    }
+
     public synchronized void mouseUp(Point p) {
+        if(isMementoCreatingFromRemote.isFlag()||!isMouseDown)
+            return;
         isMouseDown = false;
         if(currentMode == DrawingMode.ContinousLine) {
             lastPoint = p;
@@ -79,43 +125,7 @@ public class CanvasController {
         }
         NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
         semaphore.release();
-    }
-
-    public void mouseMove(Point p) {
-        if (isMouseDown) {
-            Command command;
-            if (currentMode == DrawingMode.ContinousLine) {
-                command = new DrawLineCommand(this, lastPoint, p, UserID.getUserID(),currentColor,currentLineWidth);
-                stateOriginator.addCommand(command);
-                commandExecutorThread.addCommandToCommandQueue(command);
-                lastPoint = p;
-                NetworkService.propagateCommandDownwards(command);
-                NetworkService.propagateCommandUpwards(command);
-            } else if(currentMode == DrawingMode.Rectangle) {
-                currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
-                command = new DrawRectangleCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
-                processSateChangeCommand(getCurrentMementoID());
-                commandExecutorThread.addCommandToCommandQueue(command);
-            } else if(currentMode == DrawingMode.Triangle) {
-                currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
-                command = new DrawTriangleCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
-                processSateChangeCommand(getCurrentMementoID());
-                commandExecutorThread.addCommandToCommandQueue(command);
-            } else if(currentMode == DrawingMode.Ellipse) {
-                currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
-                command = new DrawEllipseCommand(this,UserID.getUserID(),currentRect,currentColor, currentLineWidth);
-                processSateChangeCommand(getCurrentMementoID());
-                commandExecutorThread.addCommandToCommandQueue(command);
-            } else if(currentMode == DrawingMode.Image) {
-                currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
-                command = new DrawImageCommand(this,UserID.getUserID(),currentRect,currentImage,stateOriginator.getNextMementoID());
-                processSateChangeCommand(getCurrentMementoID());
-                commandExecutorThread.addCommandToCommandQueue(command);
-            }
-            else {
-                throw new RuntimeException("no drawing mode selected");
-            }
-        }
+        lastOpenedMementoID = null;
     }
 
     public void clearCanvas() {
@@ -140,6 +150,8 @@ public class CanvasController {
     }
 
     public synchronized void redo() {
+        if(isMementoCreatingFromRemote.isFlag() || lastOpenedMementoID != null)
+            return;
         if(TabController.getActualCanvasControler().equals(this)){
             restoreNextMemento();
             Sleep.sleep(100,logger);
@@ -148,6 +160,8 @@ public class CanvasController {
     }
 
     public synchronized void undo() {
+        if(isMementoCreatingFromRemote.isFlag() || lastOpenedMementoID != null)
+            return;
         if(TabController.getActualCanvasControler().equals(this)){
             restorePreviosMemento();
             Sleep.sleep(100,logger);
@@ -330,9 +344,9 @@ public class CanvasController {
     }
 
 
-
+    private BooleanFlag isMementoCreatingFromRemote = new BooleanFlag(false);
     private RemoteDrawLineCommandBufferHandler remoteDrawLineCommandBufferHandler =
-            new RemoteDrawLineCommandBufferHandler(this);
+            new RemoteDrawLineCommandBufferHandler(this, isMementoCreatingFromRemote);
     private UUID canvasID;
     private StateCaretaker stateCaretaker;
     private StateOriginator stateOriginator;
@@ -348,6 +362,8 @@ public class CanvasController {
     private int currentLineWidth = 1;
     private Semaphore semaphore = new Semaphore(1);
     private Logger logger = null;
+    private UUID lastOpenedMementoID = null;
+
 
 
 }

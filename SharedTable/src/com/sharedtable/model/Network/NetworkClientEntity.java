@@ -1,5 +1,6 @@
 package com.sharedtable.model.Network;
 
+import com.sharedtable.Constants;
 import com.sharedtable.model.ArrayPrinter;
 
 import java.util.Objects;
@@ -17,11 +18,12 @@ public class NetworkClientEntity {
         this.mementoNumber = mementoNumber;
         this.upperClientID = parentID;
         this.clientBuildNumber = clientBuildNumber;
+        this.platform = Constants.getPLatformString();
     }
 
     public NetworkClientEntity(String[] input) {
         String[] splittedInput = input;
-        if(splittedInput.length != 7 && !input[0].equals("HSI")) {
+        if(!input[0].equals("HSI")) {
             throw new IllegalArgumentException("corrupted handshaking info! length:"+splittedInput.length+" :"+ ArrayPrinter.printStringArray(splittedInput));
         }
         id = UUID.fromString(splittedInput[1]);
@@ -31,6 +33,7 @@ public class NetworkClientEntity {
         mementoNumber = Integer.parseInt(input[5]);
         upperClientID = parentIDFromString(input[6]);
         clientBuildNumber = Integer.parseInt(input[7]);
+        platform = input[8];
     }
 
     private String parentIDToString(UUID parentID) {
@@ -57,7 +60,9 @@ public class NetworkClientEntity {
                 .append(port).append(";")
                 .append(mementoNumber).append(";")
                 .append(parentIDToString(upperClientID)).append(";")
-                .append(clientBuildNumber).append(";"); //kell a separator, mert az EntityTreeSignal-ban ezek a stringek egymás után vannak fűzve!!!
+                .append(clientBuildNumber).append(";")
+                .append(platform).append(";"); //kell a separator, mert az EntityTreeSignal-ban ezek a stringek egymás után vannak fűzve!!!
+        System.out.println("platform string sent: "+platform);
         return sb.toString();
     }
 
@@ -106,6 +111,12 @@ public class NetworkClientEntity {
         return Objects.hash(id);
     }
 
+    public String getPlatform() {
+        return platform;
+    }
+    public boolean isPlatformLinux() {return platform.equals("Linux");}
+    public boolean isPlatformWindows() {return platform.equals("Windows");}
+
     //private NetworkClientEntity upperClientEntity;
     private UUID upperClientID;
     private UUID id;
@@ -114,6 +125,6 @@ public class NetworkClientEntity {
     private String nickname;
     private int clientBuildNumber;
     private int mementoNumber;
-
+    private String platform;
 
 }

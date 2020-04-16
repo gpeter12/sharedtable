@@ -1,5 +1,6 @@
 package com.sharedtable.controller;
 
+import com.sharedtable.Constants;
 import javafx.scene.input.KeyEvent;
 
 public class KeyboardEventHandler {
@@ -10,7 +11,7 @@ public class KeyboardEventHandler {
     public void handleEvent(KeyEvent event) {
 
         //redo keycomboSys
-        if(System.getProperty("os.name").contains("Windows")){
+        if(Constants.isPlatformWindows()){
             if (event.isControlDown() && event.getText().equals("z")) {
                 canvasController.undo();
 
@@ -20,7 +21,7 @@ public class KeyboardEventHandler {
                 canvasController.redo();
 
             }
-        } else if(System.getProperty("os.name").contains("Linux")){
+        } else if(Constants.isPlatformLinux()){
             if (event.isControlDown() && isZDown(event) && !event.isShiftDown()) {
 
                 canvasController.undo();

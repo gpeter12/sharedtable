@@ -46,8 +46,6 @@ public class MainView extends Application  {
     @Override
     public void start(Stage primaryStageArg) {
         logger = setLogger(Logger.getLogger(MainView.class.getName()));
-        logger.info("appstarted");
-
         NetworkService.initLogger();
 
         Scene scene = initMainView(primaryStageArg);
@@ -399,6 +397,7 @@ public class MainView extends Application  {
         logger.info("closing opened port on router...");
         try{
             UPnPHandler.closePort(UPnPHandler.getOpenedPort());
+            UPnPHandler.closePort(UPnPHandler.getOpenedPort()+1);
         }
         catch (UPnPConfigException e){
             logger.severe("UPnP.closePort() failed!");
@@ -443,10 +442,10 @@ public class MainView extends Application  {
         FileHandler fh=null;
 
         try {
-            if (FilePathHandler.isPlatformWindows()) {
+            if (Constants.isPlatformWindows()) {
                 FilePathHandler.createDirectory(FilePathHandler.getDirectoryPathOnWindows());
                 fh = new FileHandler(FilePathHandler.getDirectoryPathOnWindows() + "\\logfile.log");
-            } else if (FilePathHandler.isPlatformLinux()) {
+            } else if (Constants.isPlatformLinux()) {
                 FilePathHandler.createDirectory(FilePathHandler.getDirectoryPathOnLinux());
                 fh = new FileHandler(FilePathHandler.getDirectoryPathOnLinux() + "/logfile.log");
             }

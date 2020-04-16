@@ -11,10 +11,10 @@ import java.util.logging.Logger;
 
 public class ConnectionReceiverThread extends Thread {
 
-    public ConnectionReceiverThread(int port) throws IOException, UPnPConfigException {
+    public ConnectionReceiverThread(int port) throws IOException {
         logger = Logger.getLogger(MainView.class.getName());
-        ServerSocket ss = new ServerSocket(port);
-        serverSocket = ss;
+        serverSocket = new ServerSocket(port);
+        serverSocket2 = new ServerSocket(port+1);
         openedPort = serverSocket.getLocalPort();
     }
 
@@ -23,7 +23,7 @@ public class ConnectionReceiverThread extends Thread {
         setName("ConnectionReceiverThread");
         try {
             while (!timeToStop) {
-                NetworkService.addReceivedConnection(serverSocket.accept());
+                NetworkService.addReceivedConnection(serverSocket.accept(),serverSocket2.accept());
                 logger.info("Connection received!");
             }
         } catch (IOException e) {
@@ -52,6 +52,7 @@ public class ConnectionReceiverThread extends Thread {
 
     private boolean timeToStop = false;
     private ServerSocket serverSocket;
+    private ServerSocket serverSocket2;
     private int openedPort;
     private static Logger logger = Logger.getLogger(MainView.class.getName());
 }

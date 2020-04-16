@@ -1,12 +1,8 @@
 package com.sharedtable;
 
 import com.sharedtable.model.Persistence.FilePathHandler;
-import com.sharedtable.view.MessageBox;
 
 import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 public class LoggerConfig {
 
@@ -26,10 +22,10 @@ public class LoggerConfig {
     static  {
         try {
 
-            if (FilePathHandler.isPlatformWindows()) {
+            if (Constants.isPlatformWindows()) {
                 FilePathHandler.createDirectory(FilePathHandler.getDirectoryPathOnWindows());
                 fh = new FileHandler(FilePathHandler.getDirectoryPathOnWindows() + "\\logfile.log");
-            } else if (FilePathHandler.isPlatformLinux()) {
+            } else if (Constants.isPlatformLinux()) {
                 FilePathHandler.createDirectory(FilePathHandler.getDirectoryPathOnLinux());
                 fh = new FileHandler(FilePathHandler.getDirectoryPathOnLinux() + "/logfile.log");
             }

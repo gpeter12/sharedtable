@@ -79,8 +79,7 @@ public class NetworkService {
 
     private static void showUPnPErrorMessage(int port1) {
         MessageBox.showError("UPnP konfigurálási hiba!",
-                "A routeren nem engedélyezett vagy támogatott\n az UPnP protkoll. " +
-                        "Használjon port forwardingot \nerre a potra: "+port1);
+                        "Használjon port forwardingot \nerre a két potra: "+port1+", "+port1+1);
     }
 
     //<editor-fold desc="CONNECTIVITY">
@@ -91,6 +90,7 @@ public class NetworkService {
         me.setPort(connectionReceiverThread.getOpenedPort());
         logger.info("Prepared for receiving connections");
         UPnPHandler.openPort(port);
+        UPnPHandler.openPort(port+1); //byteReceiver
     }
 
     //make outgoing connection
@@ -99,8 +99,11 @@ public class NetworkService {
             reconnecting = true;
             upperConnectedClientEntity.handleScannerClose();
         }
-
-        upperConnectedClientEntity = new ConnectedClientEntity(new Socket(IP, port),
+        System.out.println("init socket1");
+        Socket s1 = new Socket(IP, port);
+        System.out.println("init socket2");
+        Socket s2 = new Socket(IP,port+1);
+        upperConnectedClientEntity = new ConnectedClientEntity(s1,s2,
                 false);
         reconnecting = false;
         //entityTree.addNetworkClientEntity(upperConnectedClientEntity.getNetworkClientEntity());
@@ -501,8 +504,8 @@ public class NetworkService {
         }
     }
 
-    public static synchronized void addReceivedConnection(Socket connection) {
-            ConnectedClientEntity connectedClientEntity = new ConnectedClientEntity(connection,
+    public static synchronized void addReceivedConnection(Socket connection, Socket brSocket) {
+            ConnectedClientEntity connectedClientEntity = new ConnectedClientEntity(connection,brSocket,
                     true);
             connectedClientEntity.setLowerClientEntity(true);
             lowerConnectedClientEntities.add(connectedClientEntity);
