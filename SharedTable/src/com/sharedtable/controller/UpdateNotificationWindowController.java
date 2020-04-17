@@ -21,7 +21,7 @@ public class UpdateNotificationWindowController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        webView.getEngine().load("https://people.inf.elte.hu/gpeter/verdesc.html");
+        webView.getEngine().load("http://gpeter12.web.elte.hu/verdesc.html");
     }
 
     @FXML
@@ -31,7 +31,7 @@ public class UpdateNotificationWindowController implements Initializable {
         if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
             new Thread(() -> {
                 try {
-                    Desktop.getDesktop().browse(new URI("https://people.inf.elte.hu/gpeter/sharedtable/download.html"));
+                    Desktop.getDesktop().browse(new URI("http://gpeter12.web.elte.hu/sharedtable/download.html"));
                 } catch (IOException | URISyntaxException e1) {
                     e1.printStackTrace();
                 }

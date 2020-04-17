@@ -30,6 +30,7 @@
                     <MenuItem text="Egyenlőszárú háromszög" onAction="#onDrawTriangleModePressed"></MenuItem>
                     <MenuItem text="Ellipszis" onAction="#onDrawEllipseModePressed"></MenuItem>
                     <MenuItem text="Kép beszúrása vágólapról" onAction="#onDrawImageModePressed"></MenuItem>
+                    <MenuItem text="Kép beszúrása fájlból" onAction="#onDrawImageFileModePressed"></MenuItem>
                 </Menu>
                 <Menu text="Chat">
                     <MenuItem text="Beszélgetés megnyitása" onAction="#onOpenChatPressed"></MenuItem>

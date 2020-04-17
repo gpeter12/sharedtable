@@ -585,9 +585,9 @@ public class ConnectedClientEntity extends Thread {
     private boolean receiveNetworkPasswordValidationResultOnSync() {
         if(scanner.hasNext()) {
             String resultString = scanner.nextLine();
-            if(resultString.equals("PASSWD_OK")){
+            if(resultString.equals(Constants.getNetworkPasswordValidationOK())){
                 return true;
-            } else if (resultString.equals("PASSWD_INVALID")){
+            } else if (resultString.equals(Constants.getNetworkPasswordValidationINVALID())){
                 return false;
             } else {
                 logger.severe("receiveNetworkPasswordValidationResult() Unrecognized result!");
@@ -602,9 +602,9 @@ public class ConnectedClientEntity extends Thread {
 
     private void sendNetworkPasswordValidationResultOnSync(boolean result) {
         if(result){
-            unsafeSendPlainText("PASSWD_OK");
+            unsafeSendPlainText(Constants.getNetworkPasswordValidationOK());
         } else {
-            unsafeSendPlainText("PASSWD_INVALID");
+            unsafeSendPlainText(Constants.getNetworkPasswordValidationINVALID());
         }
     }
 

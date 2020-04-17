@@ -18,7 +18,7 @@ public class NetworkClientEntity {
         this.mementoNumber = mementoNumber;
         this.upperClientID = parentID;
         this.clientBuildNumber = clientBuildNumber;
-        this.platform = Constants.getPLatformString();
+        this.platform = Constants.getPlatformString();
     }
 
     public NetworkClientEntity(String[] input) {

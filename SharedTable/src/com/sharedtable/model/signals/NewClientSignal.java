@@ -16,7 +16,7 @@ public NewClientSignal(UUID clientID, String nickname, String IP, int port,
         this.mementoNumber = mementoNumber;
         this.parentID = parentID;
         this.clientBuildNumber = clientBuildNumber;
-        this.platform = Constants.getPLatformString();
+        this.platform = Constants.getPlatformString();
     }
 
     public NewClientSignal(String[] input) {

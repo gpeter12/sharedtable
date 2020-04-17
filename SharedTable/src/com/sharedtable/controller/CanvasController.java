@@ -33,7 +33,8 @@ public class CanvasController {
 
     public synchronized void mouseDown(Point p) {
         if(lastOpenedMementoID != null) {
-            NetworkService.sendMementoCloserSignal(UserID.getUserID(),getCanvasID(),lastOpenedMementoID,true);
+            NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
+            lastOpenedMementoID = null;
         }
         if(isMementoCreatingFromRemote.isFlag())
             return;
@@ -45,6 +46,11 @@ public class CanvasController {
     }
 
     public void mouseMove(Point p) {
+        if(isMementoCreatingFromRemote.isFlag() && lastOpenedMementoID != null){
+            System.out.println("special case");
+            NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
+            lastOpenedMementoID = null;
+        }
         if(isMementoCreatingFromRemote.isFlag() || !isMouseDown)
             return;
         if (isMouseDown) {
@@ -82,6 +88,8 @@ public class CanvasController {
             }
         }
     }
+
+
 
     public synchronized void mouseUp(Point p) {
         if(isMementoCreatingFromRemote.isFlag()||!isMouseDown)

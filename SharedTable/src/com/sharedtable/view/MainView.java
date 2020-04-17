@@ -21,6 +21,7 @@ import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.awt.*;
@@ -29,8 +30,10 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -60,7 +63,7 @@ public class MainView extends Application  {
     }
 
     private void viewAvailableUpdates() {
-        UpdateChecker updateChecker = new UpdateChecker("https://people.inf.elte.hu/gpeter/stBuildNum");
+        UpdateChecker updateChecker = new UpdateChecker("http://gpeter12.web.elte.hu/stBuildNum");
         if(updateChecker.isUpdateAvailable()){
             logger.info("new update available!");
             new UpdateNotificationView();
@@ -123,16 +126,16 @@ public class MainView extends Application  {
         NetworkService.initService();
         UserID.setUserID(UUID.randomUUID());
         if (startMode == 3) {
-            NetworkService.enableReceivingConnections(2222);
+            NetworkService.enableReceivingConnections(3334);
         } else if (startMode == 2) {
             NetworkService.enableReceivingConnections(2223);
             try {
-                NetworkService.connect(IP, 2222);
+                NetworkService.connect(IP, 3334);
             } catch (IOException e) {
                 logger.severe("failed to connect in startMode 2");
             }
         } else if (startMode == 1) {
-            NetworkService.enableReceivingConnections(2224);
+            NetworkService.enableReceivingConnections(2324);
             try {
                 NetworkService.connect(IP, 2223);
             } catch (IOException e) {
@@ -141,7 +144,7 @@ public class MainView extends Application  {
         } else if (startMode == 0) {
             NetworkService.enableReceivingConnections(2225);
             try {
-                NetworkService.connect(IP, 2223);
+                NetworkService.connect(IP, 2324);
             } catch (IOException e) {
                 logger.severe("failed to connect in startMode 0");
             }
@@ -269,6 +272,38 @@ public class MainView extends Application  {
         }
     }
 
+    private Image getImageWithBrowsing() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open Resource File");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("PNG", "*.png"),
+                new FileChooser.ExtensionFilter("JPG", "*.jpg"),
+                new FileChooser.ExtensionFilter("JPEG", "*.jpeg")
+        );
+        File file = fileChooser.showOpenDialog(primaryStage);
+        try{
+            return new Image("file:"+file.getAbsolutePath());
+        } catch (Exception e) {
+            logger.warning("invalid image file path ("+file.getAbsolutePath()+")! "+e.getMessage());
+            return null;
+        }
+    }
+
+    @FXML
+    public void onDrawImageFileModePressed(ActionEvent actionEvent) {
+        Image image = getImageWithBrowsing();
+        if(image != null){
+            MessageBox.showInformation("Kép beolvasva! ","A bal egérgomb lenyomvatartásával, \nközben az egér mozgatásával jelölje \nki a kép helyét, és méreteit!");
+            setDrawingModeOnAllCanvases(DrawingMode.Image);
+            setImageOnAllCanvases(image);
+        }
+        else {
+            logger.info("wrong image format in file");
+            MessageBox.showError("Hiba a kép beillesztésekor",
+                    "nem megfelelő formátumú bellesztési tartalom");
+        }
+    }
+
     @FXML
     public void onChangeNetworkPasswordPressed(ActionEvent actionEvent) {
         ChangePasswordView changePasswordView = new ChangePasswordView();
@@ -317,7 +352,7 @@ public class MainView extends Application  {
 
     @FXML
     public void onFindUpdatePressed(ActionEvent actionEvent) {
-        UpdateChecker updateChecker = new UpdateChecker("https://people.inf.elte.hu/gpeter/stBuildNum");
+        UpdateChecker updateChecker = new UpdateChecker("http://gpeter12.web.elte.hu/stBuildNum");
         if(updateChecker.isUpdateAvailable()){
             viewAvailableUpdates();
         } else {
@@ -330,7 +365,7 @@ public class MainView extends Application  {
         if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
             new Thread(() -> {
                 try {
-                    Desktop.getDesktop().browse(new URI("https://people.inf.elte.hu/gpeter/sharedtable/faq.html"));
+                    Desktop.getDesktop().browse(new URI("http://gpeter12.web.elte.hu/sharedtable/faq.html"));
                 } catch (IOException | URISyntaxException e1) {
                     e1.printStackTrace();
                 }
@@ -339,6 +374,8 @@ public class MainView extends Application  {
             MessageBox.showError("Nem nyitható meg böngésző!","Ez az OS nem támogatja \nböngésző ablak megnyitását");
         }
     }
+
+
 
     private void setDrawingModeOnAllCanvases(DrawingMode drawingMode) {
         setDefaultColor();
@@ -463,8 +500,25 @@ public class MainView extends Application  {
         return logger;
     }
 
+    private static String getConfigPathFromArgs(String[] args) {
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("--config-path")){
+                return args[i+1];
+            }
+        }
+        return null;
+    }
+
+    private static void processConfigPathArg(String[] args) {
+        String configPath = getConfigPathFromArgs(args);
+        if(configPath == null)
+            return;
+        FilePathHandler.setCustomConfigPath(configPath);
+    }
+
     public static void main(String[] args) {
 
+        processConfigPathArg(args);
 
         if(args.length > 1 && args[0].equals("debug")){
             isInDebugMode =true;

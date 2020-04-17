@@ -20,17 +20,26 @@ public class FilePathHandler {
     }
 
     public static String getDirectoryPathOnLinux() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(System.getProperty("user.home"))
-                .append("/.config/SharedTable");
-        return sb.toString();
+        if(customConfigPath != null){
+            return customConfigPath;
+        } else {
+            StringBuilder sb = new StringBuilder();
+            sb.append(System.getProperty("user.home"))
+                    .append("/.config/SharedTable");
+            return sb.toString();
+        }
     }
 
     public static String getDirectoryPathOnWindows() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(System.getProperty("user.home"))
-                .append("\\AppData\\Local\\SharedTable");
-        return sb.toString();
+        if(customConfigPath != null){
+            return customConfigPath;
+        } else {
+            StringBuilder sb = new StringBuilder();
+            sb.append(System.getProperty("user.home"))
+                    .append("\\AppData\\Local\\SharedTable");
+            return sb.toString();
+        }
+
     }
 
     public static void createDirectory(String path) {
@@ -39,5 +48,11 @@ public class FilePathHandler {
             directory.mkdirs();
         }
     }
+
+    public static void setCustomConfigPath(String path){
+        customConfigPath = path;
+    }
+
+    private static String customConfigPath = null;
 
 }

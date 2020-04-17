@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.PasswordField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
@@ -30,15 +31,17 @@ public class ChangePasswordWindowController implements Initializable {
 
     @FXML
     public void onKeyPressed(KeyEvent keyEvent) {
-        try{
-            onClosing();
-        } catch (IllegalArgumentException e) {
-            onPasswordMismatch();
-            return;
+        if (keyEvent.getCode().equals(KeyCode.ENTER)) {
+            try {
+                onClosing();
+            } catch (IllegalArgumentException e) {
+                onPasswordMismatch();
+                return;
+            }
+            Node source = (Node) keyEvent.getSource();
+            Stage stage = (Stage) source.getScene().getWindow();
+            stage.close();
         }
-        Node source = (Node) keyEvent.getSource();
-        Stage stage = (Stage) source.getScene().getWindow();
-        stage.close();
     }
 
     private void onPasswordMismatch() {

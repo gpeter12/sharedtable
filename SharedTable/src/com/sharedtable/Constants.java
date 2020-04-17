@@ -7,7 +7,7 @@ public class Constants {
     }
 
     public static int getBuildNumber() {
-        return 21;
+        return 25;
     }
 
     public static boolean isPlatformWindows() {
@@ -19,7 +19,7 @@ public class Constants {
     }
 
 
-    public static String getPLatformString() {
+    public static String getPlatformString() {
         if (Constants.isPlatformLinux()) {
             return "Linux";
         } else if (Constants.isPlatformWindows()) {
@@ -36,6 +36,14 @@ public class Constants {
         return "PASSWD_INVALID";
     }
 
+    public static void setIsPortableRun(boolean val) {
+        isPortableRun = val;
+    }
+
+    public static boolean isPortableRun() {return isPortableRun;}
+
+    private static boolean isPortableRun = false;
     private static boolean isWindows = System.getProperty("os.name").contains("Windows");
     private static boolean isLinux = System.getProperty("os.name").contains("Linux");
+
 }

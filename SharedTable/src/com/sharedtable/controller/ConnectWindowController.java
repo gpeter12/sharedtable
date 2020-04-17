@@ -7,6 +7,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
@@ -28,16 +29,18 @@ public class ConnectWindowController implements Initializable {
 
     @FXML
     public void onKeyPressed(KeyEvent keyEvent) {
-        try {
+        if (keyEvent.getCode().equals(KeyCode.ENTER)) {
+            try {
+                onClosing();
+            } catch (IllegalArgumentException e) {
+                onInvalidInput(e);
+                return;
+            }
             onClosing();
-        } catch (IllegalArgumentException e) {
-            onInvalidInput(e);
-            return;
+            Node source = (Node) keyEvent.getSource();
+            Stage stage = (Stage) source.getScene().getWindow();
+            stage.close();
         }
-        onClosing();
-        Node source = (Node) keyEvent.getSource();
-        Stage stage = (Stage) source.getScene().getWindow();
-        stage.close();
     }
 
     private void onInvalidInput(IllegalArgumentException e) {
