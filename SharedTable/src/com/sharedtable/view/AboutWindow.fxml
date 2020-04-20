@@ -11,12 +11,9 @@
       xmlns:fx="http://javafx.com/fxml"
       style="-fx-padding: 20px; -fx-spacing: 10px" prefWidth="550" prefHeight="300">
     <Label style="-fx-font-size: 16px; -fx-font-weight: bold">Shared Table</Label>
-<<<<<<< HEAD
-    <Label>Verzió: 0.8.2 beta</Label>
-=======
-    <Label>Verzió: 0.8.3 beta</Label>
->>>>>>> 4710d40a7da9c9922123f3ff06ffb9f87cccd064
-    <Label>built on 2020.04.13 Gaál Péter</Label>
+
+    <Label>Verzió: 0.8.4 beta</Label>
+    <Label>built on 2020.04.20 Gaál Péter</Label>
     <Label></Label>
     <Label>Felhasznált harmadik félről származó kódok</Label>
     <Label>• OpenJFX 11.0.2 (https://openjfx.io/)</Label>

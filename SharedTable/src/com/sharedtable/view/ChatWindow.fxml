@@ -13,11 +13,7 @@
       spacing="15" prefWidth="400" prefHeight="600">
     <Label>  Üzenetek:</Label>
     <ScrollPane fx:id="sp" layoutX="1.0" layoutY="1.0" prefHeight="400.0" prefViewportHeight="148.0" prefViewportWidth="139.0" prefWidth="288.0">
-<<<<<<< HEAD
-        <TextFlow fx:id="chatFlow" style="-fx-background-color: white" minHeight="400" minWidth="600.0" ></TextFlow>
-=======
         <TextFlow fx:id="chatFlow" style="-fx-background-color: white" minHeight="350" minWidth="390.0" maxWidth="390" ></TextFlow>
->>>>>>> 4710d40a7da9c9922123f3ff06ffb9f87cccd064
     </ScrollPane>
 
     <TextArea fx:id="chatInput" prefHeight="100" minWidth="300.0" onKeyPressed="#onKeyPressed"></TextArea>
