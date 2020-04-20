@@ -7,7 +7,7 @@ public class Constants {
     }
 
     public static int getBuildNumber() {
-        return 25;
+        return 27;
     }
 
     public static boolean isPlatformWindows() {
@@ -17,7 +17,6 @@ public class Constants {
     public static boolean isPlatformLinux() {
         return isLinux;
     }
-
 
     public static String getPlatformString() {
         if (Constants.isPlatformLinux()) {

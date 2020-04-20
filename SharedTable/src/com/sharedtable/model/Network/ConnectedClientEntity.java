@@ -10,10 +10,7 @@ import com.sharedtable.view.MessageBox;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.Scanner;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class ConnectedClientEntity extends Thread {
@@ -182,8 +179,16 @@ public class ConnectedClientEntity extends Thread {
         return res;
     }
 
+    private void printStackElementArray(StackTraceElement[] elements){
+        for(StackTraceElement act : elements) {
+            System.out.println(act.toString()+"\n");
+        }
+
+    }
+
     private void unsafeSendPlainText(String input) {
         try {
+            System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
             logger.info("sending: "+input+" to: "+id);
             bufferedWriter.write(input+"\n");
             bufferedWriter.flush();
@@ -356,6 +361,8 @@ public class ConnectedClientEntity extends Thread {
     //</editor-fold> desc="COMMAND HANDLING">
 
     //<editor-fold desc="HANDSHAKING">
+
+    boolean isOpened = false;
 
     private void sendMenentoOnHandshaking(StateMemento stateMemento, UUID canvasID) {
         ArrayList<Command> cmds = stateMemento.getCommands();
@@ -539,10 +546,10 @@ public class ConnectedClientEntity extends Thread {
     private void initializeStreams(Socket socket,Socket brSocket) throws IOException {
         outputStream = socket.getOutputStream();
         inputStream = socket.getInputStream();
-        scanner = new Scanner(new InputStreamReader(new BufferedInputStream(inputStream)));
-        bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
-        dataInputStream = new DataInputStream(new BufferedInputStream(byteReceiverSocket.getInputStream()));
-        dataOutputStream = new DataOutputStream(new BufferedOutputStream(byteReceiverSocket.getOutputStream()));
+        scanner = new Scanner(new InputStreamReader(new BufferedInputStream(inputStream,512*1024)));
+        bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream),512*1024);
+        dataInputStream = new DataInputStream(new BufferedInputStream(byteReceiverSocket.getInputStream(),1024*1024*4));
+        dataOutputStream = new DataOutputStream(new BufferedOutputStream(byteReceiverSocket.getOutputStream(),1024*1024*4));
 
         logger.info("connections's I/O streams are initialized!");
     }

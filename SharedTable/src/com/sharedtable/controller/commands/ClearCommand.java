@@ -4,6 +4,7 @@ import com.sharedtable.controller.CanvasController;
 
 import java.util.ArrayList;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ClearCommand extends Command {
 
@@ -22,7 +23,7 @@ public class ClearCommand extends Command {
         canvasController.getSTCanvas().clear();
         if(isRemote) {
             canvasController.insertRemoteMementoAfterActual(
-                    blankMementoID,new ArrayList<Command>(),false,creatorID);
+                    blankMementoID,new CopyOnWriteArrayList<>(),false,creatorID);
         }
     }
 

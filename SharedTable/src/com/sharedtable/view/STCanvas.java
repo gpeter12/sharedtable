@@ -8,6 +8,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -24,18 +25,26 @@ public class STCanvas extends Canvas {
     public void initEventHandlers(CanvasController canvasController) {
         this.addEventHandler(MouseEvent.MOUSE_PRESSED,
                 event -> {
-                    Point p = new Point(event.getX(), event.getY());
-                    canvasController.mouseDown(p);
+                    if(event.getButton().equals(MouseButton.PRIMARY)){
+                        Point p = new Point(event.getX(), event.getY());
+                        canvasController.mouseDown(p);
+                    }
                 });
         this.addEventHandler(MouseEvent.MOUSE_RELEASED,
                 event -> {
-                    Point p = new Point(event.getX(), event.getY());
-                    canvasController.mouseUp(p);
+                    if(event.getButton().equals(MouseButton.PRIMARY)){
+                        Point p = new Point(event.getX(), event.getY());
+                        canvasController.mouseUp(p);
+                    }
                 });
         this.addEventHandler(MouseEvent.MOUSE_DRAGGED,
                 event -> {
                     Point p = new Point(event.getX(), event.getY());
                     canvasController.mouseMove(p);
+                    if(event.getButton().equals(MouseButton.PRIMARY)) {
+                        canvasController.mouseMove(p);
+                    }
+
                 });
         this.heightProperty().addListener(new ChangeListener<Number>() {
             @Override

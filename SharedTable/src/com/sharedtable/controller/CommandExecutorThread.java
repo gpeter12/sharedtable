@@ -1,9 +1,11 @@
 package com.sharedtable.controller;
 
 import com.sharedtable.controller.commands.Command;
+import javafx.application.Platform;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Semaphore;
 
 
 /*
@@ -16,20 +18,24 @@ public class CommandExecutorThread extends Thread {
 
     @Override
     public void run() {
-        try {
             while (!timeToStop) {
-                commandQueue.take().execute();
+                try { commandQueue.take().execute(); }
+                catch (InterruptedException e) {
+                    if (timeToStop == true) {
+                        System.out.println("CommandExecutorThread shutting down");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                /*Platform.runLater(() -> {
+
+                });*/
             }
-        } catch (InterruptedException e) {
-            if (timeToStop == true) {
-                System.out.println("CommandExecutorThread shutting down");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
     }
 
     public void addCommandToCommandQueue(Command command) {
+        try { semaphore.acquire(); } catch (InterruptedException e) { e.printStackTrace(); }
         if(command == null)
             throw new RuntimeException("null command added to command queue");
 
@@ -38,6 +44,7 @@ public class CommandExecutorThread extends Thread {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        semaphore.release();
     }
 
     public void timeToStop() {
@@ -45,6 +52,7 @@ public class CommandExecutorThread extends Thread {
         interrupt();
     }
 
-    private BlockingQueue<Command> commandQueue = new ArrayBlockingQueue<Command>(1000);
+    private Semaphore semaphore = new Semaphore(1);
+    private BlockingQueue<Command> commandQueue = new ArrayBlockingQueue<Command>(10000);
     private boolean timeToStop = false;
 }

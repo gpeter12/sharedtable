@@ -5,6 +5,7 @@ import com.sharedtable.controller.commands.Command;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /*
  * A mementók egy láncot alkotnak azáltal, hogy tárolják az őket megelőzők ID-ját
@@ -25,8 +26,11 @@ public class StateMemento {
         throw new UnsupportedOperationException();
     }
 
-    public void addCommands(ArrayList<Command> commands) {
+    public void addCommands(CopyOnWriteArrayList<Command> commands) {
         for (Command act : commands) {
+            if(commands.size()>0 && !act.getCreatorID().equals(commands.get(commands.size()-1).getCreatorID())){
+                throw new IllegalStateException("memento must only have one author!");
+            }
             this.commands.add(act);
         }
     }

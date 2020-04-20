@@ -5,6 +5,7 @@ import com.sharedtable.controller.commands.Command;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Ha nem választjuk szét userenként és lezárulási idő szerint a commandokat, akkor összemosnak egy state-be
@@ -40,7 +41,7 @@ public class RemoteDrawLineCommandBufferHandler {
         if (commandBuffers.containsKey(userID)) {
             throw new RuntimeException("user related command buffer already exists!");
         }
-        commandBuffers.put(userID, new ArrayList<Command>());
+        commandBuffers.put(userID, new CopyOnWriteArrayList<Command>());
     }
 
     private void printAllCommands(ArrayList<Command> input) {
@@ -51,7 +52,7 @@ public class RemoteDrawLineCommandBufferHandler {
         System.out.println("-------------------");
     }
 
-    private HashMap<UUID, ArrayList<Command>> commandBuffers = new HashMap<>();
+    private HashMap<UUID, CopyOnWriteArrayList<Command>> commandBuffers = new HashMap<>();
     private CanvasController canvasController;
     private BooleanFlag isMementoCreating;
 }

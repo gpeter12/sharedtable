@@ -4,6 +4,8 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.ScrollPane;
+
 import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -11,6 +13,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+
 
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -32,6 +35,7 @@ public class ChatWindowController implements Initializable {
             chatFlow.getChildren().add(getPrefixForUser(nickname,isMine));
             chatFlow.getChildren().add(new Text(message+"\n"));
         });
+        scrollDown();
     }
 
     private Text getPrefixForUser(String nickname, boolean isMine) {
@@ -50,8 +54,29 @@ public class ChatWindowController implements Initializable {
     }
 
     private void sendMessage(){
-        ChatService.handleOutgoingChatMessage(dropLastChar(chatInput.getText()));
+        String outMessage = chatInput.getText();
+        if(outMessage.endsWith("\n")){
+            outMessage = dropLastChar(outMessage);
+        }
+        ChatService.handleOutgoingChatMessage(outMessage);
         chatInput.setText("");
+
+        scrollDown();
+    }
+
+    private void scrollDown() {
+        Platform.runLater(() -> {
+            sp.setVvalue(2.0);
+        });
+    }
+
+    private int countBrakeLines(String inp) {
+        int res = 0;
+        for(int i=0; i<inp.length(); i++){
+            if(inp.charAt(i) == '\n')
+                res++;
+        }
+        return res;
     }
 
     private void placeTextToSystemClipboard(String text) {
@@ -85,6 +110,9 @@ public class ChatWindowController implements Initializable {
     private TextFlow chatFlow;
     @FXML
     private TextArea chatInput;
+    @FXML
+    private ScrollPane sp;
+
 
 
 

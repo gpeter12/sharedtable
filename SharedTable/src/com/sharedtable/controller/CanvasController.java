@@ -11,6 +11,7 @@ import javafx.scene.shape.Rectangle;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
 
@@ -32,12 +33,13 @@ public class CanvasController {
     }
 
     public synchronized void mouseDown(Point p) {
-        if(lastOpenedMementoID != null) {
+        /*if(lastOpenedMementoID != null) {
             NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
             lastOpenedMementoID = null;
         }
         if(isMementoCreatingFromRemote.isFlag())
-            return;
+            return;*/
+
         try {semaphore.acquire(); } catch (InterruptedException e) {e.printStackTrace(); }
         lastPoint = p;
         isMouseDown = true;
@@ -46,13 +48,13 @@ public class CanvasController {
     }
 
     public void mouseMove(Point p) {
-        if(isMementoCreatingFromRemote.isFlag() && lastOpenedMementoID != null){
+        /*if(isMementoCreatingFromRemote.isFlag() && lastOpenedMementoID != null){
             System.out.println("special case");
             NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
             lastOpenedMementoID = null;
         }
         if(isMementoCreatingFromRemote.isFlag() || !isMouseDown)
-            return;
+            return;*/
         if (isMouseDown) {
             Command command;
             if (currentMode == DrawingMode.ContinousLine) {
@@ -92,9 +94,9 @@ public class CanvasController {
 
 
     public synchronized void mouseUp(Point p) {
-        if(isMementoCreatingFromRemote.isFlag()||!isMouseDown)
+        /*if(isMementoCreatingFromRemote.isFlag()||!isMouseDown)
             return;
-        isMouseDown = false;
+        isMouseDown = false;*/
         if(currentMode == DrawingMode.ContinousLine) {
             lastPoint = p;
 
@@ -189,16 +191,16 @@ public class CanvasController {
         return STCanvas;
     }
 
-    public void insertRemoteMementoAfterActual(UUID id, ArrayList<Command> commands, boolean link, UUID creatorID) {
+    public void insertRemoteMementoAfterActual(UUID id, CopyOnWriteArrayList<Command> commands, boolean link, UUID creatorID) {
         if(stateCaretaker.hasMememnto(id)){
             logger.info("remote memento dropped: "+id.toString());
             return;
         }
         logger.info("inserting remote memento (ID:"+id.toString()+" from "+creatorID);
         //mi történik helyileg, ha valaki távol befejez egy rajzolást a rajzolásom alatt
-        if(!stateOriginator.isCommandBufferEmpty()) {//ha nem üres akkor épp rajzolok...
+        /*if(!stateOriginator.isCommandBufferEmpty()) {//ha nem üres akkor épp rajzolok...
             NetworkService.sendMementoCloserSignal(UserID.getUserID(),canvasID,insertNewMementoAfterActual(true).getId(),true);
-        }
+        }*/
         StateMemento memento = insertNewMementoAfterActual(link);
         memento.setId(id);
         memento.setCreatorID(creatorID);
@@ -288,7 +290,8 @@ public class CanvasController {
     }
 //////////////////////////////////////private section////////////////////////////////////////
 
-    private synchronized StateMemento insertNewMementoAfterActual(boolean link) {//link: kell-e láncolni az új mementót a régivel (clear command után nem szabad)
+    private StateMemento insertNewMementoAfterActual(boolean link) {//link: kell-e láncolni az új mementót a régivel (clear command után nem szabad)
+        try { mementoAddSemaphore.acquire(); } catch (InterruptedException e) { e.printStackTrace(); }
         StateMemento memento = stateOriginator.createMemento();
         //amin éppen vagy az az utolsó-e
         if (actMementoID.equals(stateCaretaker.getLastMementoID())) {
@@ -297,6 +300,7 @@ public class CanvasController {
             stateCaretaker.addMemento(memento, actMementoID, link);
         }
         actMementoID = memento.getId();
+        mementoAddSemaphore.release();
         return memento;
     }
 
@@ -369,6 +373,7 @@ public class CanvasController {
     private Color currentColor = Color.BLACK;
     private int currentLineWidth = 1;
     private Semaphore semaphore = new Semaphore(1);
+    private Semaphore mementoAddSemaphore = new Semaphore(1);
     private Logger logger = null;
     private UUID lastOpenedMementoID = null;
 
