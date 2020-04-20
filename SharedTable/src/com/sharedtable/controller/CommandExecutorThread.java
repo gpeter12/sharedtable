@@ -1,7 +1,6 @@
 package com.sharedtable.controller;
 
 import com.sharedtable.controller.commands.Command;
-import javafx.application.Platform;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;

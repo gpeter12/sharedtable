@@ -1,6 +1,6 @@
 package com.sharedtable.controller;
 
-import com.sharedtable.model.Network.NetworkService;
+import com.sharedtable.model.network.NetworkService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;

@@ -1,6 +1,6 @@
 package com.sharedtable;
 
-import com.sharedtable.model.Persistence.FilePathHandler;
+import com.sharedtable.model.persistence.FilePathHandler;
 
 import java.util.logging.FileHandler;
 

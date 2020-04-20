@@ -2,7 +2,6 @@ package com.sharedtable.controller.commands;
 
 import com.sharedtable.controller.CanvasController;
 
-import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 

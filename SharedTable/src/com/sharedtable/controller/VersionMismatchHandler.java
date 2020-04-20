@@ -1,7 +1,6 @@
 package com.sharedtable.controller;
 
 import com.sharedtable.view.MessageBox;
-import com.sharedtable.view.UpdateNotificationView;
 
 public class VersionMismatchHandler {
 

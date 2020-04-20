@@ -1,9 +1,8 @@
 package com.sharedtable.controller;
 
-import com.sharedtable.LoggerConfig;
 import com.sharedtable.controller.commands.Command;
 import com.sharedtable.controller.commands.DrawImageCommand;
-import com.sharedtable.model.Network.NetworkService;
+import com.sharedtable.model.network.NetworkService;
 import com.sharedtable.model.signals.CloseTabSignal;
 import com.sharedtable.model.signals.NewTabSignal;
 import com.sharedtable.view.MainView;

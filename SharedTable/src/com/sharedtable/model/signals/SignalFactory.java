@@ -2,8 +2,6 @@ package com.sharedtable.model.signals;
 
 import com.sharedtable.model.ArrayPrinter;
 
-import java.util.logging.Logger;
-
 public class SignalFactory {
 
     public static boolean isSignal(String[] input) {

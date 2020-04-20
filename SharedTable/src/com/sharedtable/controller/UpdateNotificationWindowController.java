@@ -1,11 +1,9 @@
 package com.sharedtable.controller;
 
 import com.sharedtable.view.MessageBox;
-import com.sharedtable.view.UpdateNotificationView;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
 import java.awt.*;

@@ -1,7 +1,7 @@
 package com.sharedtable.model.signals;
 
-import com.sharedtable.model.Network.NetworkClientEntity;
-import com.sharedtable.model.Network.NetworkClientEntityTree;
+import com.sharedtable.model.network.NetworkClientEntity;
+import com.sharedtable.model.network.NetworkClientEntityTree;
 
 import java.util.ArrayList;
 import java.util.UUID;

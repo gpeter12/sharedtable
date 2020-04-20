@@ -1,14 +1,9 @@
 package com.sharedtable.controller;
 
 
-import com.sharedtable.model.Network.UPnP.UPnPConfigException;
-import com.sharedtable.model.Network.UPnP.UPnPHandler;
-import com.sharedtable.model.Persistence.UserDataPersistence;
+import com.sharedtable.model.persistence.UserDataPersistence;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.UUID;
 
 public class UserID {

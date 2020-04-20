@@ -1,444 +1,4 @@
-    private static boolean isRoot(NetworkClientEntity entity) {
-        return entity.getUpperClientEntity() == null;
-    }
-
-    //még a törlés előtt kell meghívni
-    private static boolean willBeNewRootCreatedAfterRemove(NetworkClientEntity entity) {
-        if (entityTree.getRoot().getID().equals(entity.getID())) {
-            return true;
-        }
-        if (entityTree.isInPathBetween(entityTree.getNetworkClientEntity(UserID.getUserID()),
-                entityTree.getRoot(),
-                entity)) {
-            return true;
-        }
-        return false;
-    }
-
-    private static void removeEntityIfThereWillBeNoNewRoot(NetworkClientEntity entity) {
-        entityTree.removeNetworkClientEntity(entity);
-    }
-
-    private static NetworkClientEntity searchNewRootUnderEntity(NetworkClientEntity entity) {
-        return entityTree.getChildUnderEntityOnPathBetween(entityTree.getNetworkClientEntity(UserID.getUserID()),
-                entityTree.getRoot(),
-                entity);
-    }
-
-
-    private static void removeEntityIfThereWillBeNewRoot(NetworkClientEntity entity) {
-        NetworkClientEntity newRoot = searchNewRootUnderEntity(entity);
-        entityTree.removeNetworkClientEntityWithException(entityTree.getRoot(), newRoot);
-        entityTree.setRoot(newRoot);
-    }
-
-    //hozzáadás előtt kell megíhvni
-    private static boolean willBeNewRootCreatedAfterAdd(NewClientSignal signal) {
-        if(signal.getClientID().equals(entityTree.getRoot().getID())) {
-            return true;
-        }
-        return false;
-    }
-
-    /*public static void propagateAllClientInfo() {
-            for (NetworkClientEntity act : entityTree.getAllClients()) {
-                forwardMessageDownwardsWithException(new NewClientSignal(act.getID(),
-                                act.getNickname(), act.getIP(), act.getPort(),
-                                act.getMementoNumber(), act.getUpperClientID()).toString(),
-                        act.getID());
-                forwardMessageUpwards(new NewClientSignal(act.getID(),
-                        act.getNickname(), act.getIP(), act.getPort(),
-                        act.getMementoNumber(),
-                        act.getUpperClientID()).toString());
-            }
-        }*/
-
-
-         /*public static void sendMementoOpenerSignalToClient(UUID userID,UUID mementoID) {
-                sendMessageToClient(userID,getMementoOpenerSignal(userID, mementoID));
-            }
-
-            public static void sendMementoCloserSignalToClient(UUID userID,UUID mementoID) {
-                sendMessageToClient(userID,getMementoCloserSignal(userID, mementoID));
-            }*/
-
-            /*private static void reconnectToAnotherNetworkClient() {
-                for(NetworkClientEntity act : allNetworkClients) {
-                    if(act.hasOpenedPort()){
-                        try {connect(act.getIP(),act.getPort());}
-                        catch (IOException e) {
-                            System.out.println("reconnection failed with: "+act.getID());
-                            continue;
-                        }
-                        System.out.println("reconnection succesfull with: "+act.getID());
-                        return;
-                    } else {
-                        System.out.println("doesn't have opened port: "+act.getID());
-                    }
-                }
-            }*/
-
-
-             /*if(connectedClientEntity == null && lowerConnectedClientEntities.isEmpty() ) {
-                    reconnectToAnotherNetworkClient();
-                }*/
-
-
-
-
- //épp most lesz új root, mert én voltam, és én csatlakozok
-        if(amiRootBeforeHandshaking) {
-            NetworkService.sendEntityTreeSignal(true);
-        }
-
-        if(!NetworkService.amiRoot() && imServer) {
-            Signal newClientSignal = new NewClientSignal(
-                    remoteHandshakingInfo.getID(),
-                    remoteHandshakingInfo.getNickname(),
-                    remoteHandshakingInfo.getIP(),
-                    remoteHandshakingInfo.getPort(),
-                    remoteHandshakingInfo.getMementoNumber(),
-                    remoteHandshakingInfo.getUpperClientID());
-            NetworkService.sendSignalUpwards(newClientSignal);
-        }
-
-package com.sharedtable.model.signals;
-
-import java.util.UUID;
-
-public class RootSignal implements Signal {
-
-    public RootSignal(UUID newRootID) {
-        this.newRootID = newRootID;
-    }
-
-    public RootSignal(String[] input) {
-        newRootID = UUID.fromString(input[2]);
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("SIG;NEWROOT;").append(newRootID);
-        return sb.toString();
-    }
-
-    public UUID getNewRootID() {
-        return newRootID;
-    }
-
-    public void setNewRootID(UUID newRootID) {
-        this.newRootID = newRootID;
-    }
-
-    private UUID newRootID;
-}
-
-
-
-
-
-
-
-
-
-
-
-package com.sharedtable.model.signals;
-
-import com.sharedtable.controller.commands.Command;
-import com.sharedtable.controller.commands.CommandFactory;
-import com.sharedtable.model.ArrayPrinter;
-
-import java.util.ArrayList;
-import java.util.UUID;
-
-public class SyncSignal implements Signal {
-
-    public SyncSignal(UUID creatorID) {
-        this.creatorID = creatorID;
-    }
-
-
-    public SyncSignal(String[] input) {
-        String[] sections = input;
-        String[] header = sections[0].split(";");
-        creatorID = UUID.fromString(header[1]);
-        processSignals(sections[1]);
-        processCommands(sections[2]);
-    }
-
-    public UUID getCreatorID() {
-        return creatorID;
-    }
-
-    public void addCommand(Command command) {
-        commands.add(command);
-    }
-
-    public void addSignal(Signal signal) {
-        signals.add(signal);
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("SIG;SYNC;").append(creatorID).append("||");
-
-        for(Signal act : signals) {
-            sb.append(act.toString()).append("|");
-        }
-        sb.append("||");
-        for(Command act : commands) {
-            sb.append(act.toString()).append("|");
-        }
-        return sb.toString();
-    }
-
-    private void processSignals(String input) {
-        String[] signalStrings = input.split("|");
-        for(String act : signalStrings) {
-            signals.add(SignalFactory.getSignal(act.split(";")));
-        }
-    }
-
-    private void processCommands(String input) {
-        String[] commandStrings = input.split("|");
-        for(String act : commandStrings) {
-            commands.add(CommandFactory.getCommand(act.split(";")));
-        }
-    }
-
-    private ArrayList<Command> commands = new ArrayList<>();
-    private ArrayList<Signal> signals = new ArrayList<>();
-    private UUID creatorID;
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-//////////////////////////////
-
-
-
-private SyncedSignal addMenentoToSyncSignal(StateMemento stateMemento, UUID canvasID, SyncedSignal inp) {
-        ArrayList<Command> cmds = stateMemento.getCommands();
-        boolean isLinked = stateMemento.getPreviousMemento() != null;
-        //inp.addSignal(new MementoOpenerSignal(stateMemento.getCreatorID(),canvasID,stateMemento.getId(),isLinked));
-        for(Command act : cmds) {
-            inp.addCommand(act);
-        }
-        //inp.addSignal(new MementoCloserSignal(stateMemento.getCreatorID(),canvasID,stateMemento.getId(),isLinked));
-        return inp;
-    }
-
-    private SyncedSignal addAllMementosOnCanvasToSyncSignal(CanvasController canvasController, SyncedSignal inp) {
-        ArrayList<StateMemento> mementos = canvasController.getMementos();
-        for(int i=1; i<mementos.size(); i++) {
-            addMenentoToSyncSignal(mementos.get(i),canvasController.getCanvasID(),inp);
-        }
-        return inp;
-    }
-
-    private SyncedSignal addSynchronizationCommands(SyncedSignal inp) {
-        for(CanvasController act : TabController.getAllCanvasControllers()) {
-            addAllMementosOnCanvasToSyncSignal(act,inp);
-            inp.addCommand(new ChangeStateCommand(act,UserID.getUserID(),act.getCurrentMementoID()));
-        }
-        return inp;
-    }
-
-    private SyncedSignal addTabSynchronizationCommands(SyncedSignal inp) {
-        for(NewTabSignal act : TabController.generateNewTabSignalsFromAllTab()) {
-            inp.addSignal(act);
-        }
-        return inp;
-    }
-
-    private SyncedSignal generateSyncSignal() {
-        SyncedSignal res = new SyncedSignal(UserID.getUserID());
-        res = addTabSynchronizationCommands(res);
-        res = addSynchronizationCommands(res);
-        return res;
-    }
-
-    private SyncedSignal receiveSyncSignal() {
-        SyncedSignal remoteSyncedSignal;
-        if(scanner.hasNext()) {
-            remoteSyncedSignal = new SyncedSignal(scanner.nextLine().split("||"));
-        } else {
-            throw new RuntimeException("connection dropped during handshakingProcess");
-        }
-        return remoteSyncedSignal;
-    }
-
-
-    input.setWidth(Math.abs(input.getWidth()-input.getX()));
-    input.setHeight(Math.abs(input.getHeight()-input.getY()));
-    input.setX(input.getX() <= input.getWidth() ? input.getX() : input.getWidth());
-    input.setY(input.getY() <= input.getHeight() ? input.getY() : input.getHeight());
-
-
-private Rectangle fixNegativeWidthHeight(Rectangle input) {
-        double x1 = input.getX();
-        double y1 = input.getY();
-        double x2 = input.getX()+input.getWidth();
-        double y2 = input.getY()+input.getY();
-
-        double resx1=0;
-        double resy1=0;
-        double resx2=0;
-        double resy2=0;
-
-
-        if(input.getWidth() >=0 && input.getHeight() >=0)
-            return input;
-        if(input.getHeight()<0) {
-            System.out.println(new Rectangle(x1,y1 + input.getHeight(),input.getWidth(),(input.getHeight()*-1)));
-            return new Rectangle(x1,y1 + input.getHeight(),input.getWidth(),(y1 + input.getHeight())*-1);
-        }
-
-        return new Rectangle(resx1,resy1,resx1+resx2,resy1+resy2);
-    }
-
-
-    //TODO #7 ellipszis DONE; téglalap DONE; háromszög DONE; image pastealmost done
-        //TODO #8
-        //TODO #9 háromszög DONE
-        //TODO ## scrollable chat flow
-        //TODO ## image paste
-
-        private String byteArrayToString(byte[] input) {
-                return new String(input, StandardCharsets.UTF_8);
-            }
-
-            private byte[] stringToByteArray(String input) {
-                return input.getBytes(StandardCharsets.UTF_8);
-            }
-
-
-if(!(signal instanceof DiscoverySignal) &&
-                            !(signal instanceof NewClientSignal) &&
-                            !(signal instanceof ByteReceiveReadySignal))
-                    {
-
-/*
-    private void setImageSendLockReady() {
-        isReadyImageSend = true;
-        System.out.println("notifying threads image send...");
-        if(isThreadInWaitImageSend) {
-            synchronized (imageSendLock) {
-                imageSendLock.notifyAll();
-            }
-        }
-        System.out.println("threads notifyed image send...");
-
-        isThreadInWaitImageSend = false;
-    }
-
-    private void waitUntilImageSendLockNotify() {
-        isThreadInWaitImageSend = true;
-        System.out.println("thread in wait() image send");
-        synchronized (imageSendLock) {
-            while(!isReadyImageSend){
-                try {
-                    imageSendLock.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    return;
-                }
-            }
-        }
-        System.out.println("thread AFTER wait()");
-    }*/
-
-    /*private void notifyImageSenderThread() {
-        synchronized (imageSendLock) {
-            imageSendLock.notify();
-        }
-    }
-
-    private void lockImageSenderThread() {
-        synchronized (imageSendLock) {
-            try {
-                imageSendLock.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }*/
-    /*private void sendByteReceiveReadySignal(){
-        ByteReceiveReadySignal signal = new ByteReceiveReadySignal(UserID.getUserID(),networkClientEntity.getID());
-        if(!isReady) {
-            unsafeSendPlainText(signal.toString());
-        } else {
-            sendPlainText(signal.toString());
-        }
-    }*/
-
-    /*private void sendDrawImageCommandUnsafe(DrawImageCommand command) {
-            command.setImageSize(command.getImageBytes().length);
-            unsafeSendPlainText(command.toString());
-            try {
-                Sleep.sleep(400);
-                sendByteArrayUnsafe(command.getImageBytes());
-            } catch (IOException e) {
-                e.printStackTrace();
-                handleScannerClose();
-            }
-    }*/
-
-
-
-//FOR DEBUG PURPUSES
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/////////////////------------/////////////------------///////////////////
-
-
-
-package com.sharedtable.model.Network;
+package com.sharedtable.model.network;
 
 import com.sharedtable.Constants;
 import com.sharedtable.controller.*;
@@ -448,23 +8,20 @@ import com.sharedtable.view.MainView;
 import com.sharedtable.view.MessageBox;
 
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.Scanner;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class ConnectedClientEntity extends Thread {
 
-    public ConnectedClientEntity(Socket socket, boolean isLowerClientEntity) {
+    public ConnectedClientEntity(Socket socket, Socket brSocket, boolean isLowerClientEntity) {
         logger = Logger.getLogger(MainView.class.getName());
         logger.info("creating ConnectedClientEntity isLower: "+isLowerClientEntity);
         this.socket = socket;
+        this.byteReceiverSocket = brSocket;
         this.isLowerClientEntity = isLowerClientEntity;
         try {
-            initializeStreams(socket);
+            initializeStreams(socket,brSocket);
         } catch (Exception e) {
             logger.warning("Inititalization of input/output network streams failed.");
             throw new RuntimeException("Inititalization of input/output network streams failed.");
@@ -489,7 +46,7 @@ public class ConnectedClientEntity extends Thread {
             handshakingProcess();
         } catch (Exception e) {
             e.printStackTrace();
-            logger.severe(e.getMessage());
+            logger.warning(e.getMessage());
             handleScannerClose();
             return;
         }
@@ -573,6 +130,7 @@ public class ConnectedClientEntity extends Thread {
             outputStream.close();
             inputStream.close();
             socket.close();
+            byteReceiverSocket.close();
             NetworkService.removeClientEntity(id);
             setClientEntityReady();
         } catch (IOException e) {
@@ -588,7 +146,7 @@ public class ConnectedClientEntity extends Thread {
     }
 
     public void sendByteArray(byte[] input) {
-        if(timeToStop || input.length == 0)
+        if(timeToStop)
             return;
         try {
             sendByteArrayUnsafe(input);
@@ -620,8 +178,16 @@ public class ConnectedClientEntity extends Thread {
         return res;
     }
 
+    private void printStackElementArray(StackTraceElement[] elements){
+        for(StackTraceElement act : elements) {
+            System.out.println(act.toString()+"\n");
+        }
+
+    }
+
     private void unsafeSendPlainText(String input) {
         try {
+            System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
             logger.info("sending: "+input+" to: "+id);
             bufferedWriter.write(input+"\n");
             bufferedWriter.flush();
@@ -726,37 +292,37 @@ public class ConnectedClientEntity extends Thread {
                 openNewMemento(
                         (signal.getCreatorID()));
     }
-        //<editor-fold desc="PINGING">
+    //<editor-fold desc="PINGING">
 
-        private void handlePingSignal(PingSignal pingSignal) {
-            if(pingSignal.getTargetClientID().equals(UserID.getUserID()) && !pingSignal.isRespond())
-                sendPingSignalResponse(pingSignal);
-            if(pingSignal.isRespond() &&
-                    pingSignal.getPingID().equals(currentPingIDToWaitFor))
-            {
-                pingFinish = System.nanoTime();
-            }
+    private void handlePingSignal(PingSignal pingSignal) {
+        if(pingSignal.getTargetClientID().equals(UserID.getUserID()) && !pingSignal.isRespond())
+            sendPingSignalResponse(pingSignal);
+        if(pingSignal.isRespond() &&
+                pingSignal.getPingID().equals(currentPingIDToWaitFor))
+        {
+            pingFinish = System.nanoTime();
         }
+    }
 
-        private void sendPingSignalResponse(PingSignal signal) {
-            signal.setRespond(true);
-            NetworkService.sendSignalDownwards(signal);
-            NetworkService.sendSignalUpwards(signal);
+    private void sendPingSignalResponse(PingSignal signal) {
+        signal.setRespond(true);
+        NetworkService.sendSignalDownwards(signal);
+        NetworkService.sendSignalUpwards(signal);
+    }
+
+    public void setPingIDtoWaitFor(UUID pingID) {
+        currentPingIDToWaitFor = pingID;
+    }
+
+    public long getPingResult(UUID pingID) {
+        if(pingID.equals(currentPingIDToWaitFor)){
+            return pingFinish;
+        } else {
+            return -1;
         }
+    }
 
-        public void setPingIDtoWaitFor(UUID pingID) {
-            currentPingIDToWaitFor = pingID;
-        }
-
-        public long getPingResult(UUID pingID) {
-                if(pingID.equals(currentPingIDToWaitFor)){
-                    return pingFinish;
-                } else {
-                    return -1;
-                }
-        }
-
-        //</editor-fold> desc="PINGING">
+    //</editor-fold> desc="PINGING">
 
     //</editor-fold> desc="SIGNAL HANDLING">
 
@@ -794,6 +360,8 @@ public class ConnectedClientEntity extends Thread {
     //</editor-fold> desc="COMMAND HANDLING">
 
     //<editor-fold desc="HANDSHAKING">
+
+    boolean isOpened = false;
 
     private void sendMenentoOnHandshaking(StateMemento stateMemento, UUID canvasID) {
         ArrayList<Command> cmds = stateMemento.getCommands();
@@ -857,38 +425,13 @@ public class ConnectedClientEntity extends Thread {
         NetworkClientEntity remoteHandshakingInfo = null;
         NetworkClientEntity myHandshakingInfo = NetworkService.getMyNetworkClientEntity();
 
-        ServerSocket byteReceiverServerSocket = null;
-        try {
-            byteReceiverServerSocket = new ServerSocket(0);
-        } catch (IOException e) {
-            logger.severe("can't initialize byteReceiverServerSocket");
-            e.printStackTrace();
-        }
-
-
         if(amiServer()) {//I'm the server
             unsafeSendPlainText(myHandshakingInfo.toString());
-            try {
-                byteReceiverServerSocket = new ServerSocket(0);
-                unsafeSendPlainText(String.valueOf(byteReceiverServerSocket.getLocalPort())+"\n");
-                byteReceiverSocket = byteReceiverServerSocket.accept();
-                dataInputStream = new DataInputStream(new BufferedInputStream(byteReceiverSocket.getInputStream(),4194304));
-                dataOutputStream = new DataOutputStream(new BufferedOutputStream(byteReceiverSocket.getOutputStream(),4194304));
-            } catch (IOException e) {
-                logger.severe("can't initialize byteReceiverServerSocket");
-                e.printStackTrace();
-            }
             remoteHandshakingInfo = receiveNetworkClientEntityInfo();
+
         }
         if(!amiServer()) {//I'm the client
             remoteHandshakingInfo = receiveNetworkClientEntityInfo();
-            try {
-                byteReceiverSocket = new Socket(socket.getInetAddress(),receiveByteReceiverPort());
-            } catch (IOException e) {
-                e.printStackTrace();
-                logger.severe("cant initialize byteReceiverSocket");
-                throw new RuntimeException("cant initialize byteReceiverSocket");
-            }
             myHandshakingInfo.setUpperClientID(remoteHandshakingInfo.getID());
             unsafeSendPlainText(myHandshakingInfo.toString());
             NetworkService.setUpperClientEntity(remoteHandshakingInfo);
@@ -961,14 +504,6 @@ public class ConnectedClientEntity extends Thread {
 
     //<editor-fold desc = "lockHandling">
 
-    private int receiveByteReceiverPort() {
-        if(scanner.hasNext()){
-            return Integer.parseInt(scanner.nextLine());
-        }
-        logger.severe("cant receive byte receiverPort");
-        throw new RuntimeException("cant receive byte receiverPort");
-    }
-
     private void receiveSynchornizationCommands() {
         while (scanner.hasNext()) {
             String receivedMessage = scanner.nextLine();
@@ -1007,11 +542,14 @@ public class ConnectedClientEntity extends Thread {
 
     //</editor-fold>
 
-    private void initializeStreams(Socket socket) throws IOException {
+    private void initializeStreams(Socket socket,Socket brSocket) throws IOException {
         outputStream = socket.getOutputStream();
         inputStream = socket.getInputStream();
-        scanner = new Scanner(new InputStreamReader(new BufferedInputStream(inputStream)));
-        bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
+        scanner = new Scanner(new InputStreamReader(new BufferedInputStream(inputStream,512*1024)));
+        bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream),512*1024);
+        dataInputStream = new DataInputStream(new BufferedInputStream(byteReceiverSocket.getInputStream(),1024*1024*4));
+        dataOutputStream = new DataOutputStream(new BufferedOutputStream(byteReceiverSocket.getOutputStream(),1024*1024*4));
+
         logger.info("connections's I/O streams are initialized!");
     }
 
@@ -1020,14 +558,14 @@ public class ConnectedClientEntity extends Thread {
     }
 
     private void sendAllImageBytesCountOnSync(int bytesCount) {
-        Sleep.sleep(400,logger);
+        //Sleep.sleep(400,logger);
         unsafeSendPlainText(String.valueOf(bytesCount));
         logger.info("bytes count sent");
     }
 
     private void sendAllImageBytesOnSync(byte[] input) {
         try {
-            Sleep.sleep(400,logger);
+            //Sleep.sleep(400,logger);
             sendByteArrayUnsafe(input);
             logger.info("all image bytes sent");
         } catch (IOException e) {
@@ -1053,9 +591,9 @@ public class ConnectedClientEntity extends Thread {
     private boolean receiveNetworkPasswordValidationResultOnSync() {
         if(scanner.hasNext()) {
             String resultString = scanner.nextLine();
-            if(resultString.equals("PASSWD_OK")){
+            if(resultString.equals(Constants.getNetworkPasswordValidationOK())){
                 return true;
-            } else if (resultString.equals("PASSWD_INVALID")){
+            } else if (resultString.equals(Constants.getNetworkPasswordValidationINVALID())){
                 return false;
             } else {
                 logger.severe("receiveNetworkPasswordValidationResult() Unrecognized result!");

@@ -1,8 +1,5 @@
-package com.sharedtable.model.Network;
+package com.sharedtable.model.network;
 
-import com.sharedtable.LoggerConfig;
-import com.sharedtable.model.Network.UPnP.UPnPConfigException;
-import com.sharedtable.model.Network.UPnP.UPnPHandler;
 import com.sharedtable.view.MainView;
 
 import java.io.IOException;

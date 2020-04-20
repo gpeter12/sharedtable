@@ -1,19 +1,17 @@
-package com.sharedtable.model.Network;
+package com.sharedtable.model.network;
 
 import com.sharedtable.Constants;
-import com.sharedtable.LoggerConfig;
 import com.sharedtable.controller.*;
 import com.sharedtable.controller.commands.Command;
 import com.sharedtable.controller.commands.DrawImageCommand;
-import com.sharedtable.model.Network.UPnP.UPnPConfigException;
-import com.sharedtable.model.Network.UPnP.UPnPHandler;
+import com.sharedtable.model.network.UPnP.UPnPConfigException;
+import com.sharedtable.model.network.UPnP.UPnPHandler;
 import com.sharedtable.model.signals.*;
 import com.sharedtable.view.MainView;
 import com.sharedtable.view.MessageBox;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.security.MessageDigestSpi;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;

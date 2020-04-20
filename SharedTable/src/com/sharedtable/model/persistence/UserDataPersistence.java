@@ -1,4 +1,4 @@
-package com.sharedtable.model.Persistence;
+package com.sharedtable.model.persistence;
 
 import com.sharedtable.Constants;
 import com.sharedtable.view.MainView;

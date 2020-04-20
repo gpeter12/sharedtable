@@ -1,7 +1,7 @@
 package com.sharedtable.controller;
 
 import com.sharedtable.controller.commands.*;
-import com.sharedtable.model.Network.NetworkService;
+import com.sharedtable.model.network.NetworkService;
 import com.sharedtable.view.MainView;
 import com.sharedtable.view.STCanvas;
 import javafx.scene.image.Image;

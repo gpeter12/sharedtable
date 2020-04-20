@@ -1,4 +1,4 @@
-package com.sharedtable.model.Network;
+package com.sharedtable.model.network;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;

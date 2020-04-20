@@ -1,4 +1,4 @@
-package com.sharedtable.model.Persistence;
+package com.sharedtable.model.persistence;
 
 public class UnrecognizedOSException extends Throwable {
 }

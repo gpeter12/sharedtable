@@ -1,7 +1,7 @@
 package com.sharedtable.controller;
 
-import com.sharedtable.model.Network.NetworkClientEntity;
-import com.sharedtable.model.Network.NetworkService;
+import com.sharedtable.model.network.NetworkClientEntity;
+import com.sharedtable.model.network.NetworkService;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;

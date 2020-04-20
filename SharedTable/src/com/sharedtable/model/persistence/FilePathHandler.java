@@ -1,6 +1,4 @@
-package com.sharedtable.model.Persistence;
-
-import com.sharedtable.Constants;
+package com.sharedtable.model.persistence;
 
 import java.io.File;
 

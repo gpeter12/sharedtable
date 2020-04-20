@@ -1,4 +1,4 @@
-package com.sharedtable.model.Network.UPnP;
+package com.sharedtable.model.network.UPnP;
 import com.dosse.upnp.UPnP;
 
 public class UPnPHandler {

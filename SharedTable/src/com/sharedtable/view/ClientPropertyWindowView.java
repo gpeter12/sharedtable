@@ -1,7 +1,7 @@
 package com.sharedtable.view;
 
 import com.sharedtable.controller.ClientPropertyWindowController;
-import com.sharedtable.model.Network.NetworkClientEntity;
+import com.sharedtable.model.network.NetworkClientEntity;
 import javafx.stage.Modality;
 
 public class ClientPropertyWindowView extends GeneralView {
