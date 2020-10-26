@@ -1,6 +1,7 @@
 #!/bin/bash
 echo "postrm"
 
+
 if [ -f "/usr/share/applications/sharedtable.desktop" ]; then
     rm /usr/share/applications/sharedtable.desktop
 fi
@@ -27,3 +28,5 @@ do
         rm -r "${user}/.config/SharedTable"
     fi
 done
+
+
