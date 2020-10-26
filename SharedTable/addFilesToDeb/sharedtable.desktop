@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Shared Table
+GenericName=Shared Table
+Exec=/opt/sharedtable/desktopRun.sh
+Terminal=false
+StartupNotify=true

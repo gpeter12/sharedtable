@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      style="-fx-padding: 20px; -fx-spacing: 10px" prefWidth="550" prefHeight="300">
+    <Label style="-fx-font-size: 16px; -fx-font-weight: bold">Shared Table</Label>
+
+    <Label>Verzió: 0.8.4 beta</Label>
+    <Label>built on 2020.04.20 Gaál Péter</Label>
+    <Label></Label>
+    <Label>Felhasznált harmadik félről származó kódok</Label>
+    <Label>• OpenJDK 14.0.1 (https://openjdk.java.net)</Label>
+    <Label>     GPL v2 + the Classpath exception</Label>
+    <Label>• OpenJFX 14.0.1 (https://openjfx.io)</Label>
+    <Label>     Creative Commons Attribution-NonCommercial 4.0 International License.</Label>
+    <Label>• json-simple by fangyidong </Label>
+    <Label>     (https://github.com/fangyidong/json-simple) Apache 2.0 License</Label>
+    <Label>• WaifUPnP by Federico Dossena </Label>
+    <Label>     (https://github.com/adolfintel/WaifUPnP) GNU LGPL License</Label>
+
+</VBox>

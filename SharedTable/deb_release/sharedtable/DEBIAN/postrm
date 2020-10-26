@@ -1,0 +1,29 @@
+#!/bin/bash
+echo "postrm"
+
+if [ -f "/usr/share/applications/sharedtable.desktop" ]; then
+    rm /usr/share/applications/sharedtable.desktop
+fi
+
+for user in /home/*
+do
+    if [ -f "${user}/Asztal/sharedtable.desktop" ]; then
+        rm "${user}/Asztal/sharedtable.desktop"
+    fi
+    
+done
+
+for user in /home/*
+do
+    if [ -f "${user}/Desktop/sharedtable.desktop" ]; then
+        rm "${user}/Desktop/sharedtable.desktop"
+    fi
+done
+
+
+for user in /home/*
+do
+    if [ -d "${user}/.config/SharedTable" ]; then
+        rm -r "${user}/.config/SharedTable"
+    fi
+done

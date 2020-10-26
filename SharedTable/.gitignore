@@ -1,3 +1,15 @@
 /out
 /.idea
 SharedTable.iml
+
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
+
+deb_release/sharedtable.deb
+deb_release/sharedtable/opt
+nsisOutput/InstallSharedTable.exe
+
+

@@ -1,0 +1,32 @@
+#!/bin/bash
+echo "done"
+chmod 777 /opt/sharedtable/bin/java
+chmod +x /opt/sharedtable/bin/java
+chmod 777 /opt/sharedtable/run.sh
+chmod +x /opt/sharedtable/run.sh
+chmod 777 /opt/sharedtable/sharedtable.desktop
+
+#desktop-file-install /opt/sharedtable/sharedtable.desktop --dir=~/.local/share/applications ~/app.desktop
+
+if [ -d "/usr/share/applications" ]; then
+    cp /opt/sharedtable/sharedtable.desktop /usr/share/applications
+fi
+
+for user in /home/*
+do
+    if [ -d "${user}/Asztal" ]; then
+        cp /opt/sharedtable/sharedtable.desktop "${user}/Asztal"
+        chmod 755 "${user}/Asztal/sharedtable.desktop"
+    fi
+    
+done
+
+for user in /home/*
+do
+    if [ -d "${user}/Desktop" ]; then
+        cp /opt/sharedtable/sharedtable.desktop "${user}/Desktop"
+        chmod 755 "${user}/Desktop/sharedtable.desktop"
+    fi
+done
+
+ln -s /opt/sharedtable/desktopRun.sh /usr/bin/sharedtable
