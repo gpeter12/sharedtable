@@ -20,8 +20,7 @@ public class StateCaretaker {
         mementos.add(fistMemento);
     }
 
-    //publicForTestPurposes
-    public StateMemento getColliderMemento(StateMemento memento) {
+    private StateMemento getColliderMemento(StateMemento memento) {
         if(mementos.size()<2)
             return null;
         int i = mementos.size() - 1;

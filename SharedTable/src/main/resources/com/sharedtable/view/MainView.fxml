@@ -23,7 +23,7 @@
                     <MenuItem text="Új vászon" onAction="#onCreateNewTabPressed"></MenuItem>
                     <MenuItem text="Jelenlegi vászon átnevezése" onAction="#onRenameCurrentTabPressed"></MenuItem>
                     <MenuItem text="Jelenlegi vászon másolása" onAction="#onCopyCurrentTabPressed"></MenuItem>
-                    <MenuItem text="printAllMementos()" onAction="#onPrintAllMementosPressed"></MenuItem>
+                 <!--   <MenuItem text="printAllMementos()" onAction="#onPrintAllMementosPressed"></MenuItem> -->
 
                 </Menu>
                 <Menu text="Rajzolási módok">

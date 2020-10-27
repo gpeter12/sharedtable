@@ -335,7 +335,6 @@ public class NetworkService {
         }
     }
 
-    //publicForTests
     private NetworkClientEntity findNewUpperClientEntityToConnect(UUID exUpperID) {
         //Sleep.sleep(1000);
         if (!entityTree.contains(exUpperID))

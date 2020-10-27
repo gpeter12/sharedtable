@@ -7,8 +7,8 @@
       style="-fx-padding: 20px; -fx-spacing: 10px" prefWidth="550" prefHeight="300">
     <Label style="-fx-font-size: 16px; -fx-font-weight: bold">Shared Table</Label>
 
-    <Label>Verzió: 0.8.4 beta</Label>
-    <Label>built on 2020.04.20 Gaál Péter</Label>
+    <Label>Verzió: 0.9 beta</Label>
+    <Label>built on 2020.10.27 Gaál Péter</Label>
     <Label></Label>
     <Label>Felhasznált harmadik félről származó kódok</Label>
     <Label>• OpenJDK 14.0.1 (https://openjdk.java.net)</Label>
