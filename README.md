@@ -2,7 +2,7 @@
 
 This is a Microsoft Paint like app, where multiple user can draw on the same canvas at the same time.
 
-!!IMPORTANT!! Before all, you need to set the JAVA_HOME environment variable to the installation path of OpenJDK 14.0.1
+**!!IMPORTANT:** Before all, you need to set the JAVA_HOME environment variable to the installation path of OpenJDK 14.0.1
 
 * for Windows: https://confluence.atlassian.com/doc/setting-the-java_home-variable-in-windows-8895.html
 * for Linux: https://vitux.com/how-to-setup-java_home-path-in-ubuntu/
