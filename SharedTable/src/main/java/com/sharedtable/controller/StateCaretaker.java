@@ -34,8 +34,7 @@ public class StateCaretaker {
         return null;
     }
 
-    //publicForTestPurposes
-    public void resolveMementoCollision(StateMemento toInsert,StateMemento collides, boolean link) {
+    private void resolveMementoCollision(StateMemento toInsert,StateMemento collides, boolean link) {
         int index = getMementoIndexByID(collides.getId());
         if(toInsert.getId().compareTo(collides.getId()) == 1) {
             mementos.add(index+1,toInsert);
@@ -48,15 +47,13 @@ public class StateCaretaker {
         }
     }
 
-    //publicForTestPurposes
-    public boolean areTheyNeighbours(UUID a, UUID b) {
+    private boolean areTheyNeighbours(UUID a, UUID b) {
         return getLastMementoID().equals(a) &&
                 b.equals(Constants.getEndChainUUID()) ||
                 getMementoIndexByID(a)+1 == getMementoIndexByID(b) ||
                 getMementoIndexByID(b)+1 == getMementoIndexByID(a);
     }
-    //publicForTestPurposes
-    public void linkMementoWithMemento(StateMemento a, StateMemento b) {
+    private void linkMementoWithMemento(StateMemento a, StateMemento b) {
         a.setNextMemento(b);
         b.setPreviousMemento(a);
     }

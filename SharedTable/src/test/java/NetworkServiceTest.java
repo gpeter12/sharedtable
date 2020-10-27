@@ -6,6 +6,8 @@ import com.sharedtable.model.network.NetworkService;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.UUID;
 
 public class NetworkServiceTest {
@@ -25,6 +27,39 @@ public class NetworkServiceTest {
         me = entityTree.getNetworkClientEntity(UUID.fromString("1c183421-b375-4899-85e2-50bd25ddba8f"));
     }
 
+    private NetworkClientEntity findNewUpperClientEntityToConnectAccessor(UUID inp) {
+        Method method = null;
+        try {
+            method = networkService.getClass().getDeclaredMethod("findNewUpperClientEntityToConnect",UUID.class);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        method.setAccessible(true);
+        Object r = null;
+        try {
+            r = method.invoke(networkService,inp);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return (NetworkClientEntity)r;
+    }
+
+    private NetworkClientEntity findNewSiblingClientEntityToConnectAccessor(UUID inp) {
+        Method method = null;
+        try {
+            method = networkService.getClass().getDeclaredMethod("findNewSiblingClientEntityToConnect",UUID.class);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        method.setAccessible(true);
+        Object r = null;
+        try {
+            r = method.invoke(networkService,inp);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return (NetworkClientEntity)r;
+    }
 
     /*
         root (disconnect)
@@ -34,8 +69,8 @@ public class NetworkServiceTest {
     public void rootDisconnectWithNoSiblings() {
         entityTree.addNetworkClientEntity(new NetworkClientEntity(Constants.getNilUUID(),"theRoot","0.0.0.0",
                 30000,1,null,27));
-        assertNull(networkService.findNewUpperClientEntityToConnect(Constants.getNilUUID()));
-        assertNull(networkService.findNewSiblingClientEntityToConnect(Constants.getNilUUID()));
+        assertNull(findNewUpperClientEntityToConnectAccessor(Constants.getNilUUID()));
+        assertNull(findNewSiblingClientEntityToConnectAccessor(Constants.getNilUUID()));
         entityTree.clearAll();
     }
 
@@ -59,13 +94,13 @@ public class NetworkServiceTest {
         entityTree.getNetworkClientEntity(UUID.fromString("1c183421-b375-4899-85e2-50bd25ddba8f")).setUpperClientEntity(root);
         entityTree.addNetworkClientEntity(sibling1);
 
-        assertNull(networkService.findNewUpperClientEntityToConnect(root.getID()));
-        assertEquals(sibling1.getID(),networkService.findNewSiblingClientEntityToConnect(root.getID()).getID());
+        assertNull(findNewUpperClientEntityToConnectAccessor(root.getID()));
+        assertEquals(sibling1.getID(),findNewSiblingClientEntityToConnectAccessor(root.getID()).getID());
 
         //with enabled incoming connections
         entityTree.getNetworkClientEntity(UUID.fromString("1c183421-b375-4899-85e2-50bd25ddba8f")).setPort(26000);
-        assertNull(networkService.findNewUpperClientEntityToConnect(root.getID()));
-        assertEquals(sibling1.getID(),networkService.findNewSiblingClientEntityToConnect(root.getID()).getID());
+        assertNull(findNewUpperClientEntityToConnectAccessor(root.getID()));
+        assertEquals(sibling1.getID(),findNewSiblingClientEntityToConnectAccessor(root.getID()).getID());
 
         //with enabled incoming connections and 3 siblings
         NetworkClientEntity sibling2 = new NetworkClientEntity(UUID.fromString("22222222-b375-4899-85e2-50bd25ddba8f"),"sibling2","0.0.0.0",
@@ -80,13 +115,13 @@ public class NetworkServiceTest {
         sibling3.setPort(25000);
         entityTree.addNetworkClientEntity(sibling3);
 
-        assertNull(networkService.findNewUpperClientEntityToConnect(root.getID()));
-        assertEquals(sibling3.getID(),networkService.findNewSiblingClientEntityToConnect(root.getID()).getID());
+        assertNull(findNewUpperClientEntityToConnectAccessor(root.getID()));
+        assertEquals(sibling3.getID(),findNewSiblingClientEntityToConnectAccessor(root.getID()).getID());
 
         //with sibling3 inactive
         entityTree.getNetworkClientEntity(sibling3.getID()).setPort(-1);
-        assertNull(networkService.findNewUpperClientEntityToConnect(root.getID()));
-        assertEquals(sibling2.getID(),networkService.findNewSiblingClientEntityToConnect(root.getID()).getID());
+        assertNull(findNewUpperClientEntityToConnectAccessor(root.getID()));
+        assertEquals(sibling2.getID(),findNewSiblingClientEntityToConnectAccessor(root.getID()).getID());
 
         entityTree.clearAll();
     }
@@ -125,14 +160,14 @@ public class NetworkServiceTest {
 
         entityTree.getNetworkClientEntity(UUID.fromString("1c183421-b375-4899-85e2-50bd25ddba8f")).setUpperClientEntity(client2);
 
-        assertEquals(client1.getID(),networkService.findNewUpperClientEntityToConnect(client2.getID()).getID());
+        assertEquals(client1.getID(),findNewUpperClientEntityToConnectAccessor(client2.getID()).getID());
 
         //sibling 1,3 unable to receive connections
 
         client1.setPort(-1);
         client3.setPort(-1);
 
-        assertEquals(root.getID(),networkService.findNewUpperClientEntityToConnect(client2.getID()).getID());
+        assertEquals(root.getID(),findNewUpperClientEntityToConnectAccessor(client2.getID()).getID());
 
     }
 
@@ -180,15 +215,15 @@ public class NetworkServiceTest {
         me.setUpperClientEntity(client4);
 
         //client4 disconnects and client3 inactive
-        assertEquals(client2.getID(),networkService.findNewUpperClientEntityToConnect(client4.getID()).getID());
+        assertEquals(client2.getID(),findNewUpperClientEntityToConnectAccessor(client4.getID()).getID());
 
         //client1 inactive
         client1.setPort(-1);
-        assertEquals(client2.getID(),networkService.findNewUpperClientEntityToConnect(client4.getID()).getID());
+        assertEquals(client2.getID(),findNewUpperClientEntityToConnectAccessor(client4.getID()).getID());
 
         //client3 active
         client3.setPort(25000);
-        assertEquals(client3.getID(),networkService.findNewUpperClientEntityToConnect(client4.getID()).getID());
+        assertEquals(client3.getID(),findNewUpperClientEntityToConnectAccessor(client4.getID()).getID());
     }
 
 }

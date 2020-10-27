@@ -259,8 +259,7 @@ public class NetworkService {
     //</editor-fold> desc="PINGING">
 
     //<editor-fold desc="RECONNECT">
-    //publicForTests
-    public NetworkClientEntity findMaxUUIDEntity(ArrayList<NetworkClientEntity> input) {
+    private NetworkClientEntity findMaxUUIDEntity(ArrayList<NetworkClientEntity> input) {
         NetworkClientEntity maxValueUUIDEntity = input.get(0);
         for(NetworkClientEntity act : input) {
             if(act.getID().compareTo(maxValueUUIDEntity.getID()) == 1) {
@@ -270,8 +269,7 @@ public class NetworkService {
         return maxValueUUIDEntity;
     }
 
-    //publicForTests
-    public NetworkClientEntity chooseSiblingForNewUpper(ArrayList<NetworkClientEntity> siblings) {
+    private NetworkClientEntity chooseSiblingForNewUpper(ArrayList<NetworkClientEntity> siblings) {
         ArrayList<NetworkClientEntity> candidates = new ArrayList<>();
         for(NetworkClientEntity act : siblings) {
             if (act.getPort() != -1 &&
@@ -286,8 +284,7 @@ public class NetworkService {
 
     }
 
-    //publicForTests
-    public NetworkClientEntity connectToClientsChildrenForNewUpper(UUID id, boolean isSibling) {
+    private NetworkClientEntity connectToClientsChildrenForNewUpper(UUID id, boolean isSibling) {
         NetworkClientEntity entity = entityTree.getNetworkClientEntity(id);
         if(isSibling) {//saját testvérek közül kell választani
             logger.info("I have to choose from my siblings...");
@@ -339,7 +336,7 @@ public class NetworkService {
     }
 
     //publicForTests
-    public NetworkClientEntity findNewUpperClientEntityToConnect(UUID exUpperID) {
+    private NetworkClientEntity findNewUpperClientEntityToConnect(UUID exUpperID) {
         //Sleep.sleep(1000);
         if (!entityTree.contains(exUpperID))
             return null;
@@ -378,8 +375,7 @@ public class NetworkService {
         }
     }
 
-    //publicForTests
-    public NetworkClientEntity findNewSiblingClientEntityToConnect(UUID exUpperID) {
+    private NetworkClientEntity findNewSiblingClientEntityToConnect(UUID exUpperID) {
         //Sleep.sleep(1000);
         if (!entityTree.contains(exUpperID))
             return null;

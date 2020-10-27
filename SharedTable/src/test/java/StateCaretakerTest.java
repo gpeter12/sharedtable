@@ -4,8 +4,11 @@ import com.sharedtable.controller.StateCaretaker;
 import com.sharedtable.controller.StateChainInconsistencyException;
 import com.sharedtable.controller.StateMemento;
 import com.sharedtable.controller.StateOriginator;
+import com.sharedtable.model.network.NetworkClientEntity;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -28,6 +31,23 @@ public class StateCaretakerTest {
         firstMemento.setPreviousMementoID(Constants.getNilUUID());
         firstMemento.setNextMementoID(Constants.getEndChainUUID());
         return firstMemento;
+    }
+    
+    private boolean areTheyNeighboursAccessor(UUID a, UUID b) {
+        Method method = null;
+        try {
+            method = stateCaretaker.getClass().getDeclaredMethod("areTheyNeighbours",UUID.class,UUID.class);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        method.setAccessible(true);
+        Object r = null;
+        try {
+            r = method.invoke(stateCaretaker,a,b);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return (boolean)r;
     }
 
     private void prepareStateCaretaker() {
@@ -101,16 +121,16 @@ public class StateCaretakerTest {
         stateCaretaker.addFirstMemento(makeFirstMemento());
         simpleAddMementoTest();
 
-        assertTrue(stateCaretaker.areTheyNeighbours(stateCaretaker.getMementoByIndex(3).getId(),
+        assertTrue(areTheyNeighboursAccessor(stateCaretaker.getMementoByIndex(3).getId(),
                 stateCaretaker.getMementoByIndex(4).getId()));
-        assertTrue(stateCaretaker.areTheyNeighbours(stateCaretaker.getMementoByIndex(8).getId(),
+        assertTrue(areTheyNeighboursAccessor(stateCaretaker.getMementoByIndex(8).getId(),
                 stateCaretaker.getMementoByIndex(9).getId()));
-        assertFalse(stateCaretaker.areTheyNeighbours(stateCaretaker.getMementoByIndex(3).getId(),
+        assertFalse(areTheyNeighboursAccessor(stateCaretaker.getMementoByIndex(3).getId(),
                 stateCaretaker.getMementoByIndex(5).getId()));
 
-        assertTrue(stateCaretaker.areTheyNeighbours(stateCaretaker.getMementoByIndex(4).getId(),
+        assertTrue(areTheyNeighboursAccessor(stateCaretaker.getMementoByIndex(4).getId(),
                 stateCaretaker.getMementoByIndex(3).getId()));
-        assertFalse(stateCaretaker.areTheyNeighbours(stateCaretaker.getMementoByIndex(5).getId(),
+        assertFalse(areTheyNeighboursAccessor(stateCaretaker.getMementoByIndex(5).getId(),
                 stateCaretaker.getMementoByIndex(3).getId()));
 
     }
