@@ -8,8 +8,8 @@ import java.util.ArrayList;
 public class ChatService {
 
     private ArrayList<ChatMessageSignal> chatMessageSignals = new ArrayList<>();
-    private ChatWindowController chatWindowController_unsafe;
     private static ChatService instance = new ChatService();
+    private ChatWindowControllerAccessor chatWindowControllerAccessor = new ChatWindowControllerAccessor();
 
     private ChatService() { }
     
@@ -25,10 +25,11 @@ public class ChatService {
             return;
         chatMessageSignals.add(signal);
 
-        if(hasChatWindowController()){
-            getChatWindowController().printMessage(signal.getNickname(), signal.getMessage(),
-                    signal.getCreatorID().equals(UserID.getInstance().getUserID()));
-        }
+        try {
+            chatWindowControllerAccessor.getChatWindowController().printMessage(signal.getNickname(), signal.getMessage(),
+                        signal.getCreatorID().equals(UserID.getInstance().getUserID()));
+        } catch (ChatWindowControllerNotAvailableException e) { }
+
     }
 
     public String getAllMessageTexts() {
@@ -43,23 +44,17 @@ public class ChatService {
 
     public void handleOutgoingChatMessage(String message) {
         chatMessageSignals.add(NetworkService.getInstance().sendNewChatMessage(message));
-        getChatWindowController().printMessage(UserID.getInstance().getNickname(),message,true);
+        try {
+            chatWindowControllerAccessor.getChatWindowController().printMessage(UserID.getInstance().getNickname(),message,true);
+        } catch (ChatWindowControllerNotAvailableException e) { }
     }
 
     public ArrayList<ChatMessageSignal> getAllChatMessageSignal() {
         return chatMessageSignals;
     }
 
-    private ChatWindowController getChatWindowController() {
-        if(chatWindowController_unsafe == null)
-            throw new RuntimeException("chatWindowController not registered!");
-        return chatWindowController_unsafe;
-    }
-
-    private boolean hasChatWindowController() {return chatWindowController_unsafe != null;}
-
     public void setChatWindowController(ChatWindowController currentChatWindowController) {
-        chatWindowController_unsafe = currentChatWindowController;
+        chatWindowControllerAccessor.setChatWindowController(currentChatWindowController);
     }
 
     public void printAllMessages(ChatWindowController chatWindowController) {
@@ -68,7 +63,26 @@ public class ChatService {
                     act.getCreatorID().equals(UserID.getInstance().getUserID()));
         }
     }
-    
 
+    private class ChatWindowControllerNotAvailableException extends Exception {}
+
+    private class ChatWindowControllerAccessor {
+
+        private ChatWindowController chatWindowController_unsafe;
+
+        public ChatWindowControllerAccessor() { }
+
+        public ChatWindowController getChatWindowController() throws ChatWindowControllerNotAvailableException {
+            if(chatWindowController_unsafe == null) {
+                throw new ChatWindowControllerNotAvailableException();
+            } else {
+                return chatWindowController_unsafe;
+            }
+        }
+
+        public void setChatWindowController(ChatWindowController chatWindowController) {
+            this.chatWindowController_unsafe = chatWindowController;
+        }
+    }
 
 }
