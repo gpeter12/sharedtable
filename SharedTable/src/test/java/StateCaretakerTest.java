@@ -50,6 +50,23 @@ public class StateCaretakerTest {
         return (boolean)r;
     }
 
+    private StateMemento getColliderMementoAccessor(StateMemento memento) {
+        Method method = null;
+        try {
+            method = stateCaretaker.getClass().getDeclaredMethod("getColliderMemento",StateMemento.class);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        method.setAccessible(true);
+        Object r = null;
+        try {
+            r = method.invoke(stateCaretaker,memento);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return (StateMemento) r;
+    }
+
     private void prepareStateCaretaker() {
         StateMemento firstMemento = makeFirstMemento();
         stateCaretaker.addFirstMemento(firstMemento);
@@ -136,7 +153,7 @@ public class StateCaretakerTest {
     }
 
     @Test
-    public void mementoInsertionWithCollisionTest() throws StateChainInconsistencyException {
+    public void mementoInsertionWithCollisionTestA() throws StateChainInconsistencyException {
         stateCaretaker.clearStateChain();
         stateCaretaker.addFirstMemento(makeFirstMemento());
         simpleAddMementoTest();
@@ -149,6 +166,9 @@ public class StateCaretakerTest {
         StateMemento mementoToInsert2 = new StateMemento(UUID.fromString("22222222-b375-4899-85e2-50bd25ddba8f"),creatorID,true);
         mementoToInsert2.setPreviousMementoID(UUID.fromString("8f04b5d5-efde-40f8-a251-4b5adbec19cb"));
         mementoToInsert2.setNextMementoID(UUID.fromString("9db45cb2-634c-4dcf-a09e-c7c35d3bee24"));
+
+        assertNotNull(getColliderMementoAccessor(mementoToInsert2));
+
         stateCaretaker.addMemento(mementoToInsert2,true);
 
         assertEquals(testList.get(7).getId(),stateCaretaker.getMementoByIndex(7).getId());
@@ -156,7 +176,6 @@ public class StateCaretakerTest {
         assertEquals(mementoToInsert1.getId(),stateCaretaker.getMementoByIndex(9).getId());
         assertEquals(mementoToInsert2.getId(),stateCaretaker.getMementoByIndex(10).getId());
         assertEquals(testList.get(9).getId(),stateCaretaker.getMementoByIndex(11).getId());
-
     }
 
     @Test
@@ -181,6 +200,17 @@ public class StateCaretakerTest {
         assertEquals(mementoToInsert1.getId(),stateCaretaker.getMementoByIndex(10).getId());
         assertEquals(testList.get(9).getId(),stateCaretaker.getMementoByIndex(11).getId());
 
+        assertEquals(testList.get(8).getId(),stateCaretaker.getMementoByID(mementoToInsert2.getId()).getPreviousMementoID());
+        assertEquals(mementoToInsert1.getId(),stateCaretaker.getMementoByID(mementoToInsert2.getId()).getNextMementoID());
+
+        assertEquals(mementoToInsert2.getId(),stateCaretaker.getMementoByID(mementoToInsert1.getId()).getPreviousMementoID());
+        assertEquals(testList.get(9).getId(),stateCaretaker.getMementoByID(mementoToInsert1.getId()).getNextMementoID());
+
+        assertEquals(testList.get(8).getId(),stateCaretaker.getMementoByID(mementoToInsert2.getId()).getPreviousMemento().getId());
+        assertEquals(mementoToInsert1.getId(),stateCaretaker.getMementoByID(mementoToInsert2.getId()).getNextMemento().getId());
+
+        assertEquals(mementoToInsert2.getId(),stateCaretaker.getMementoByID(mementoToInsert1.getId()).getPreviousMemento().getId());
+        assertEquals(testList.get(9).getId(),stateCaretaker.getMementoByID(mementoToInsert1.getId()).getNextMemento().getId());
     }
 
     @Test

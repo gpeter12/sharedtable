@@ -33,16 +33,28 @@ public class StateCaretaker {
         return null;
     }
 
+    private void rechain() {
+        mementos.get(0).setPreviousMementoID(Constants.getNilUUID());
+        mementos.get(0).setNextMemento(mementos.get(1));
+        for(int i=1; i<mementos.size()-1; i++) {
+            mementos.get(i).setPreviousMemento(mementos.get(i-1));
+            mementos.get(i).setNextMemento(mementos.get(i+1));
+        }
+        mementos.get(mementos.size()-1).setNextMementoID(Constants.getEndChainUUID());
+    }
+
     private void resolveMementoCollision(StateMemento toInsert,StateMemento collides, boolean link) {
         int index = getMementoIndexByID(collides.getId());
         if(toInsert.getId().compareTo(collides.getId()) == 1) {
             mementos.add(index+1,toInsert);
             if(link)
-                linkMementoWithMemento(mementos.get(index),toInsert);
+                //linkMementoWithMemento(mementos.get(index),toInsert);
+                rechain();
         } else {
             mementos.add(index,toInsert);
             if(link)
-                linkMementoWithMemento(toInsert,mementos.get(index));
+                //linkMementoWithMemento(toInsert,mementos.get(index));
+                rechain();
         }
     }
 
