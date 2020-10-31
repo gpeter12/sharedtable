@@ -37,7 +37,9 @@ public class StateCaretaker {
         mementos.get(0).setPreviousMementoID(Constants.getNilUUID());
         mementos.get(0).setNextMemento(mementos.get(1));
         for(int i=1; i<mementos.size()-1; i++) {
-            mementos.get(i).setPreviousMemento(mementos.get(i-1));
+            if(mementos.get(i).isBackLinked()) {
+                mementos.get(i).setPreviousMemento(mementos.get(i - 1));
+            }
             mementos.get(i).setNextMemento(mementos.get(i+1));
         }
         mementos.get(mementos.size()-1).setNextMementoID(Constants.getEndChainUUID());
