@@ -5,9 +5,12 @@ import com.sharedtable.controller.Point;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.scene.Node;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
@@ -103,6 +106,25 @@ public class STCanvas extends Canvas {
         graphicsContext.clearRect(0.0, 0.0, graphicsContext.getCanvas().getWidth(), graphicsContext.getCanvas().getHeight());
     }
 
+    public WritableImage createImage() {
+
+        WritableImage wi;
+        SnapshotParameters parameters = new SnapshotParameters();
+        parameters.setFill(Color.TRANSPARENT);
+        int imageWidth = (int) this.getBoundsInLocal().getWidth();
+        int imageHeight = (int) this.getBoundsInLocal().getHeight();
+        wi = new WritableImage(imageWidth, imageHeight);
+        this.snapshot(parameters, wi);
+        return wi;
+
+    }
+
+    public void setImage(WritableImage writableImage) {
+        Platform.runLater(() -> {
+                clear();
+                this.getGraphicsContext2D().drawImage(writableImage, 0, 0);
+            });
+    }
 
 
 }

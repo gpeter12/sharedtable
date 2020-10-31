@@ -5,6 +5,7 @@ import com.sharedtable.controller.commands.*;
 import com.sharedtable.model.network.NetworkService;
 import com.sharedtable.view.STCanvas;
 import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
@@ -25,7 +26,7 @@ public class CanvasController {
     private Point lastPoint;
     private Rectangle currentRect;
     private Image currentImage;
-    private STCanvas STCanvas;
+    private STCanvas sTCanvas;
     private DrawingMode currentMode = DrawingMode.ContinousLine;
     private UUID actMementoID;
     private CommandExecutorThread commandExecutorThread = new CommandExecutorThread();
@@ -35,10 +36,11 @@ public class CanvasController {
     private Semaphore mementoAddSemaphore = new Semaphore(1);
     private Logger logger = null;
     private boolean wasCleanup = false;
+    private WritableImage currentSnapshot;
 
     public CanvasController(STCanvas STCanvas, UUID canvasID) {
         logger = Logger.getLogger(MainViewController.class.getName());
-        this.STCanvas = STCanvas;
+        this.sTCanvas = STCanvas;
         this.canvasID = canvasID;
         STCanvas.initEventHandlers(this);
         this.stateCaretaker = new StateCaretaker();
@@ -58,6 +60,13 @@ public class CanvasController {
         try {semaphore.acquire(); } catch (InterruptedException e) {e.printStackTrace(); }
         lastPoint = p;
         isMouseDown = true;
+        if(currentMode == DrawingMode.Ellipse ||
+                currentMode == DrawingMode.Image ||
+                currentMode == DrawingMode.Rectangle ||
+                currentMode == DrawingMode.Triangle)
+        {
+            currentSnapshot = sTCanvas.createImage();
+        }
         NetworkService.getInstance().sendMementoOpenerSignal(UserID.getInstance().getUserID(),canvasID);
     }
 
@@ -74,22 +83,26 @@ public class CanvasController {
             } else if(currentMode == DrawingMode.Rectangle) {
                 currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
                 command = new DrawRectangleCommand(this,UserID.getInstance().getUserID(),currentRect,currentColor, currentLineWidth);
-                processStateChangeCommand(getCurrentMementoID());
+                //processStateChangeCommand(getCurrentMementoID());
+                sTCanvas.setImage(currentSnapshot);
                 commandExecutorThread.addCommandToCommandQueue(command);
             } else if(currentMode == DrawingMode.Triangle) {
                 currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
                 command = new DrawTriangleCommand(this,UserID.getInstance().getUserID(),currentRect,currentColor, currentLineWidth);
-                processStateChangeCommand(getCurrentMementoID());
+                //processStateChangeCommand(getCurrentMementoID());
+                sTCanvas.setImage(currentSnapshot);
                 commandExecutorThread.addCommandToCommandQueue(command);
             } else if(currentMode == DrawingMode.Ellipse) {
                 currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
                 command = new DrawEllipseCommand(this,UserID.getInstance().getUserID(),currentRect,currentColor, currentLineWidth);
-                processStateChangeCommand(getCurrentMementoID());
+                //processStateChangeCommand(getCurrentMementoID());
+                sTCanvas.setImage(currentSnapshot);
                 commandExecutorThread.addCommandToCommandQueue(command);
             } else if(currentMode == DrawingMode.Image) {
                 currentRect = fixRectangleNegativeWidthHeight(new Rectangle(lastPoint.getX(),lastPoint.getY(),p.getX()-lastPoint.getX(),p.getY()-lastPoint.getY()));
                 command = new DrawImageCommand(this,UserID.getInstance().getUserID(),currentRect,currentImage,stateOriginator.getNextMementoID());
-                processStateChangeCommand(getCurrentMementoID());
+                //processStateChangeCommand(getCurrentMementoID());
+                sTCanvas.setImage(currentSnapshot);
                 commandExecutorThread.addCommandToCommandQueue(command);
             }
             else {
@@ -135,13 +148,10 @@ public class CanvasController {
         }
 
         StateMemento newMemento = insertNewMementoAfterActual(true);
-        if (wasCleanup) {
-
-        }
         NetworkService.getInstance().sendMementoCloserSignal(UserID.getInstance().getUserID(),canvasID,
                 newMemento.getId(),true,newMemento.getPreviousMementoID(),
                 newMemento.getNextMementoID());
-
+        processStateChangeCommand(getCurrentMementoID());
         semaphore.release();
     }
 
@@ -199,7 +209,7 @@ public class CanvasController {
     }
 
     public STCanvas getSTCanvas() {
-        return STCanvas;
+        return sTCanvas;
     }
 
     public void loadMementos(ArrayList<StateMemento> mementos) {
@@ -262,34 +272,34 @@ public class CanvasController {
 
 
     public void drawLine(Point x, Point y, Color color, int lineWidth) {
-        STCanvas.setColor(color);
-        STCanvas.setLineWidth(lineWidth);
-        STCanvas.drawLine(x,y);
+        sTCanvas.setColor(color);
+        sTCanvas.setLineWidth(lineWidth);
+        sTCanvas.drawLine(x,y);
     }
 
     public void drawRectangle(Rectangle rectangle, Color color, int lineWidth) {
-        STCanvas.setColor(color);
-        STCanvas.setLineWidth(lineWidth);
-        STCanvas.drawRectangle(rectangle);
+        sTCanvas.setColor(color);
+        sTCanvas.setLineWidth(lineWidth);
+        sTCanvas.drawRectangle(rectangle);
     }
 
     public void drawEllipse(Rectangle rectangle, Color color, int lineWidth) {
-        STCanvas.setColor(color);
-        STCanvas.setLineWidth(lineWidth);
-        STCanvas.drawEllipse(rectangle);
+        sTCanvas.setColor(color);
+        sTCanvas.setLineWidth(lineWidth);
+        sTCanvas.drawEllipse(rectangle);
     }
 
     public void drawTriangle(Rectangle rectangle, Color color, int lineWidth) {
-        STCanvas.setColor(color);
-        STCanvas.setLineWidth(lineWidth);
+        sTCanvas.setColor(color);
+        sTCanvas.setLineWidth(lineWidth);
         Point upperMidPoint = calculateLineMindPoint(new Point(rectangle.getX(),rectangle.getY()),
                 new Point(rectangle.getX()+rectangle.getWidth(),rectangle.getY()));
-        STCanvas.drawTriangle(new Point(rectangle.getX(),rectangle.getY()+rectangle.getHeight()),upperMidPoint,
+        sTCanvas.drawTriangle(new Point(rectangle.getX(),rectangle.getY()+rectangle.getHeight()),upperMidPoint,
                 new Point(rectangle.getX()+rectangle.getWidth(),rectangle.getY()+rectangle.getHeight()));
     }
 
     public void drawImage(Image image, Rectangle rectangle) {
-        STCanvas.drawImage(image,rectangle);
+        sTCanvas.drawImage(image,rectangle);
     }
 
     public void onWidthChanged() {
@@ -303,12 +313,12 @@ public class CanvasController {
 
     public void setColor(Color color) {
         currentColor = color;
-        STCanvas.setColor(color);
+        sTCanvas.setColor(color);
     }
 
     public void setLineWidth(int lineWidth) {
         currentLineWidth = lineWidth;
-        STCanvas.setLineWidth(lineWidth);
+        sTCanvas.setLineWidth(lineWidth);
     }
 
     public void setDrawingMode(DrawingMode mode) {

@@ -19,16 +19,13 @@ public class CommandExecutorThread extends Thread {
     private Semaphore semaphore = new Semaphore(1);
     private BlockingQueue<Command> commandQueue = new ArrayBlockingQueue<Command>(10000);
     private boolean timeToStop = false;
-    private Semaphore loadRestrictor = new Semaphore(8);
 
     @Override
     public void run() {
             while (!timeToStop) {
                 try {
                     Command command = commandQueue.take();
-                    loadRestrictor.acquire();
                     Platform.runLater(command::execute);
-                    loadRestrictor.release();
                 }
                 catch (InterruptedException e) {
                     if (timeToStop) {
