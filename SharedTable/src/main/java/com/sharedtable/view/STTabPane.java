@@ -21,8 +21,8 @@ public class STTabPane extends TabPane {
         newTab.setId(tabID.toString());
         STCanvas stCanvas = new STCanvas();
 
-        stCanvas.heightProperty().bind(this.heightProperty());
-        stCanvas.widthProperty().bind(this.widthProperty());
+        //stCanvas.heightProperty().bind(this.heightProperty());
+        //stCanvas.widthProperty().bind(this.widthProperty());
 
         newTab.setContent(stCanvas);
         newTab.setText(tabName);

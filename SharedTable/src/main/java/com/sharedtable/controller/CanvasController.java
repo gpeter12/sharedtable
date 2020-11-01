@@ -307,8 +307,6 @@ public class CanvasController {
             processStateChangeCommand(actMementoID);
             nextStateRedraw = System.currentTimeMillis()+1000;
         }*/
-        processStateChangeCommand(actMementoID);
-        Sleep.sleep(1200,logger);
     }
 
     public void onWidthChanged() {

@@ -23,8 +23,8 @@ public class STCanvas extends Canvas {
 
 
     public STCanvas() {
-        setWidth(640);
-        setHeight(480);
+        setWidth(1920);
+        setHeight(1080);
         graphicsContext = this.getGraphicsContext2D();
     }
 
@@ -52,24 +52,18 @@ public class STCanvas extends Canvas {
                     }
 
                 });
-        this.heightProperty().addListener(new ChangeListener<Number>() {
+        /*this.heightProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
-                Platform.runLater(() -> {
-                    canvasController.onWidthChanged();
-                });
-
+                Platform.runLater(canvasController::onWidthChanged);
             }
         });
         this.widthProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
-                Platform.runLater(() -> {
-                    canvasController.onHeightChanged();
-                        });
-
+                Platform.runLater(canvasController::onHeightChanged);
             }
-        });
+        });*/
     }
 
     public void setColor(Color color){
