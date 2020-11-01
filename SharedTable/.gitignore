@@ -1,6 +1,7 @@
 /out
 /.idea
 SharedTable.iml
+ucfg*
 
 # Ignore Gradle project-specific cache directory
 .gradle

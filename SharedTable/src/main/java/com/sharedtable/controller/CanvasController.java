@@ -35,7 +35,6 @@ public class CanvasController {
     private Semaphore semaphore = new Semaphore(1);
     private Semaphore mementoAddSemaphore = new Semaphore(1);
     private Logger logger = null;
-    private boolean wasCleanup = false;
     private WritableImage currentSnapshot;
 
     public CanvasController(STCanvas STCanvas, UUID canvasID) {
@@ -364,8 +363,8 @@ public class CanvasController {
             handleStateChainInconsistencyException();
         }
 
-
         actMementoID = memento.getId();
+        processStateChangeCommand(actMementoID);
         mementoAddSemaphore.release();
     }
 //////////////////////////////////////private section////////////////////////////////////////
@@ -380,13 +379,11 @@ public class CanvasController {
                 memento.setPreviousMementoID(actMementoID);
                 memento.setNextMementoID(Constants.getEndChainUUID());
                 stateCaretaker.addMemento(memento, link);
-                wasCleanup = false;
             } else {
                 stateCaretaker.addMementoWCleanup(memento, actMementoID,
                         stateCaretaker.getMementoByID(actMementoID).getNextMementoID(), link);
                 NetworkService.getInstance().sendDeleteAfterSignal(UserID.getInstance().getUserID(),canvasID,
                         memento.getPreviousMementoID());
-                wasCleanup = true;
             }
         } catch (StateChainInconsistencyException|NotFoundException e){
             e.printStackTrace();
