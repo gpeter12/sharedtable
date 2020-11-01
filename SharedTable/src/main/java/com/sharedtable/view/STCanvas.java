@@ -115,6 +115,7 @@ public class STCanvas extends Canvas {
         int imageHeight = (int) this.getBoundsInLocal().getHeight();
         wi = new WritableImage(imageWidth, imageHeight);
         this.snapshot(parameters, wi);
+        System.out.println("image created");
         return wi;
 
     }

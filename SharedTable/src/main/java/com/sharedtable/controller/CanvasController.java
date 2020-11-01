@@ -36,6 +36,7 @@ public class CanvasController {
     private Semaphore mementoAddSemaphore = new Semaphore(1);
     private Logger logger = null;
     private WritableImage currentSnapshot;
+    private long nextStateRedraw=0;
 
     public CanvasController(STCanvas STCanvas, UUID canvasID) {
         logger = Logger.getLogger(MainViewController.class.getName());
@@ -301,13 +302,21 @@ public class CanvasController {
         sTCanvas.drawImage(image,rectangle);
     }
 
-    public void onWidthChanged() {
+    private void onCanvasSizeChanged() {
+        /*if(System.currentTimeMillis() > nextStateRedraw){
+            processStateChangeCommand(actMementoID);
+            nextStateRedraw = System.currentTimeMillis()+1000;
+        }*/
         processStateChangeCommand(actMementoID);
+        Sleep.sleep(1200,logger);
+    }
+
+    public void onWidthChanged() {
+        onCanvasSizeChanged();
     }
 
     public void onHeightChanged() {
-        processStateChangeCommand(actMementoID);
-
+        onCanvasSizeChanged();
     }
 
     public void setColor(Color color) {
