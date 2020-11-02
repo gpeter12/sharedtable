@@ -1,5 +1,6 @@
 package com.sharedtable.model.network.signals;
 
+import com.sharedtable.Constants;
 import com.sharedtable.Utils;
 
 import java.util.UUID;
@@ -26,7 +27,7 @@ public class NetworkPasswordChangeSignal implements Signal {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("SIG;PASSWD;").append(creatorID).append(";")
-                .append(password);
+                .append(getPassword());
         return sb.toString();
     }
 
@@ -35,6 +36,9 @@ public class NetworkPasswordChangeSignal implements Signal {
     }
 
     public String getPassword() {
+        if(password.isEmpty()) {
+            return Constants.getNoPasswordConstant();
+        }
         return password;
     }
 

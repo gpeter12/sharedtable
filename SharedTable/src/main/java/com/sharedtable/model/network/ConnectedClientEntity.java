@@ -504,6 +504,13 @@ public class ConnectedClientEntity extends Thread {
         }
         sendLockSemaphore.release();
         isSyncFinished = true;
+
+        if(!amiServer()) {
+            DiscoverySignal signal = new DiscoverySignal(UserID.getInstance().getUserID());
+            logger.info("sending discovery signal downwards... " + signal);
+            NetworkService.getInstance().sendSignalDownwards(signal);
+        }
+
         if(amiServer()) {
             NetworkService.getInstance().sendSignalUpwards(new NewClientSignal(networkClientEntity.getID(),
                     networkClientEntity.getNickname(),

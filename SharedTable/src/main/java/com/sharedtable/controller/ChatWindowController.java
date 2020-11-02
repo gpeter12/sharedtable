@@ -36,7 +36,7 @@ public class ChatWindowController implements Initializable {
     }
 
     public void printMessage(String nickname, String message, boolean isMine) {
-        String fixedMessage = message.replace("\\n","\n");
+        String fixedMessage = message.replace("\u0001","\n");
         Platform.runLater(() -> {
             chatFlow.getChildren().add(getPrefixForUser(nickname,isMine));
             chatFlow.getChildren().add(new Text(fixedMessage+"\n"));
@@ -54,7 +54,7 @@ public class ChatWindowController implements Initializable {
     private void sendMessage(){
         String outMessage = new StringBuilder(chatInput.getText())
                 .deleteCharAt(chatInput.getCaretPosition()-1).toString()
-                        .replace("\n","\\n");
+                        .replace("\n","\u0001");
         ChatService.getInstance().handleOutgoingChatMessage(outMessage);
         chatInput.setText("");
         scrollDown();
