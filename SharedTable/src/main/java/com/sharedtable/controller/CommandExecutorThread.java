@@ -7,13 +7,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Semaphore;
 
-
-/*
- * Mivel a STCanvas-t egyszerre csak egy thread kezeleheti, így szükséges egy command buffer, ami
- * sorban dolgozza fel a különböző threadekről akár egyszerre beérkező parancsokat. nagyon jól kihasználja a
- * command pattern sajátosságát.
- * */
-
 public class CommandExecutorThread extends Thread {
 
     private Semaphore semaphore = new Semaphore(1);

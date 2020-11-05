@@ -302,21 +302,6 @@ public class CanvasController {
         sTCanvas.drawImage(image,rectangle);
     }
 
-    private void onCanvasSizeChanged() {
-        /*if(System.currentTimeMillis() > nextStateRedraw){
-            processStateChangeCommand(actMementoID);
-            nextStateRedraw = System.currentTimeMillis()+1000;
-        }*/
-    }
-
-    public void onWidthChanged() {
-        onCanvasSizeChanged();
-    }
-
-    public void onHeightChanged() {
-        onCanvasSizeChanged();
-    }
-
     public void setColor(Color color) {
         currentColor = color;
         sTCanvas.setColor(color);

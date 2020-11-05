@@ -6,10 +6,6 @@
     <children>
         <VBox spacing="10" alignment="CENTER_LEFT">
             <MenuBar>
-                <!--<Menu text="Commands">
-                    <MenuItem text="TestConnect" onAction="#onTestConnectPressed"></MenuItem>
-                    <MenuItem text="OpenWebView" onAction="#onOpenWebViewPressed"></MenuItem>
-                </Menu> -->
                 <Menu text="Hálózat">
                     <MenuItem text="Kapcsolódás más klienshez" onAction="#onConnectPressed"></MenuItem>
                     <MenuItem text="Bejövő kapcsolatok engedélyezése" onAction="#onEnableIncomingConnectionsPressed"></MenuItem>
@@ -23,8 +19,6 @@
                     <MenuItem text="Új vászon" onAction="#onCreateNewTabPressed"></MenuItem>
                     <MenuItem text="Jelenlegi vászon átnevezése" onAction="#onRenameCurrentTabPressed"></MenuItem>
                     <MenuItem text="Jelenlegi vászon másolása" onAction="#onCopyCurrentTabPressed"></MenuItem>
-                 <!--   <MenuItem text="printAllMementos()" onAction="#onPrintAllMementosPressed"></MenuItem> -->
-
                 </Menu>
                 <Menu text="Rajzolási módok">
                     <MenuItem text="Folytonos vonal" onAction="#onDrawLineModePressed"></MenuItem>

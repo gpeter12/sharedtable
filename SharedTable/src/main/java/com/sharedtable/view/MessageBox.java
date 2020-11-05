@@ -64,38 +64,6 @@ public class MessageBox {
 
     private static SyncProcessView syncProcessView = null;
 
-    /*public static boolean showConfirmation(String header, String message) {
-        Optional<ButtonType> result = null;
-        Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Megerősítés szükséges!");
-            alert.setHeaderText(header);
-            alert.setContentText(message);
-
-            result = alert.showAndWait();
-
-        });
-        if (result.get() == ButtonType.OK){
-            return true;
-        } else {
-            return false;
-        }
-    }*/
-
-    public static void showPopup(String message, int time, Stage stage) {
-        Popup popup = new Popup();
-        Label label = new Label(message);
-        label.setStyle(" -fx-background-color: white; -fx-background-opacity: 1.0");
-        popup.centerOnScreen();
-        popup.getContent().add(label);
-
-        label.setMinWidth(80);
-        label.setMinHeight(50);
-        popup.setAutoHide(true);
-        setTimerForPopup(time,popup);
-        popup.show(stage);
-    }
-
     private static void setTimerForPopup(int time, Popup popup) {
         TimerTask task = new TimerTask() {
             public void run() {

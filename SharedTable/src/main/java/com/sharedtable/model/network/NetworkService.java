@@ -76,12 +76,6 @@ public class NetworkService {
         } catch (IOException e) {
             logger.warning("port open failed! "+port1);
             enableReceivingConnections(port1 + 2);
-             /*catch (IOException e1) {
-                logger.severe("can't open any port!");
-                MessageBox.showError("Hiba a port megnyitáskor!", "A rendszer nem engedélyezi port megnyitását ");
-                e1.printStackTrace();
-                return false;
-            } */
         } catch (UPnPConfigException e) {
             logger.info("UPnP not supported!");
             showUPnPErrorMessage(port1);

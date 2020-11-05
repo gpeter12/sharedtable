@@ -34,8 +34,3 @@
     </HBox>
     <Button fx:id="pingButton" text="Kliens pingelése" onAction="#btnPingButtonClicked"></Button>
 </VBox>
-
-
-<!--
-
--->
