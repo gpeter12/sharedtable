@@ -482,6 +482,7 @@ public class ConnectedClientEntity extends Thread {
                 sendNetworkPasswordValidationResultOnSync(false);
                 logger.info("sending Network Password Validation Result: false");
                 handleScannerClose();
+                MessageBox.closeSyncWindow();
                 return;
             } else {
                 sendNetworkPasswordValidationResultOnSync(true);
@@ -495,6 +496,7 @@ public class ConnectedClientEntity extends Thread {
             if(!receiveNetworkPasswordValidationResultOnSync()) {
                 MessageBox.showError("Érvénytelen jelszó!", "A megadott hálózati jelszó érvénytelen");
                 handleScannerClose();
+                MessageBox.closeSyncWindow();
                 return;
             }
 

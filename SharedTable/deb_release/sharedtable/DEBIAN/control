@@ -1,5 +1,5 @@
 Package: sharedtable
-Version: 0.9
+Version: 1.0
 Maintainer: Gaál Péter
 Architecture: amd64
 Description: This is a Microsoft Paint like app, where multiple user can draw on the same canvas at the same time.

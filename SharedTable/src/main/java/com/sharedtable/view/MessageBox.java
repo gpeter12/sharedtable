@@ -8,6 +8,7 @@ import javafx.stage.Stage;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Logger;
 
 public class MessageBox {
     private MessageBox() {
@@ -58,7 +59,7 @@ public class MessageBox {
                 syncProcessView.closeWindow();
             });
         } else {
-            throw new RuntimeException("SyncProcessView was not shown!");
+            Logger.getAnonymousLogger().warning("sync window is null");
         }
     }
 
