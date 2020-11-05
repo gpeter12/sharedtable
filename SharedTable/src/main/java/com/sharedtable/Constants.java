@@ -9,7 +9,7 @@ public class Constants {
     }
 
     public static int getBuildNumber() {
-        return 50;
+        return 1000;
     }
 
     public static boolean isPlatformWindows() {
