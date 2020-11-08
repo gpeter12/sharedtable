@@ -87,21 +87,17 @@ tasks.register("make_deb") {
 	dependsOn 'build'
 	dependsOn 'jlink'
 	doLast {
-		println 'delete fileTree'
 		delete fileTree("deb_release/sharedtable/opt")
-		println 'copy1'
 		copy{
 		    from "addFilesToDeb"
 		    into "deb_release/sharedtable/opt/sharedtable"
 		}
-		println 'copy2'
 		copy{
 		    from "build/image"
 		    exclude '**/legal/**'
 		    into "deb_release/sharedtable/opt/sharedtable"
 
 		}
-		println 'exec'
 		exec {
 		    executable 'dpkg-deb'
 		    args '--build','deb_release/sharedtable'
@@ -116,4 +112,42 @@ task make_installer(type:Exec) {
 	dependsOn 'jlink'
 	commandLine 'C:\\Program Files (x86)\\NSIS\\makensis.exe', 'nsisOutput\\SharedTableInstaller.nsi'	
 }
+
+task tarz(type: Tar) {
+ 	doFirst{
+ 		copy{
+			from "addFilesToDeb"
+			into "build/image"
+		}
+	}
+
+ 	archiveName = 'SharedTablePortable.tar'
+ 	into ('/SharedTable'){
+    	from 'build/image'
+ 	}
+
+
+	destinationDir  file('tarOut')
+	extension 'tar'
+	compression = Compression.GZIP
+}
+
+task zip(type: Zip) {
+ 	doFirst{
+ 		copy{
+			from "addFilesToZip"
+			into "build/image/bin"
+		}
+	}
+
+ 	archiveName = 'SharedTablePortable.zip'
+ 	into ('/SharedTable'){
+    	from 'build/image'
+ 	}
+
+
+	destinationDir  file('zipOut')
+	extension 'zip'
+}
+
 

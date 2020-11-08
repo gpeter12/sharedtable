@@ -12,5 +12,6 @@ build
 deb_release/sharedtable.deb
 deb_release/sharedtable/opt
 nsisOutput/InstallSharedTable.exe
-
+zipOut
+tarOut
 
