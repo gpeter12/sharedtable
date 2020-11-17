@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 
 public class StateCaretaker {
 
-    private ArrayList<StateMemento> mementos = new ArrayList<>();
+    private ArrayList<StateMemento> stateChain = new ArrayList<>();
     private Logger logger;
 
 
@@ -17,45 +17,43 @@ public class StateCaretaker {
     }
 
     public void addFirstMemento(StateMemento fistMemento) {
-        mementos.add(fistMemento);
+        stateChain.add(fistMemento);
     }
 
     private StateMemento getColliderMemento(StateMemento memento) {
-        if(mementos.size()<2)
+        if(stateChain.size()<2)
             return null;
-        int i = mementos.size() - 1;
-        while (i>0 && (!(mementos.get(i).getPreviousMementoID().equals(memento.getPreviousMementoID())))) {
+        int i = stateChain.size() - 1;
+        while (i>0 && (!(stateChain.get(i).getPreviousMementoID().equals(memento.getPreviousMementoID())))) {
             i--;
         }
-        if( mementos.get(i).getNextMementoID().equals(memento.getNextMementoID())){
-            return mementos.get(i);
+        if( stateChain.get(i).getNextMementoID().equals(memento.getNextMementoID())){
+            return stateChain.get(i);
         }
         return null;
     }
 
     private void rechain() {
-        mementos.get(0).setPreviousMementoID(Constants.getNilUUID());
-        mementos.get(0).setNextMemento(mementos.get(1));
-        for(int i=1; i<mementos.size()-1; i++) {
-            if(mementos.get(i).isBackLinked()) {
-                mementos.get(i).setPreviousMemento(mementos.get(i - 1));
+        stateChain.get(0).setPreviousMementoID(Constants.getNilUUID());
+        stateChain.get(0).setNextMemento(stateChain.get(1));
+        for(int i = 1; i< stateChain.size()-1; i++) {
+            if(stateChain.get(i).isBackLinked()) {
+                stateChain.get(i).setPreviousMemento(stateChain.get(i - 1));
             }
-            mementos.get(i).setNextMemento(mementos.get(i+1));
+            stateChain.get(i).setNextMemento(stateChain.get(i+1));
         }
-        mementos.get(mementos.size()-1).setNextMementoID(Constants.getEndChainUUID());
+        stateChain.get(stateChain.size()-1).setNextMementoID(Constants.getEndChainUUID());
     }
 
     private void resolveMementoCollision(StateMemento toInsert,StateMemento collides, boolean link) {
         int index = getMementoIndexByID(collides.getId());
         if(toInsert.getId().compareTo(collides.getId()) == 1) {
-            mementos.add(index+1,toInsert);
+            stateChain.add(index+1,toInsert);
             if(link)
-                //linkMementoWithMemento(mementos.get(index),toInsert);
                 rechain();
         } else {
-            mementos.add(index,toInsert);
+            stateChain.add(index,toInsert);
             if(link)
-                //linkMementoWithMemento(toInsert,mementos.get(index));
                 rechain();
         }
     }
@@ -94,12 +92,12 @@ public class StateCaretaker {
         }
         else {
             if(stateMemento.getNextMementoID().equals(Constants.getEndChainUUID())) {
-                mementos.add(stateMemento);
+                stateChain.add(stateMemento);
             } else {
                 if(!areTheyNeighbours(stateMemento.getPreviousMementoID(),stateMemento.getNextMementoID())) {
                     throw new StateChainInconsistencyException();
                 }
-                mementos.add(getMementoIndexByID(stateMemento.getPreviousMementoID())+1,stateMemento);
+                stateChain.add(getMementoIndexByID(stateMemento.getPreviousMementoID())+1,stateMemento);
             }
             if (link) {
                 linkMementoWithMemento(getMementoByID(stateMemento.getPreviousMementoID()), stateMemento);
@@ -126,29 +124,29 @@ public class StateCaretaker {
 
     public void printAllMementos() {
         System.out.println("-------------------");
-        for (int i = 0; i < mementos.size(); i++) {
-            System.out.println("------>>ind: " + i + ". " + mementos.get(i).getId());
-            System.out.println(mementos.get(i).getPreviousMementoID().toString());
-            System.out.println(mementos.get(i).getNextMementoID().toString());
-            if(mementos.get(i).getPreviousMemento() != null){
-                System.out.println(mementos.get(i).getPreviousMemento().getId().toString());
-                if(!mementos.get(i).getPreviousMemento().getId().equals(mementos.get(i).getPreviousMementoID())){
+        for (int i = 0; i < stateChain.size(); i++) {
+            System.out.println("------>>ind: " + i + ". " + stateChain.get(i).getId());
+            System.out.println(stateChain.get(i).getPreviousMementoID().toString());
+            System.out.println(stateChain.get(i).getNextMementoID().toString());
+            if(stateChain.get(i).getPreviousMemento() != null){
+                System.out.println(stateChain.get(i).getPreviousMemento().getId().toString());
+                if(!stateChain.get(i).getPreviousMemento().getId().equals(stateChain.get(i).getPreviousMementoID())){
                     System.out.println("!!NOT MATCHING!!");
                 }
             }
-            if(mementos.get(i).getNextMemento() != null){
-                System.out.println(mementos.get(i).getNextMemento().getId().toString());
-                if(!mementos.get(i).getNextMemento().getId().equals(mementos.get(i).getNextMementoID())){
+            if(stateChain.get(i).getNextMemento() != null){
+                System.out.println(stateChain.get(i).getNextMemento().getId().toString());
+                if(!stateChain.get(i).getNextMemento().getId().equals(stateChain.get(i).getNextMementoID())){
                     System.out.println("!!NOT MATCHING!!");
                 }
             }
-            System.out.println("isBackLinked: "+mementos.get(i).isBackLinked());
+            System.out.println("isBackLinked: "+ stateChain.get(i).isBackLinked());
         }
         System.out.println("-------------------");
     }
 
     public boolean hasMememnto(UUID id) {
-        for(StateMemento act : mementos) {
+        for(StateMemento act : stateChain) {
             if(act.getId().equals(id))
                 return true;
         }
@@ -159,10 +157,10 @@ public class StateCaretaker {
 
     public void cleanupAfterStateInsertion(UUID wantedMementoID) {
         logger.info("cleaning up from top until reach "+wantedMementoID);
-        while (!(getMementoByIndex(mementos.size() - 1).getId().equals(wantedMementoID))) {//azt már nem törli ki
-            logger.info("wanted: "+wantedMementoID+" removing #"+(mementos.size() - 1)+" with ID: "+(getMementoByIndex(mementos.size() - 1)).getId()+" memento due to insertion between 2 mementos.");
-            mementos.remove(getMementoByIndex(mementos.size() - 1));
-            if(mementos.size()==0) {
+        while (!(getMementoByIndex(stateChain.size() - 1).getId().equals(wantedMementoID))) {//azt már nem törli ki
+            logger.info("wanted: "+wantedMementoID+" removing #"+(stateChain.size() - 1)+" with ID: "+(getMementoByIndex(stateChain.size() - 1)).getId()+" memento due to insertion between 2 mementos.");
+            stateChain.remove(getMementoByIndex(stateChain.size() - 1));
+            if(stateChain.size()==0) {
                 throw new RuntimeException("target memento not found, all mementos were removed.");
             }
         }
@@ -172,16 +170,16 @@ public class StateCaretaker {
 
     public StateMemento getMementoByIndex(int index) {
         if (index < 0)
-            return mementos.get(0);
-        if (index > mementos.size() - 1)
-            return mementos.get(mementos.size() - 1);
-        return mementos.get(index);
+            return stateChain.get(0);
+        if (index > stateChain.size() - 1)
+            return stateChain.get(stateChain.size() - 1);
+        return stateChain.get(index);
     }
 
 
     public int getMementoIndexByID(UUID id) throws NotFoundException {
-        for (int i = 0; i < mementos.size(); i++) {
-            if (mementos.get(i).getId().equals(id))
+        for (int i = 0; i < stateChain.size(); i++) {
+            if (stateChain.get(i).getId().equals(id))
                 return i;
         }
         printAllMementos();
@@ -189,26 +187,26 @@ public class StateCaretaker {
     }
 
     public StateMemento getMementoByID(UUID id) throws NotFoundException {
-        for (int i = 0; i < mementos.size(); i++) {
-            if (mementos.get(i).getId().equals(id))
-                return mementos.get(i);
+        for (int i = 0; i < stateChain.size(); i++) {
+            if (stateChain.get(i).getId().equals(id))
+                return stateChain.get(i);
         }
         printAllMementos();
         throw new NotFoundException("Memento not found by ID: "+id);
     }
 
-    public ArrayList<StateMemento> getMementos() {return mementos;}
+    public ArrayList<StateMemento> getMementos() {return stateChain;}
 
     public UUID getLastMementoID() {
-        return mementos.get(mementos.size() - 1).getId();
+        return stateChain.get(stateChain.size() - 1).getId();
     }
 
     public StateMemento getLastMemento() {
-        return mementos.get(mementos.size() - 1);
+        return stateChain.get(stateChain.size() - 1);
     }
 
     public void clearStateChain() {
-        mementos.clear();
+        stateChain.clear();
     }
 
 }

@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 public class ConnectedClientEntity extends Thread {
 
     private UUID currentPingIDToWaitFor = UUID.randomUUID();
+    private UUID recentlyReceivedPingID = UUID.randomUUID();
     private long pingFinish;
     //Szinrkonizációnál nagyon fontos a lock, mert előfordulhat hogy olyan memetóra történik hivatkozás ami még nincs a becsatlakozó kliensénél
     private Semaphore sendLockSemaphore = new Semaphore(1);
@@ -329,7 +330,9 @@ public class ConnectedClientEntity extends Thread {
         if(pingSignal.isResponse() &&
                 pingSignal.getPingID().equals(currentPingIDToWaitFor))
         {
+            System.out.println("nano time recorded!");
             pingFinish = System.nanoTime();
+            recentlyReceivedPingID = pingSignal.getPingID();
         }
     }
 
@@ -344,7 +347,7 @@ public class ConnectedClientEntity extends Thread {
     }
 
     public long getPingResult(UUID pingID) {
-        if(pingID.equals(currentPingIDToWaitFor)){
+        if(pingID.equals(recentlyReceivedPingID)){
             return pingFinish;
         } else {
             return -1;
