@@ -121,7 +121,7 @@ task tarz(type: Tar) {
 		}
 	}
 
- 	archiveName = 'SharedTablePortable.tar'
+ 	archiveFileName = 'SharedTablePortable.tar'
  	into ('/SharedTable'){
     	from 'build/image'
  	}
@@ -140,7 +140,7 @@ task zip(type: Zip) {
 		}
 	}
 
- 	archiveName = 'SharedTablePortable.zip'
+ 	archiveFileName = 'SharedTablePortable.zip'
  	into ('/SharedTable'){
     	from 'build/image'
  	}
